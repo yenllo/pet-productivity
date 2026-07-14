@@ -299,6 +299,8 @@ public static class L
         ["Acerca de"] = "About",
         ["Versión"] = "Version",
         ["Créditos"] = "Credits",
+        ["Muebles del cuarto: Bongseng (bongseng.itch.io).\n\nHecho con .NET MAUI, ASP.NET Core y Google Gemini."] =
+            "Room furniture: Bongseng (bongseng.itch.io).\n\nBuilt with .NET MAUI, ASP.NET Core, and Google Gemini.",
         ["Desarrollador"] = "Developer",
         ["Opciones de desarrollador"] = "Developer options",
         ["URL del servidor"] = "Server URL",

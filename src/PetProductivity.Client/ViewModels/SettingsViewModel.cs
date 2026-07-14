@@ -249,6 +249,17 @@ namespace PetProductivity.Client.ViewModels
             });
         }
 
+        // La fila "Créditos" tenía el chevron "›" (mismo look que "Política de privacidad" de abajo,
+        // que sí navega) pero SettingsPage.xaml no le tenía ningún TapGestureRecognizer — aparentaba
+        // ser interactiva y no hacía nada al tocarla (encontrado navegando el emulador). Créditos al
+        // pack de muebles cuya licencia lo agradece (no lo exige): mismo texto ya usado hoy en
+        // ASSETS.md y el pie de demo.html.
+        [RelayCommand]
+        private async Task OpenCredits() =>
+            await Shell.Current.DisplayAlert(L.T("Créditos"),
+                L.T("Muebles del cuarto: Bongseng (bongseng.itch.io).\n\nHecho con .NET MAUI, ASP.NET Core y Google Gemini."),
+                "OK");
+
         // T14-C1: la política vive en el server (misma URL que verá Play Console).
         [RelayCommand]
         private async Task OpenPrivacyPolicy()

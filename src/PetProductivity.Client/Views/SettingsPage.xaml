@@ -130,6 +130,7 @@
                     </Grid>
                     <BoxView HeightRequest="1" Color="{StaticResource StrokeSoft}" />
                     <Grid ColumnDefinitions="*,Auto" Padding="15,12">
+                        <Grid.GestureRecognizers><TapGestureRecognizer Command="{Binding OpenCreditsCommand}"/></Grid.GestureRecognizers>
                         <Label Text="{loc:T 'Créditos'}" TextColor="{StaticResource Ink}" FontSize="14.5" VerticalOptions="Center" />
                         <Label Grid.Column="1" Text="{loc:T '›'}" TextColor="{StaticResource Ink4}" FontSize="18" VerticalOptions="Center" />
                     </Grid>
