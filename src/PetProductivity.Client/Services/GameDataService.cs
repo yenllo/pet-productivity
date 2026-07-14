@@ -465,13 +465,18 @@ public class GameDataService
     public static (int w, int d) FootprintFor(string sprite) =>
         sprite.Contains("bed") && !sprite.Contains("bedside") ? (2, 2) : (1, 1);
 
+    // ¿El footprint WxD en (x,y) cubre la baldosa (3,3), reservada para la mascota? Extraído de CanPlace
+    // para que la UI pueda distinguir "chocaste con la mascota" de "chocaste con otro mueble" al avisar
+    // por qué un movimiento falló (antes fallaba en silencio: parecía un bug, no una regla del cuarto).
+    public static bool OverlapsPetTile(int x, int y, int w, int d) => x <= 3 && 3 < x + w && y <= 3 && 3 < y + d;
+
     // ¿Cabe un footprint WxD en (x,y) sin pisar otro mueble ni el centro (3,3) de la mascota?
     // `ignore` = el propio mueble cuando se está moviendo.
     public static bool CanPlace(IReadOnlyList<PlacedFurniture> placed, int x, int y, int w, int d, PlacedFurniture? ignore = null)
     {
         const int N = 6;
         if (x < 0 || y < 0 || x + w > N || y + d > N) return false;
-        if (x <= 3 && 3 < x + w && y <= 3 && 3 < y + d) return false; // celda de la mascota
+        if (OverlapsPetTile(x, y, w, d)) return false;
         foreach (var p in placed)
         {
             if (ReferenceEquals(p, ignore)) continue;

@@ -70,6 +70,14 @@ namespace PetProductivity.Client.ViewModels
             _serviceProvider = serviceProvider;
             LoadSettings();
             _ = RefreshFocus();
+
+            // Conceder un permiso especial (Acceso de uso / Superponer) manda al usuario a Ajustes DEL
+            // SISTEMA y vuelve: eso es un resume de Activity, no navegación de Shell, así que OnAppearing
+            // (abajo) no se dispara y la fila quedaba con el estado viejo hasta cerrar y reabrir la app.
+            // Esta VM vive todo el ciclo de la app (pestaña cacheada en el Shell), así que suscribirse
+            // una vez en el constructor no necesita darse de baja.
+            if (Application.Current is App app)
+                app.Resumed += async (_, _) => await RefreshFocus();
         }
 
         // Estado de cada permiso del modo foco por separado (se llama al volver a la pantalla).

@@ -38,10 +38,12 @@ public partial class TaskViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<HistoryEntry> recentTasks = new();
 
     private readonly GameDataService _gameDataService;
+    private readonly FocusSessionService _focus;
 
-    public TaskViewModel(GameDataService gameDataService)
+    public TaskViewModel(GameDataService gameDataService, FocusSessionService focus)
     {
         _gameDataService = gameDataService;
+        _focus = focus;
         _ = RefreshFeedAsync();
     }
 
@@ -132,6 +134,15 @@ public partial class TaskViewModel : ObservableObject
     [RelayCommand]
     private async Task GoToFocus()
     {
+        // Ya hay una sesión corriendo (p. ej. se salió al menú sin cerrarla): entrar directo, sin pedir
+        // describir la tarea otra vez — antes esto parecía "olvidar" que el foco seguía activo, porque
+        // exigía una descripción nueva antes de dejar volver a la sesión que ya existía.
+        if (_focus.IsActive)
+        {
+            await Shell.Current.GoToAsync("FocusPage");
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(TaskInput))
         {
             AiFeedbackMessage = L.T("Escribe qué vas a hacer antes de iniciar el foco.");

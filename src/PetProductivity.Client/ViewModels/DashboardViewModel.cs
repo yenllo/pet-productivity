@@ -384,8 +384,18 @@ public partial class DashboardViewModel : ObservableObject
     {
         var p = _editList[_selectedIndex];
         int nx = Math.Clamp(gx, 0, 6 - p.GridW), ny = Math.Clamp(gy, 0, 6 - p.GridD);
-        // No pisar otro mueble ni la celda (3,3) de la mascota; movimiento inválido = no mover.
-        if (!GameDataService.CanPlace(_editList, nx, ny, p.GridW, p.GridD, ignore: p)) return;
+        if (!GameDataService.CanPlace(_editList, nx, ny, p.GridW, p.GridD, ignore: p))
+        {
+            // Antes fallaba en silencio: si chocaba con la celda de la mascota (3,3, sin ningún mueble
+            // visible ahí) parecía un bug — "saqué al gato y seguía igual" (el gato es un mueble en OTRA
+            // celda; lo que bloquea es la mascota misma, invisible en la lista de muebles). Un solo aviso
+            // cubre los dos motivos de rechazo sin duplicar la regla de GameDataService.CanPlace.
+            var msg = GameDataService.OverlapsPetTile(nx, ny, p.GridW, p.GridD)
+                ? L.T("Ahí vive tu mascota: no puedes poner nada encima.")
+                : L.T("Ahí ya hay otro mueble.");
+            _ = Toast.Make(msg).Show();
+            return;
+        }
         p.GridX = nx;
         p.GridY = ny;
         SelectedCell = (p.GridX, p.GridY);

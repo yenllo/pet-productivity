@@ -2,6 +2,17 @@ namespace PetProductivity.Client;
 
 public partial class App : Application
 {
+    // Ir a Ajustes del sistema a conceder un permiso (Acceso de uso / Superponer) y volver es un resume
+    // de Activity de Android, NO navegación de Shell: Page.OnAppearing no se vuelve a disparar, así que
+    // la fila de permisos quedaba con el estado de antes hasta cerrar y reabrir la app entera. OnResume
+    // sí se dispara con cualquier "app al frente", venga de donde venga.
+    public event EventHandler? Resumed;
+    protected override void OnResume()
+    {
+        base.OnResume();
+        Resumed?.Invoke(this, EventArgs.Empty);
+    }
+
 	public App(IServiceProvider serviceProvider)
 	{
 		Services.L.Init(); // #26: resolver el idioma ANTES de inflar cualquier página

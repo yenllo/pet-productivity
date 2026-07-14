@@ -13,7 +13,7 @@ public class AndroidNotificationService : INotificationService
     private const string ChannelId = "pet_general";
     private static int _next = 1000;
 
-    public void ShowNotification(string title, string message)
+    public void ShowNotification(string title, string message, bool openFocus = false)
     {
         var ctx = AndroidApp.Context;
         var mgr = (NotificationManager?)ctx.GetSystemService(Context.NotificationService);
@@ -23,7 +23,11 @@ public class AndroidNotificationService : INotificationService
             mgr.CreateNotificationChannel(new NotificationChannel(ChannelId, "PetProductivity", NotificationImportance.Default));
 
         var launch = ctx.PackageManager?.GetLaunchIntentForPackage(ctx.PackageName!);
-        var pi = PendingIntent.GetActivity(ctx, 0, launch,
+        // Con la app ya viva, tocar esto solo la traía al frente donde se hubiera quedado (p. ej. el
+        // Dashboard), nunca de vuelta a FocusPage — mismo bug que ya se arregló para la notificación
+        // del guardián de foco, mismo marcador de acción para que MainActivity.OnNewIntent lo detecte.
+        if (openFocus) launch?.SetAction(FocusGuardService.ActionOpenFocus);
+        var pi = PendingIntent.GetActivity(ctx, openFocus ? 1 : 0, launch,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
 
         var builder = new Notification.Builder(ctx, ChannelId)

@@ -166,7 +166,7 @@ public class FocusSessionService
             // T27-L1 (#4): si NO estás en esa pantalla, el prompt se perdía. Ahora te avisa por notificación.
             if (Preferences.Get(PhotoRewardsKey, true))
                 try { _notify.ShowNotification(L.T("📸 Comprobante disponible"),
-                    L.T("Vuelve a PetProductivity y demuestra tu foco para ganar 2× la recompensa.")); } catch { }
+                    L.T("Vuelve a PetProductivity y demuestra tu foco para ganar 2× la recompensa."), openFocus: true); } catch { }
         }
         if (Remaining <= TimeSpan.Zero) _ = CompleteAsync();
     }
