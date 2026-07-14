@@ -396,8 +396,24 @@ public class GameDataService
         return (false, error ?? "No se pudo completar la compra premium.");
     }
 
-    public async Task<List<ShopItem>> GetCatalogAsync() =>
-        await GetAsync<List<ShopItem>>("/api/shop/catalog") ?? new();
+    // El catálogo es estático (sale de la carpeta Catalog/ del server): se pide UNA vez por sesión.
+    // Antes se re-descargaban ~80 KB en cada apertura de la pestaña Tienda (medido: 0,7-1,6 s).
+    // Cachear el Task además deduplica llamadas concurrentes (el precalentado del arranque y el
+    // primer OnAppearing pueden solaparse).
+    private Task<List<ShopItem>>? _catalogTask;
+
+    public Task<List<ShopItem>> GetCatalogAsync() => _catalogTask ??= LoadCatalogAsync();
+
+    private async Task<List<ShopItem>> LoadCatalogAsync()
+    {
+        var list = await GetAsync<List<ShopItem>>("/api/shop/catalog");
+        if (list is not { Count: > 0 })
+        {
+            _catalogTask = null; // un fallo (sin red) no se cachea: se reintenta a la próxima
+            return new();
+        }
+        return list;
+    }
 
     public string GetActiveStyle() => CurrentUser?.ActiveRoomStyle ?? "default";
 

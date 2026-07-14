@@ -46,12 +46,16 @@ public class UsersController : ControllerBase
             return NotFound();
 
         // T10: decadencia lazy al materializar la mascota (bajo lock + reload, como las compras).
-        if (user.UserPet != null)
+        // Este endpoint corre en CADA arranque de la app y tras cada acción. El camino lento cuesta 2-3
+        // round-trips a Supabase (reload + save) y además serializa la lectura detrás del PetWriteLock —
+        // que puede estar tomado por un POST esperando a Gemini. Si no hay nada que aplicar (caso común),
+        // nos lo saltamos entero y el GET es 1 sola consulta.
+        if (user.UserPet != null && DecayMath.IsDecayPending(user.UserPet, DateTime.UtcNow, user.LastActivityDate))
         {
             using var _ = await _petLock.AcquireAsync(user.UserPet.Id);
-            await _context.Entry(user.UserPet).ReloadAsync();
+            await _context.Entry(user.UserPet).ReloadAsync(); // relee bajo el lock: si no, ticks duplicados
             DecayMath.ApplyPendingDecay(user.UserPet, DateTime.UtcNow, user.LastActivityDate); // T3-E
-            await _context.SaveChangesAsync(); // no-op si nada cambió
+            await _context.SaveChangesAsync();
         }
 
         user.Password = string.Empty;

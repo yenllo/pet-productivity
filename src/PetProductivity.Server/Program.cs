@@ -112,6 +112,10 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+// Compresión: el catálogo de la tienda son ~80 KB de JSON muy repetitivo (205 objetos) y viajaba en
+// crudo en cada apertura. Con gzip/brotli baja a ~15 KB — en 4G lento eso son segundos de diferencia.
+builder.Services.AddResponseCompression(o => o.EnableForHttps = true);
+
 // Register Application Services
 builder.Services.AddHttpClient(); // IHttpClientFactory para el canje OAuth de Google
 builder.Services.AddHttpClient<IAiService, PetProductivity.Server.Services.GeminiAiService>(c =>
@@ -154,6 +158,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseResponseCompression(); // antes de los endpoints: comprime el JSON del catálogo y del usuario
 app.UseHttpsRedirection();
 app.UseStaticFiles(); // T14-C1: /privacidad.html (política de privacidad para Play Console)
 

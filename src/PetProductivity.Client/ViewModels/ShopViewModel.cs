@@ -101,7 +101,9 @@ namespace PetProductivity.Client.ViewModels
                 await _gameDataService.InitializeAsync();
                 UserGold = _gameDataService.GetGold();
                 _catalog = await _gameDataService.GetCatalogAsync() ?? new();
-                await EnsureSpriteCacheAsync(_catalog); // #23: copia única de assets → FromFile (Glide cachea; FromStream no)
+                // #23: copia única de assets → FromFile (Glide cachea; FromStream no). NO se espera: las
+                // tarjetas se pintan ya, y mientras tanto caen al stream del paquete (que también funciona).
+                _ = EnsureSpriteCacheAsync(_catalog);
                 BuildCategories();
                 ApplyFilters();
                 if (_catalog.Count == 0) StatusMessage = L.T("La tienda está vacía por ahora.");
@@ -118,7 +120,15 @@ namespace PetProductivity.Client.ViewModels
         }
 
         // #23: los sprites del catálogo (MauiAsset) se copian una vez a CacheDirectory; los que ya existen se saltan.
-        private static async Task EnsureSpriteCacheAsync(List<ShopItem> catalog)
+        // El Task se cachea: corre UNA vez por proceso (antes se repetía en cada OnAppearing de la pestaña —
+        // 192 File.Exists en el hilo de UI, medido en 0,05-0,8 s por apertura) y deduplica llamadas concurrentes
+        // (el precalentado del arranque y la primera apertura de la tienda).
+        private static Task? _spriteCacheTask;
+
+        public static Task EnsureSpriteCacheAsync(List<ShopItem> catalog) =>
+            _spriteCacheTask ??= Task.Run(() => CopySpritesAsync(catalog)); // Task.Run: fuera del hilo de UI
+
+        private static async Task CopySpritesAsync(List<ShopItem> catalog)
         {
             foreach (var id in catalog.Where(i => !string.IsNullOrEmpty(i.SpriteId)).Select(i => i.SpriteId).Distinct())
             {
@@ -136,11 +146,23 @@ namespace PetProductivity.Client.ViewModels
 
         private void BuildCategories()
         {
-            Categories.Clear();
-            Categories.Add(new CategoryVm("Todo", _selectedCategory == "Todo"));
-            foreach (var c in _catalog.Select(i => i.Category).Where(c => !string.IsNullOrEmpty(c)).Distinct()
-                                      .OrderBy(CatRank).ThenBy(c => c))
-                Categories.Add(new CategoryVm(c, _selectedCategory == c));
+            var names = new List<string> { "Todo" };
+            names.AddRange(_catalog.Select(i => i.Category).Where(c => !string.IsNullOrEmpty(c)).Distinct()
+                                   .OrderBy(CatRank).ThenBy(c => c));
+
+            // Las categorías salen del catálogo, que es estático: en la práctica nunca cambian. Reconstruirlas
+            // costaba ~1,2 s POR APERTURA de la pestaña (medido): cada Clear/Add sobre la ObservableCollection
+            // enlazada dispara una pasada de layout del CollectionView. Si el conjunto es el mismo, solo se
+            // actualiza cuál está seleccionada (eso no relayoutea).
+            if (Categories.Count == names.Count && Categories.Select(c => c.Name).SequenceEqual(names))
+            {
+                foreach (var c in Categories) c.IsSelected = c.Name == _selectedCategory;
+                return;
+            }
+
+            // Se asigna la colección ENTERA de una vez (una sola notificación) en vez de Clear + N Adds:
+            // cada Add sobre una ObservableCollection enlazada dispara su propia pasada de layout.
+            Categories = new ObservableCollection<CategoryVm>(names.Select(n => new CategoryVm(n, n == _selectedCategory)));
         }
 
         [RelayCommand]

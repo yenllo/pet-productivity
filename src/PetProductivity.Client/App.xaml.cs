@@ -18,7 +18,17 @@ public partial class App : Application
 
         // T13: ping de calentamiento (cold start de Render) + drenar la cola offline pendiente;
         // queda suscrito a Connectivity para drenar solo al volver la señal.
-        serviceProvider.GetRequiredService<Services.GameDataService>().StartOfflineQueue();
+        var gameData = serviceProvider.GetRequiredService<Services.GameDataService>();
+        gameData.StartOfflineQueue();
+
+        // Precalentar la tienda en segundo plano (fuera del hilo de UI): cuando el usuario toque la pestaña,
+        // el catálogo y los sprites ya están en RAM/disco y la abre al instante. No bloquea el arranque: si
+        // no hay red o aún no hay sesión, falla en silencio y la tienda lo reintenta al abrirse.
+        _ = Task.Run(async () =>
+        {
+            try { await ViewModels.ShopViewModel.EnsureSpriteCacheAsync(await gameData.GetCatalogAsync()); }
+            catch { }
+        });
 
         if (!Preferences.Get("HasHatched", false))
         {

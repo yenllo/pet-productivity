@@ -88,6 +88,51 @@ public class DecayMathTests
         Assert.Equal(0, p.Health);
     }
 
+    // --- IsDecayPending: el GET del usuario se salta lock + reload + SaveChanges cuando esto da false.
+    // El invariante que lo hace seguro: si dice false, ApplyPendingDecay NO puede mutar NADA. Si se
+    // rompiera, el servidor se saltaría una escritura real y la decadencia se perdería en silencio.
+
+    [Theory]
+    [InlineData(-1, 0)]      // reloj hace 1 h: menos de un tick
+    [InlineData(-119, 0)]    // 1 h 59 min: justo por debajo del tick
+    [InlineData(-119, -60)]  // ídem, con dueño activo hace 60 días... (ver nota: activo = hace <3 días)
+    public void SiNoHayNadaPendiente_ApplyPendingDecay_NoMutaNada(int minutosDesdeDecay, int diasDesdeActividad)
+    {
+        var lastActivity = Now.AddDays(diasDesdeActividad);
+        var p = Viva(100, Now.AddMinutes(minutosDesdeDecay));
+        // Solo comprobamos el invariante cuando el predicado dice "no hay nada que hacer".
+        if (!DecayMath.IsDecayPending(p, Now, lastActivity))
+        {
+            var (hunger, health, status, reloj) = (p.Hunger, p.Health, p.Status, p.LastDecayAt);
+            Assert.Equal(0, DecayMath.ApplyPendingDecay(p, Now, lastActivity));
+            Assert.Equal(hunger, p.Hunger);
+            Assert.Equal(health, p.Health);
+            Assert.Equal(status, p.Status);
+            Assert.Equal(reloj, p.LastDecayAt);   // ni siquiera el reloj se toca → SaveChanges sería no-op
+        }
+    }
+
+    [Fact]
+    public void HayTickPendiente_ElPredicadoLoDetecta()
+    {
+        var p = Viva(100, Now.AddHours(-2));                                  // exactamente 1 tick
+        Assert.True(DecayMath.IsDecayPending(p, Now, Now.AddHours(-1)));
+        Assert.Equal(1, DecayMath.ApplyPendingDecay(p, Now, Now.AddHours(-1)));
+    }
+
+    [Fact]
+    public void RelojSinInicializar_Cristalizada_YDuenioAusente_TomanElCaminoLento()
+    {
+        Assert.True(DecayMath.IsDecayPending(Viva(100, null), Now, Now));      // hay que inicializar el reloj
+
+        var cristal = Viva(0, Now.AddMinutes(-10));
+        for (int i = 0; i < 100; i++) cristal.ApplyDamage(50);
+        Assert.True(DecayMath.IsDecayPending(cristal, Now, Now));              // el reloj salta a ahora (escribe)
+
+        var ausente = Viva(100, Now.AddMinutes(-10));                          // sin ticks, PERO...
+        Assert.True(DecayMath.IsDecayPending(ausente, Now, Now.AddDays(-5)));  // ...ausente >3 días: se perdona lo dormido (escribe)
+    }
+
     // T24#4: decadencia colectiva de la mascota de grupo.
     [Fact]
     public void Grupo_ConAlguienActivo_NoDecaeNiRetroactivamente()

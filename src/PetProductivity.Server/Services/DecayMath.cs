@@ -59,6 +59,24 @@ public static class DecayMath
         return ApplyPendingDecay(pet, utcNow);
     }
 
+    /// <summary>
+    /// ¿Mutaría algo <see cref="ApplyPendingDecay(Pet, DateTime, DateTime?)"/>? Función pura y sin BD.
+    /// Permite al GET del usuario saltarse el lock + ReloadAsync + SaveChanges cuando no hay nada que
+    /// aplicar — el caso común (dueño activo que abrió la app hace menos de un tick). Ese endpoint corre
+    /// en cada arranque de la app y tras cada acción, y pagaba 2-3 round-trips a la BD para no hacer nada.
+    /// Conservador: ante la duda devuelve true y se toma el camino lento (correcto) de siempre.
+    /// </summary>
+    public static bool IsDecayPending(Pet pet, DateTime utcNow, DateTime? lastActivity)
+    {
+        if (pet.LastDecayAt == null) return true;              // hay que inicializar el reloj
+        if (pet.Status == PetStatus.Crystallized) return true; // el reloj salta a ahora (escribe)
+
+        var sleepFrom = lastActivity?.AddDays(AbsenceSleepDays);
+        if (sleepFrom != null && sleepFrom < utcNow) return true; // ausente: lo dormido se perdona (escribe)
+
+        return utcNow - pet.LastDecayAt.Value >= TickInterval;  // ¿hay al menos un tick que aplicar?
+    }
+
     /// <summary>Aplica los ticks pendientes. Devuelve cuántos aplicó (0 también cuando recién inicializa).</summary>
     public static int ApplyPendingDecay(Pet pet, DateTime utcNow)
     {
