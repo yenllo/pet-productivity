@@ -190,7 +190,7 @@ public class UsersController : ControllerBase
     {
         if (User.GetUserId() != id) return Forbid();
         var result = await _petService.ToggleRitualCell(id, index);
-        if (result == "User not found") return NotFound();
+        if (result == null) return NotFound();
         return Ok(result);
     }
 

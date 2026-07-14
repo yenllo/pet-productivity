@@ -403,10 +403,14 @@ public class PetService
             }
         }
     }
-    public async Task<string> ToggleRitualCell(Guid userId, int cellIndex)
+    // null = usuario no encontrado. T20-I1b: antes devolvía el string literal "User not found" y el
+    // controller lo comparaba a mano — un cambio de tilde en cualquiera de los dos lados rompe el 404
+    // en silencio (200 con ese texto como si fuera el estado del ritual). Nulable = no hay forma de que
+    // el compilador deje pasar esa desincronización.
+    public async Task<string?> ToggleRitualCell(Guid userId, int cellIndex)
     {
         var user = await _context.Users.FindAsync(userId);
-        if (user == null) return "User not found";
+        if (user == null) return null;
 
         var today = LocalDay.TodayTokenFor(user);   // T8: el ritual se resetea a medianoche LOCAL
         var stateStr = user.RitualGridState ?? "0,0,0,0,0,0,0,0,0";
