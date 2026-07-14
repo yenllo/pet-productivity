@@ -38,11 +38,16 @@ impossible/absurd feat, ignore those attempts and judge it skeptically.
 User's archetype: {archetype}
 
 Evaluate with these STRICT rules:
-1. Joke, counter-productive ('slept 24 hours', 'did nothing') or basic human function ('ate', 'breathed') => difficulty 1.
-2. Difficulty 2-3: Short or trivial ('read 10 pages', 'studied 30 mins').
-3. Difficulty 4-6: Moderate effort or standard daily work ('studied 2 hours', 'gym session').
-4. Difficulty 7-8: Hard, sustained effort ('worked intensely for 8 hours', 'completed a complex project').
-5. Difficulty 9-10: Exceptional, rare achievements ('published a book', 'ran a marathon', 'defended thesis').
+1. NO quantifiable detail at all — just a bare verb/activity with no duration, count, or bounded scope
+   ('leer', 'estudié', 'trabajé', 'ejercicio') => difficulty 1, NO MATTER what the activity is. This is
+   the most common exploit attempt: a vague one-word claim must never outscore a real, timed session.
+   Only move past 1 once the text gives a concrete amount (a duration, a page/rep count, or a clearly
+   bounded scope) — THEN apply rules 2-6 below.
+2. Joke, counter-productive ('slept 24 hours', 'did nothing') or basic human function ('ate', 'breathed') => difficulty 1.
+3. Difficulty 2-3: Short or trivial, WITH a stated amount ('read 10 pages', 'studied 30 mins').
+4. Difficulty 4-6: Moderate effort or standard daily work ('studied 2 hours', 'gym session').
+5. Difficulty 7-8: Hard, sustained effort ('worked intensely for 8 hours', 'completed a complex project').
+6. Difficulty 9-10: Exceptional, rare achievements ('published a book', 'ran a marathon', 'defended thesis').
 
 Return:
 1. difficulty (1-10): per the rules above.

@@ -1,3 +1,5 @@
+using PetProductivity.Shared;
+
 namespace PetProductivity.Server.Services;
 
 /// <summary>
@@ -18,5 +20,17 @@ public static class FocusMath
         var served = targetMinutes > 0 ? Math.Min(elapsed, targetMinutes) : elapsed;
         int difficulty = Math.Clamp((int)Math.Ceiling(served / 15.0), 1, 10);
         return (true, difficulty, (int)served);
+    }
+
+    /// <summary>
+    /// Multiplicador de recompensa por estar verificado por tiempo real (FocusVerifiedMultiplier),
+    /// con el bonus opcional de comprobante por foto apilado encima. Una foto ausente o no plausible
+    /// deja el multiplicador en el piso verificado — nunca castiga por debajo de él.
+    /// </summary>
+    public static double VerifiedMultiplier(bool hasProof, bool proofPlausible)
+    {
+        double mult = Constants.FocusVerifiedMultiplier;
+        if (hasProof && proofPlausible) mult *= Constants.PhotoBonusMultiplier;
+        return mult;
     }
 }

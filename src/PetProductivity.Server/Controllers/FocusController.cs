@@ -63,10 +63,13 @@ public class FocusController : ControllerBase
         var elapsed = (DateTime.UtcNow - session.StartedAt).TotalMinutes;
         var (completed, difficulty, served) = FocusMath.Evaluate(elapsed, session.TargetMinutes);
 
-        // Comprobante (Gemini Vision): bonus opt-in — foto ✓ → x2; sin foto o ✗ → x1.0 (nunca por debajo).
+        // El foco YA está verificado por tiempo real (FocusVerifiedMultiplier); el comprobante por foto
+        // es un bonus opt-in que se apila encima — foto ✓ → ×2 adicional; sin foto o ✗ → se queda en el
+        // piso verificado (nunca por debajo).
         var proof = await _db.FocusProofs.FirstOrDefaultAsync(p => p.SessionId == r.SessionId && p.UserId == uid);
-        double mult = 1.0; Guid? proofId = null; string verdict = "none";
-        if (proof != null) { proofId = proof.Id; verdict = proof.Plausible ? "ok" : "fail"; mult = proof.Plausible ? Constants.PhotoBonusMultiplier : 1.0; }
+        Guid? proofId = null; string verdict = "none";
+        if (proof != null) { proofId = proof.Id; verdict = proof.Plausible ? "ok" : "fail"; }
+        double mult = FocusMath.VerifiedMultiplier(proof != null, proof?.Plausible ?? false);
 
         // T11-D1: borrar sesión + premiar + racha en UNA transacción. Si el premio lanza (IA, BD,
         // bug), nada se commitea: la sesión sobrevive y el usuario puede reintentar (antes se
