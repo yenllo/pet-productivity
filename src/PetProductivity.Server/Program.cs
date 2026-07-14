@@ -165,7 +165,9 @@ app.MapControllers();
 app.MapHub<PetProductivity.Server.Hubs.FamilyHub>("/hubs/family");
 
 // Keep-warm: endpoint barato (sin auth, sin BD) para un pinger externo que evite el cold start de Render.
-app.MapGet("/health", () => Results.Ok("ok"));
+// HEAD además de GET: UptimeRobot (y casi todo pinger) manda HEAD por defecto, y un MapGet le
+// contestaba 405 → días de alertas de caída con el servidor perfectamente vivo.
+app.MapMethods("/health", new[] { "GET", "HEAD" }, () => Results.Ok("ok"));
 
 using (var scope = app.Services.CreateScope())
 {
