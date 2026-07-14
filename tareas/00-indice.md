@@ -54,6 +54,12 @@ Origen: análisis de julio 2026 en cuatro pasadas — **engagement** (T1-T8: "la
 | T27 | [UX: recorrido de la app](27-ux-recorrido-app.md) | Fricción real navegando (mejor en sesión con el dueño) | M | 🟡 pre-pase autónomo hecho (2026-07-03): checklist objetivo revisado por código + fix del cold-start de PetDetailPage (spinner + toast de error); la sesión guiada "de sentir" con el dueño queda pendiente |
 | T28 | [Docs vs. realidad](28-docs-vs-realidad.md) | ROADMAP/CLAUDE.md/docs desactualizados vs. estado real | S | ✅ hecho (2026-07-02): CLAUDE.md/ROADMAP al día (.NET 10, diorama+foco, comandos, pendientes 🟡 depurados); `docs/` se queda (plan+specs del diorama, con addendum de estado); DESIGN.md ya tenía banner histórico; sin contradicción tareas↔roadmap (único solape: PLAN-diorama F5.4 billing ⊂ T14) |
 
+## Serie E — Banco de ideas (no son tareas, son candidatas)
+
+| # | Plan | Qué es | Estado |
+|---|------|--------|--------|
+| T29 | [Ideas futuras](29-ideas-futuras.md) | Candidatas sin implementar, alimentadas por revisión continua de código/emulador (drag de muebles, estilo del popup de foto, monetización más allá de T14, comentario engañoso en `ShopController.SavePlacements`) | vivo — no consume el orden global, se mira al retomar T27/T4/T14 |
+
 ## Orden global sugerido
 
 **T9 → T22(seguridad, chat nuevo) → T28 → T21+T11 → T12 → T18 → T15(+T19-A) → T19-C → T26 → T24 → T25 → T23 → T8 → T1 → T2 → T6 → T10 → T17 → T13 → T5 → T7 → T16 → T27 → T3 → T4 → T14**

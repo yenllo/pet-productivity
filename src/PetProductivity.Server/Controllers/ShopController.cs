@@ -117,8 +117,10 @@ public class ShopController : ControllerBase
         return Ok(new { ActiveRoomStyle = user.ActiveRoomStyle });
     }
 
-    // Guarda la disposición del cuarto (F5.2). La colocación es cosmética: solo validamos que cada mueble
-    // esté en el inventario del usuario (anti-trampa); la grilla/colisión la maneja el cliente.
+    // Guarda la disposición del cuarto (F5.2). Colocar es 100% cosmético (sin oro/XP): NO se valida contra
+    // el inventario del usuario, solo sanidad de forma (sprite del pack + cabe en la grilla). La
+    // grilla/colisión las maneja el cliente. Impacto de esto: un request forjado podría colocar un sprite
+    // no comprado, pero solo en el CUARTO PROPIO del atacante — no mueve oro/XP ni afecta a otros.
     [HttpPost("placements")]
     public async Task<IActionResult> SavePlacements([FromBody] List<PlacedFurniture> placements)
     {
