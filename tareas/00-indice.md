@@ -58,7 +58,8 @@ Origen: análisis de julio 2026 en cuatro pasadas — **engagement** (T1-T8: "la
 
 | # | Plan | Qué es | Estado |
 |---|------|--------|--------|
-| T29 | [Ideas futuras](29-ideas-futuras.md) | Candidatas sin implementar, alimentadas por revisión continua de código/emulador (drag de muebles, estilo del popup de foto, monetización más allá de T14, comentario engañoso en `ShopController.SavePlacements`) | vivo — no consume el orden global, se mira al retomar T27/T4/T14 |
+| T29 | [Ideas futuras](29-ideas-futuras.md) | Candidatas sin implementar, alimentadas por revisión continua de código/emulador (drag de muebles, estilo del popup de foto, monetización más allá de T14, cascada de revocación de refresh tokens) | vivo — no consume el orden global, se mira al retomar T27/T4/T14 |
+| T30 | [Log de la revisión continua](30-log-revision-continua.md) | Resumen corto de cada tarea del `/loop`: qué se encontró, cómo se verificó, commit | vivo — log operativo, no un plan |
 
 ## Orden global sugerido
 
