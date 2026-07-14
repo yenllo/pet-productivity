@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+	<!-- T14-C0 (M4): sin cleartext global; solo 10.0.2.2/localhost de dev (ver network_security_config). -->
+	<application android:allowBackup="false" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true" android:networkSecurityConfig="@xml/network_security_config">
+		<!-- Modo foco (AC3 v2): servicio en primer plano de tipo specialUse (bloqueo suave de apps). -->
+		<service android:name="yenllo.org.PetProductivity.FocusGuardService"
+		         android:foregroundServiceType="specialUse"
+		         android:exported="false">
+			<property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+			          android:value="focus_app_lock" />
+		</service>
+	</application>
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+	<!-- Háptica de la celebración de recompensa (T27 #20). -->
+	<uses-permission android:name="android.permission.VIBRATE" />
+	<!-- Modo foco: vigilar app al frente, superponer, servicio en primer plano y listar apps. -->
+	<uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
+	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+	<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
+	<!-- Comprobante fotográfico del foco (Gemini Vision). -->
+	<uses-permission android:name="android.permission.CAMERA" />
+</manifest>

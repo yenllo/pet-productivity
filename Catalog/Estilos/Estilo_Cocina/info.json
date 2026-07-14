@@ -1,0 +1,15 @@
+{
+  "name": "Estilo Cocina",
+  "price": 250,
+  "description": "Paredes amarillas y piso ajedrez de cocina",
+  "category": "Estilos",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "",
+  "styleKey": "kitchen",
+  "icon": "🍳",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": []
+}

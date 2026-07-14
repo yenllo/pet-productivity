@@ -1,0 +1,19 @@
+{
+  "name": "Poción de Energía",
+  "price": 50,
+  "description": "Recupera 50 HP de tu mascota",
+  "category": "Consumibles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "",
+  "styleKey": "",
+  "icon": "🧪",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "effect": "heal",
+  "effectValue": 50,
+  "sprites": [
+    "spr_potion.svg"
+  ]
+}

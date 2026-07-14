@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+             xmlns:views="clr-namespace:PetProductivity.Client.Views"
+             xmlns:controls="clr-namespace:PetProductivity.Client.Controls"
+             x:Class="PetProductivity.Client.Views.HistoryPage"
+             Shell.NavBarIsVisible="False"
+             Background="{StaticResource AppBgBrush}">
+
+    <Grid>
+        <views:MokoBackground />
+        <Grid RowDefinitions="Auto,*" Padding="20,16,20,20" RowSpacing="10">
+
+            <VerticalStackLayout Grid.Row="0" Spacing="2">
+                <controls:BackButton />
+                <Label Text="{loc:T 'Tus focos'}" Style="{StaticResource Eyebrow}" />
+                <Label Text="{loc:T 'Historial'}" Style="{StaticResource DisplayTitle}" />
+            </VerticalStackLayout>
+
+            <CollectionView Grid.Row="1" ItemsSource="{Binding Items}" Margin="0,8,0,0">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="6">
+                        <Label Text="{loc:T '📷'}" FontSize="40" HorizontalOptions="Center"/>
+                        <Label Text="{loc:T 'Aún no hay focos en tu historial'}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,10">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Grid.Column="0" WidthRequest="56" HeightRequest="56" StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 10" BackgroundColor="{StaticResource Glass2}" IsVisible="{Binding HasPhoto}">
+                                    <Image Source="{Binding Photo}" Aspect="AspectFill"/>
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                    <Label Text="{Binding Description}" TextColor="{StaticResource Ink}" FontSize="14" LineBreakMode="TailTruncation"/>
+                                    <Label Text="{Binding Who}" IsVisible="{Binding HasWho}" Style="{StaticResource Caption}" FontSize="11" TextColor="{StaticResource Ink2}"/>
+                                    <Label Text="{Binding DateText}" Style="{StaticResource Caption}" FontSize="11"/>
+                                    <Label Text="{Binding RewardText}" Style="{StaticResource Caption}" FontSize="11" TextColor="{StaticResource AccentPink}"/>
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2" Text="{Binding Verdict}" IsVisible="{Binding HasVerdict}" FontSize="22"
+                                       FontAttributes="Bold" TextColor="{Binding VerdictColor}" VerticalOptions="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </Grid>
+</ContentPage>

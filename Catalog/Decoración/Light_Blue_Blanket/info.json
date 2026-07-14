@@ -1,0 +1,18 @@
+{
+  "name": "Light Blue Blanket",
+  "price": 150,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_light_blue_blanket_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_light_blue_blanket_l.png",
+    "obj_light_blue_blanket_r.png"
+  ]
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PetProductivity.Client.Views.MokoBackground"
+             InputTransparent="True">
+    <!-- Capa de luz ambiental: blobs radiales (como los radial-gradient del HTML) + viñeta.
+         Va detrás del contenido; el fondo base radial lo pone la página (AppBgBrush). -->
+    <Grid InputTransparent="True">
+        <Ellipse Fill="{StaticResource GlowPurpleBrush}" WidthRequest="540" HeightRequest="540"
+                 HorizontalOptions="Start" VerticalOptions="Start" Margin="-170,-210,0,0" InputTransparent="True"/>
+        <Ellipse Fill="{StaticResource GlowMagentaBrush}" WidthRequest="580" HeightRequest="580"
+                 HorizontalOptions="End" VerticalOptions="Start" Margin="0,-260,-190,0" InputTransparent="True"/>
+        <Ellipse Fill="{StaticResource GlowPurpleBrush}" WidthRequest="600" HeightRequest="600"
+                 HorizontalOptions="End" VerticalOptions="End" Margin="0,0,-220,-260" InputTransparent="True"/>
+        <Border Background="{StaticResource VignetteBrush}" StrokeThickness="0" InputTransparent="True"/>
+    </Grid>
+</ContentView>

@@ -1,0 +1,18 @@
+{
+  "name": "Double Sliding Door Closed",
+  "price": 130,
+  "description": "",
+  "category": "Estructural",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_double_sliding_door_closed_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_double_sliding_door_closed_l.png",
+    "obj_double_sliding_door_closed_r.png"
+  ]
+}

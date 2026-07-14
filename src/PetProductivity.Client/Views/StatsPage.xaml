@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+             xmlns:vm="clr-namespace:PetProductivity.Client.ViewModels"
+             xmlns:ctrl="clr-namespace:PetProductivity.Client.Controls"
+             x:Class="PetProductivity.Client.Views.StatsPage"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:T 'Estadísticas'}"
+             Background="{StaticResource AppBgBrush}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,50,20,30" Spacing="16">
+
+            <Label Text="{loc:T 'Rendimiento global'}" Style="{StaticResource DisplayTitle}"/>
+
+            <!-- Nivel -->
+            <Border Style="{StaticResource Card}" Padding="20">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="{loc:T 'Nivel actual'}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+                    <Label Text="{Binding CurrentLevel}" Style="{StaticResource DisplayXL}" FontSize="48" TextColor="{StaticResource AccentPink}" HorizontalOptions="Center"/>
+                    <ctrl:RoundedBar Progress="{Binding LevelProgress}" Fill="{StaticResource AccentPink}" Track="{StaticResource Glass2}" BarHeight="10"/>
+                    <Label Text="{Binding CurrentXp, StringFormat='{0} / 1000 XP'}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Racha / Tareas -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Border Grid.Column="0" Style="{StaticResource Card}" Padding="15">
+                    <VerticalStackLayout>
+                        <Label Text="{loc:T '🔥 Racha'}" TextColor="{StaticResource StWork}" FontAttributes="Bold"/>
+                        <Label Text="{Binding CurrentStreak, Converter={StaticResource LocFmt}, ConverterParameter='{0} días'}" Style="{StaticResource DisplayTitle}" FontSize="22" Margin="0,4,0,0"/>
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource Card}" Padding="15">
+                    <VerticalStackLayout>
+                        <Label Text="{loc:T '✅ Tareas'}" TextColor="{StaticResource StCrystal}" FontAttributes="Bold"/>
+                        <Label Text="{Binding TasksCompleted}" Style="{StaticResource DisplayTitle}" FontSize="22" Margin="0,4,0,0"/>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- Atributos -->
+            <Label Text="{loc:T 'Atributos'}" Style="{StaticResource SectionLabel}" Margin="2,8,0,0"/>
+            <CollectionView ItemsSource="{Binding PetStats}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="10" VerticalItemSpacing="10" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Padding="15">
+                            <VerticalStackLayout Spacing="4">
+                                <HorizontalStackLayout Spacing="6">
+                                    <Label Text="{Binding Icon}" FontSize="16"/>
+                                    <Label Text="{Binding Name}" Style="{StaticResource Caption}" FontAttributes="Bold"/>
+                                </HorizontalStackLayout>
+                                <Label Text="{Binding Value, StringFormat='{0:F0} XP'}" Style="{StaticResource DisplayTitle}" FontSize="20"/>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

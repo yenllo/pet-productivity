@@ -1,0 +1,15 @@
+{
+  "name": "Cometa de Artista",
+  "price": 399,
+  "description": "Objeto de colaboración",
+  "category": "Premium",
+  "rarity": "Collab",
+  "currency": "Premium",
+  "spriteId": "",
+  "styleKey": "",
+  "icon": "☄️",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "Colab: Artista Invitado",
+  "sprites": []
+}

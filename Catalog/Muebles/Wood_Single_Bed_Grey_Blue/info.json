@@ -1,0 +1,18 @@
+{
+  "name": "Wood Single Bed Grey Blue",
+  "price": 260,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_wood_single_bed_grey_blue_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_wood_single_bed_grey_blue_l.png",
+    "obj_wood_single_bed_grey_blue_r.png"
+  ]
+}

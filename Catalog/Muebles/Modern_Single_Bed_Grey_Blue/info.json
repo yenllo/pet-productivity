@@ -1,0 +1,18 @@
+{
+  "name": "Modern Single Bed Grey Blue",
+  "price": 230,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_modern_single_bed_grey_blue_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_modern_single_bed_grey_blue_l.png",
+    "obj_modern_single_bed_grey_blue_r.png"
+  ]
+}

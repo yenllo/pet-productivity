@@ -1,0 +1,18 @@
+{
+  "name": "Rectangular Heater Off",
+  "price": 290,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_rectangular_heater_off_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_rectangular_heater_off_l.png",
+    "obj_rectangular_heater_off_r.png"
+  ]
+}

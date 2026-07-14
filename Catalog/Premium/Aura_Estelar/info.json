@@ -1,0 +1,15 @@
+{
+  "name": "Aura Estelar",
+  "price": 299,
+  "description": "Aura cosmética única para tu mascota",
+  "category": "Premium",
+  "rarity": "Unique",
+  "currency": "Premium",
+  "spriteId": "",
+  "styleKey": "",
+  "icon": "✨",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": []
+}

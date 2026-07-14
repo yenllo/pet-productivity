@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7134D312-80C9-4272-8C2A-D7EFF00AFCC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetProductivity.Server", "src\PetProductivity.Server\PetProductivity.Server.csproj", "{956B90A7-46FF-4F56-AE41-FE95D2854832}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetProductivity.Shared", "src\PetProductivity.Shared\PetProductivity.Shared.csproj", "{204BC4C4-A45F-4E48-BB95-8A33DDF0545F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetProductivity.Client", "src\PetProductivity.Client\PetProductivity.Client.csproj", "{E03B0E7C-D496-4477-9088-759F63069B39}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{629F66AD-A80F-4122-AD8A-2113E1B43A25}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetProductivity.Tests", "tests\PetProductivity.Tests\PetProductivity.Tests.csproj", "{D5F2C91B-311E-4F7F-92D2-A2D9B31AC0BD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{956B90A7-46FF-4F56-AE41-FE95D2854832}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{956B90A7-46FF-4F56-AE41-FE95D2854832}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{956B90A7-46FF-4F56-AE41-FE95D2854832}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{956B90A7-46FF-4F56-AE41-FE95D2854832}.Release|Any CPU.Build.0 = Release|Any CPU
+		{204BC4C4-A45F-4E48-BB95-8A33DDF0545F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{204BC4C4-A45F-4E48-BB95-8A33DDF0545F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{204BC4C4-A45F-4E48-BB95-8A33DDF0545F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{204BC4C4-A45F-4E48-BB95-8A33DDF0545F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E03B0E7C-D496-4477-9088-759F63069B39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E03B0E7C-D496-4477-9088-759F63069B39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E03B0E7C-D496-4477-9088-759F63069B39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E03B0E7C-D496-4477-9088-759F63069B39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5F2C91B-311E-4F7F-92D2-A2D9B31AC0BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5F2C91B-311E-4F7F-92D2-A2D9B31AC0BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5F2C91B-311E-4F7F-92D2-A2D9B31AC0BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5F2C91B-311E-4F7F-92D2-A2D9B31AC0BD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{956B90A7-46FF-4F56-AE41-FE95D2854832} = {7134D312-80C9-4272-8C2A-D7EFF00AFCC0}
+		{204BC4C4-A45F-4E48-BB95-8A33DDF0545F} = {7134D312-80C9-4272-8C2A-D7EFF00AFCC0}
+		{E03B0E7C-D496-4477-9088-759F63069B39} = {7134D312-80C9-4272-8C2A-D7EFF00AFCC0}
+		{D5F2C91B-311E-4F7F-92D2-A2D9B31AC0BD} = {629F66AD-A80F-4122-AD8A-2113E1B43A25}
+	EndGlobalSection
+EndGlobal

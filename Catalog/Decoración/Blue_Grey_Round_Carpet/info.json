@@ -1,0 +1,17 @@
+{
+  "name": "Blue Grey Round Carpet",
+  "price": 120,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_blue_grey_round_carpet_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_blue_grey_round_carpet_l.png"
+  ]
+}

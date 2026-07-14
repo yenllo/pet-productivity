@@ -1,0 +1,20 @@
+{
+  "name": "Chair Wood",
+  "price": 200,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_chair_wood_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_chair_wood_l.png",
+    "obj_chair_wood_r.png",
+    "obj_chair_wood_tl.png",
+    "obj_chair_wood_tr.png"
+  ]
+}

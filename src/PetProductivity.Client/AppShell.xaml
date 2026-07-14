@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="PetProductivity.Client.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+    xmlns:local="clr-namespace:PetProductivity.Client"
+    xmlns:views="clr-namespace:PetProductivity.Client.Views"
+    Shell.FlyoutBehavior="Disabled"
+    Title="PetProductivity.Client">
+
+    <!-- Mascota personal (inicio) + Familias + Tienda + Perfil + Ajustes. Tarea/Stats viven en el detalle de cada mascota. -->
+    <TabBar Route="App">
+        <Tab Title="{loc:T 'Mascota'}" Icon="icon_pet.png" Route="MascotaPage">
+            <ShellContent ContentTemplate="{DataTemplate views:DashboardPage}" />
+        </Tab>
+        <Tab Title="{loc:T 'Familias'}" Icon="icon_family.png" Route="HubPage">
+            <ShellContent ContentTemplate="{DataTemplate views:HubPage}" />
+        </Tab>
+        <Tab Title="{loc:T 'Tienda'}" Icon="icon_shop.png" Route="ShopPage">
+             <ShellContent ContentTemplate="{DataTemplate views:ShopPage}" />
+        </Tab>
+        <Tab Title="{loc:T 'Perfil'}" Icon="icon_profile.png" Route="ProfilePage">
+             <ShellContent ContentTemplate="{DataTemplate views:ProfilePage}" />
+        </Tab>
+        <Tab Title="{loc:T 'Ajustes'}" Icon="icon_settings.png" Route="SettingsPage">
+             <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}" />
+        </Tab>
+    </TabBar>
+
+    <!-- Linear Navigation (Auth Flow) -->
+    <ShellContent
+        Title="Intro"
+        ContentTemplate="{DataTemplate views:IntroPage}"
+        Route="IntroPage" />
+
+    <ShellContent
+        Title="Login"
+        ContentTemplate="{DataTemplate views:LoginPage}"
+        Route="LoginPage" />
+        
+    <ShellContent
+        Title="Register"
+        ContentTemplate="{DataTemplate views:RegisterPage}"
+        Route="RegisterPage" />
+
+
+
+</Shell>

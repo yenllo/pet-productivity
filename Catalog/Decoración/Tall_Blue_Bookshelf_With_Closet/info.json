@@ -1,0 +1,18 @@
+{
+  "name": "Tall Blue Bookshelf With Closet",
+  "price": 80,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_tall_blue_bookshelf_with_closet_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_tall_blue_bookshelf_with_closet_l.png",
+    "obj_tall_blue_bookshelf_with_closet_r.png"
+  ]
+}

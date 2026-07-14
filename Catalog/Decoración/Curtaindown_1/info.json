@@ -1,0 +1,17 @@
+{
+  "name": "Curtaindown 1",
+  "price": 80,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_curtaindown_1",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_curtaindown_1.png"
+  ]
+}

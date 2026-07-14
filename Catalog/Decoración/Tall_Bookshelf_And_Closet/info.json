@@ -1,0 +1,18 @@
+{
+  "name": "Tall Bookshelf And Closet",
+  "price": 70,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_tall_bookshelf_and_closet_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_tall_bookshelf_and_closet_l.png",
+    "obj_tall_bookshelf_and_closet_r.png"
+  ]
+}

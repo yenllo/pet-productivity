@@ -1,0 +1,17 @@
+{
+  "name": "Fridge 1",
+  "price": 330,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_fridge_1",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_fridge_1.png"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Estilo Bosque",
+  "price": 250,
+  "description": "Reviste la habitación con tonos de bosque",
+  "category": "Estilos",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "",
+  "styleKey": "forest",
+  "icon": "🌿",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": []
+}

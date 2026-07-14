@@ -1,0 +1,17 @@
+{
+  "name": "Window 1",
+  "price": 270,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_window_1",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_window_1.png"
+  ]
+}

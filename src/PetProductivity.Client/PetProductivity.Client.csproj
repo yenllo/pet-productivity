@@ -1,0 +1,92 @@
+﻿
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!-- T14-C3: Android es el único target real (Windows/iOS/Mac/Tizen nadie los prueba; git los recuerda). -->
+		<TargetFrameworks>net10.0-android</TargetFrameworks>
+
+		<OutputType>Exe</OutputType>
+		<RootNamespace>PetProductivity.Client</RootNamespace>
+		<UseMaui>true</UseMaui>
+		<SingleProject>true</SingleProject>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!-- Display name -->
+		<ApplicationTitle>PetProductivity.Client</ApplicationTitle>
+
+		<!-- App Identifier -->
+		<ApplicationId>yenllo.org.PetProductivity</ApplicationId>
+
+		<!-- Versions -->
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationVersion>1</ApplicationVersion>
+
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+		<AndroidUseFastDeployment>false</AndroidUseFastDeployment>
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- App Icon -->
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+
+		<!-- Splash Screen -->
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+
+		<!-- Images -->
+		<MauiImage Include="Resources\Images\*" />
+		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
+		<!-- Sprites de mascota (pixel-art): sin reescalado para que no se difuminen. -->
+		<MauiImage Update="Resources\Images\pet_sprout_baby.png" Resize="false" />
+		<MauiImage Update="Resources\Images\pet_sprout_adult.png" Resize="false" />
+		<MauiImage Update="Resources\Images\pet_sprout_master.png" Resize="false" />
+		<MauiImage Update="Resources\Images\pet_ember_baby.png" Resize="false" />
+		<MauiImage Update="Resources\Images\pet_ember_adult.png" Resize="false" />
+		<MauiImage Update="Resources\Images\pet_ember_master.png" Resize="false" />
+		<MauiImage Update="Resources\Images\pet_aqua_baby.png" Resize="false" />
+		<MauiImage Update="Resources\Images\pet_aqua_adult.png" Resize="false" />
+		<MauiImage Update="Resources\Images\pet_aqua_master.png" Resize="false" />
+		<!-- Íconos HUD vienen en currentColor (se hornean negros): se tintan aquí. -->
+		<MauiImage Update="Resources\Images\ic_food.svg" TintColor="#C9C2EA" />
+		<MauiImage Update="Resources\Images\ic_heart.svg" TintColor="#C9C2EA" />
+		<MauiImage Update="Resources\Images\ic_water.svg" TintColor="#8B84AD" />
+		<MauiImage Update="Resources\Images\ic_stretch.svg" TintColor="#8B84AD" />
+		<MauiImage Update="Resources\Images\ic_book.svg" TintColor="#8B84AD" />
+		<MauiImage Update="Resources\Images\ic_check.svg" TintColor="#3DDC97" />
+		<MauiImage Update="Resources\Images\ic_fire.svg" TintColor="#FFAC4D" />
+		<MauiImage Update="Resources\Images\ic_body.svg" TintColor="#FF5C6C" />
+		<MauiImage Update="Resources\Images\ic_mind.svg" TintColor="#FFAC4D" />
+		<MauiImage Update="Resources\Images\ic_home.svg" TintColor="#3DDC97" />
+		<MauiImage Update="Resources\Images\ic_leaf.svg" TintColor="#86B4FF" />
+
+		<!-- Custom Fonts -->
+		<MauiFont Include="Resources\Fonts\*" />
+
+		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+		<!-- Sprites del catálogo de la tienda (fuente de verdad en /Catalog): se empaquetan por nombre de
+		     archivo, así OpenAppPackageFileAsync("obj_xxx.png") los encuentra igual que los de Raw. -->
+		<MauiAsset Include="..\..\Catalog\**\*.png" LogicalName="%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="13.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0" />
+		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="4.148.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\PetProductivity.Shared\PetProductivity.Shared.csproj" />
+	</ItemGroup>
+
+	<!-- Push FCM (solo Android): google-services.json + plugin de mensajería. -->
+	<ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+		<GoogleServicesJson Include="Platforms\Android\google-services.json" />
+		<PackageReference Include="Plugin.Firebase.CloudMessaging" Version="4.0.1" />
+	</ItemGroup>
+</Project>

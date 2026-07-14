@@ -1,0 +1,18 @@
+{
+  "name": "Terrace Door Single Closed",
+  "price": 90,
+  "description": "",
+  "category": "Estructural",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_terrace_door_single_closed",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_terrace_door_single_closed.png",
+    "obj_terrace_door_single_closed_r.png"
+  ]
+}

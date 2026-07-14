@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+             xmlns:views="clr-namespace:PetProductivity.Client.Views"
+             xmlns:controls="clr-namespace:PetProductivity.Client.Controls"
+             x:Class="PetProductivity.Client.Views.FocusAppsPage"
+             x:Name="Page"
+             Shell.NavBarIsVisible="False"
+             Background="{StaticResource AppBgBrush}">
+
+    <Grid>
+        <views:MokoBackground />
+        <Grid RowDefinitions="Auto,*" Padding="20,16,20,20" RowSpacing="10">
+
+            <VerticalStackLayout Grid.Row="0" Spacing="2">
+                <controls:BackButton />
+                <Label Text="{loc:T 'Modo foco'}" Style="{StaticResource Eyebrow}" />
+                <Label Text="{loc:T 'Apps permitidas'}" Style="{StaticResource DisplayTitle}" />
+                <Label Text="{Binding Header}" Style="{StaticResource Caption}" TextColor="{StaticResource AccentPink}" />
+                <Label Text="{loc:T 'Estas apps podrás abrir durante el foco (máx 3). El resto queda bloqueado.'}"
+                       Style="{StaticResource Caption}" TextColor="{StaticResource Ink4}" />
+            </VerticalStackLayout>
+
+            <CollectionView Grid.Row="1" ItemsSource="{Binding Apps}" Margin="0,8,0,0">
+                <CollectionView.EmptyView>
+                    <Label Text="{loc:T 'No hay apps disponibles.'}" Style="{StaticResource Caption}"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Padding="14" Margin="0,0,0,8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.ToggleCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Image Grid.Column="0" Source="{Binding Icon}" WidthRequest="34" HeightRequest="34"
+                                       Aspect="AspectFit" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="{Binding Label}" TextColor="{StaticResource Ink2}" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                <Label Grid.Column="2" Text="{loc:T '✓'}" FontSize="20" FontAttributes="Bold"
+                                       TextColor="{StaticResource AccentPink}" IsVisible="{Binding IsSelected}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </Grid>
+</ContentPage>

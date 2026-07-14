@@ -1,0 +1,18 @@
+{
+  "name": "Floor Cushion Blue",
+  "price": 160,
+  "description": "",
+  "category": "Estructural",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_floor_cushion_blue_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_floor_cushion_blue_l.png",
+    "obj_floor_cushion_blue_r.png"
+  ]
+}

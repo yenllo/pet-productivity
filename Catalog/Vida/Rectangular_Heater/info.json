@@ -1,0 +1,18 @@
+{
+  "name": "Rectangular Heater",
+  "price": 280,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_rectangular_heater_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_rectangular_heater_l.png",
+    "obj_rectangular_heater_r.png"
+  ]
+}

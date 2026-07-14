@@ -1,0 +1,18 @@
+{
+  "name": "Wood Mirror Facing",
+  "price": 140,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_wood_mirror_facing_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_wood_mirror_facing_l.png",
+    "obj_wood_mirror_facing_r.png"
+  ]
+}

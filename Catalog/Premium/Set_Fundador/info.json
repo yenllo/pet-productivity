@@ -1,0 +1,15 @@
+{
+  "name": "Set Fundador",
+  "price": 499,
+  "description": "Insignia y marco de fundador",
+  "category": "Premium",
+  "rarity": "Special",
+  "currency": "Premium",
+  "spriteId": "",
+  "styleKey": "",
+  "icon": "🏅",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": []
+}

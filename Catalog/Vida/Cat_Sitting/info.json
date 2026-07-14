@@ -1,0 +1,18 @@
+{
+  "name": "Cat Sitting",
+  "price": 250,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_cat_sitting_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_cat_sitting_l.png",
+    "obj_cat_sitting_r.png"
+  ]
+}

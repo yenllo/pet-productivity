@@ -1,0 +1,18 @@
+{
+  "name": "Wood Double Bed Blue Grey",
+  "price": 240,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_wood_double_bed_blue_grey_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_wood_double_bed_blue_grey_l.png",
+    "obj_wood_double_bed_blue_grey_r.png"
+  ]
+}

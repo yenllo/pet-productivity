@@ -1,0 +1,15 @@
+{
+  "name": "Estilo Galaxia",
+  "price": 300,
+  "description": "Reviste la habitación con tonos galácticos",
+  "category": "Estilos",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "",
+  "styleKey": "galaxy",
+  "icon": "🌌",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": []
+}

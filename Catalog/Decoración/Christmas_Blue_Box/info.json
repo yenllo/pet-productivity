@@ -1,0 +1,18 @@
+{
+  "name": "Christmas Blue Box",
+  "price": 70,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_christmas_blue_box_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_christmas_blue_box_l.png",
+    "obj_christmas_blue_box_r.png"
+  ]
+}

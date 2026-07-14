@@ -1,0 +1,17 @@
+{
+  "name": "Ac On",
+  "price": 330,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_ac_on",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_ac_on.png"
+  ]
+}

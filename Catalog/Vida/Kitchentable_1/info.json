@@ -1,0 +1,17 @@
+{
+  "name": "Kitchentable 1",
+  "price": 320,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_kitchentable_1",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_kitchentable_1.png"
+  ]
+}

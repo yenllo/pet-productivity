@@ -1,0 +1,18 @@
+{
+  "name": "Big Screen Tv With Feets",
+  "price": 240,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_big_screen_tv_with_feets",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_big_screen_tv_with_feets.png",
+    "obj_big_screen_tv_with_feets_r.png"
+  ]
+}

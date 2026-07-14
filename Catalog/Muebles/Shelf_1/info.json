@@ -1,0 +1,17 @@
+{
+  "name": "Shelf 1",
+  "price": 220,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_shelf_1",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_shelf_1.png"
+  ]
+}

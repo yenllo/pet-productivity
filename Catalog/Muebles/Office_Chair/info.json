@@ -1,0 +1,18 @@
+{
+  "name": "Office Chair",
+  "price": 250,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_office_chair_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_office_chair_l.png",
+    "obj_office_chair_r.png"
+  ]
+}

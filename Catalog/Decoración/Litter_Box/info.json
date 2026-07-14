@@ -1,0 +1,18 @@
+{
+  "name": "Litter Box",
+  "price": 120,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_litter_box_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_litter_box_l.png",
+    "obj_litter_box_r.png"
+  ]
+}

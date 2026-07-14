@@ -1,0 +1,20 @@
+{
+  "name": "3 Sleeper White",
+  "price": 280,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_3_sleeper_white_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_3_sleeper_white_l.png",
+    "obj_3_sleeper_white_r.png",
+    "obj_3_sleeper_white_tl.png",
+    "obj_3_sleeper_white_tr.png"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Table White",
+  "price": 260,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_table_white_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_table_white_l.png",
+    "obj_table_white_r.png"
+  ]
+}

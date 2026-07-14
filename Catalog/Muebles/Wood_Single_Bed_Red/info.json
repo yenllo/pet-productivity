@@ -1,0 +1,18 @@
+{
+  "name": "Wood Single Bed Red",
+  "price": 240,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_wood_single_bed_red_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_wood_single_bed_red_l.png",
+    "obj_wood_single_bed_red_r.png"
+  ]
+}

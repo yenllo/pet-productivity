@@ -1,0 +1,20 @@
+{
+  "name": "Cat Tower",
+  "price": 320,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_cat_tower_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_cat_tower_l.png",
+    "obj_cat_tower_r.png",
+    "obj_cat_tower_tl.png",
+    "obj_cat_tower_tr.png"
+  ]
+}

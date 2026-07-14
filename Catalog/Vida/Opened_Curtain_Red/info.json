@@ -1,0 +1,18 @@
+{
+  "name": "Opened Curtain Red",
+  "price": 280,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_opened_curtain_red_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_opened_curtain_red_l.png",
+    "obj_opened_curtain_red_r.png"
+  ]
+}

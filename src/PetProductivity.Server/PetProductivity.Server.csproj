@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>4de463fe-f582-4909-8cc7-e15186e967c5</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <!-- Fija Microsoft.OpenApi parcheada: la 2.0.0/2.1.0 (transitiva) tienen GHSA-v5pm-xwqc-g5wc (DoS, High).
+         Se mantiene en el major 2.x por compatibilidad con Microsoft.AspNetCore.OpenApi 10. -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.9.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" />
+    <PackageReference Include="FirebaseAdmin" Version="3.1.0" />
+    <PackageReference Include="Sentry.AspNetCore" Version="6.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PetProductivity.Shared\PetProductivity.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Catálogo de la tienda (fuente de verdad en /Catalog). Copia recursiva de los info.json al output
+         para leerlos en runtime (local y Render). Estructura: Catalog/<Categoría>/<Objeto>/info.json. -->
+    <Content Include="..\..\Catalog\**\info.json" Link="Catalog\%(RecursiveDir)info.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

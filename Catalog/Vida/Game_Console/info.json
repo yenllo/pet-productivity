@@ -1,0 +1,18 @@
+{
+  "name": "Game Console",
+  "price": 300,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_game_console_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_game_console_l.png",
+    "obj_game_console_r.png"
+  ]
+}

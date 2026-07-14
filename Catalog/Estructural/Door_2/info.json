@@ -1,0 +1,17 @@
+{
+  "name": "Door 2",
+  "price": 160,
+  "description": "",
+  "category": "Estructural",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_door_2",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_door_2.png"
+  ]
+}

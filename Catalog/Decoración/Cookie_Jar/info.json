@@ -1,0 +1,18 @@
+{
+  "name": "Cookie Jar",
+  "price": 120,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_cookie_jar_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_cookie_jar_l.png",
+    "obj_cookie_jar_r.png"
+  ]
+}

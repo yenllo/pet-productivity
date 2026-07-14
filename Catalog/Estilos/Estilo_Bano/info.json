@@ -1,0 +1,15 @@
+{
+  "name": "Estilo Baño",
+  "price": 250,
+  "description": "Azulejos celestes y piso de baño",
+  "category": "Estilos",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "",
+  "styleKey": "bathroom",
+  "icon": "🛁",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": []
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Santa",
+  "price": 90,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_santa_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_santa_l.png",
+    "obj_santa_r.png"
+  ]
+}

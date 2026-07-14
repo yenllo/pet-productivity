@@ -1,0 +1,17 @@
+{
+  "name": "Plant2 1",
+  "price": 140,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_plant2_1",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_plant2_1.png"
+  ]
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+             xmlns:controls="clr-namespace:PetProductivity.Client.Controls"
+             x:Class="PetProductivity.Client.Views.CreateGroupPage"
+             Shell.NavBarIsVisible="False"
+             Background="{StaticResource AppBgBrush}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="25,20,25,25" Spacing="16">
+
+            <controls:BackButton />
+            <Label Text="{loc:T 'Nueva familia'}" Style="{StaticResource DisplayTitle}"/>
+
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{loc:T 'Nombre'}" Style="{StaticResource Caption}"/>
+                <Border StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" Padding="14,2">
+                    <Entry Text="{Binding GroupName}" Placeholder="{loc:T 'Ej: Gremio de Estudio'}"
+                           BackgroundColor="Transparent" TextColor="{StaticResource Ink}" PlaceholderColor="{StaticResource Ink4}" HeightRequest="48"/>
+                </Border>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{loc:T 'Contexto (arquetipo)'}" Style="{StaticResource Caption}"/>
+                <Border StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" Padding="14,0">
+                    <Picker ItemsSource="{Binding Archetypes}" SelectedIndex="{Binding SelectedArchetypeIndex}" TextColor="{StaticResource Ink}"/>
+                </Border>
+            </VerticalStackLayout>
+
+            <Label Text="{Binding MaxMembers, Converter={StaticResource LocFmt}, ConverterParameter='Máximo de miembros: {0:0}'}" TextColor="{StaticResource Ink}"/>
+            <Stepper Minimum="2" Maximum="6" Increment="1" Value="{Binding MaxMembers}" HorizontalOptions="Center"/>
+
+            <Button Text="{loc:T 'Crear familia'}" Command="{Binding CreateCommand}" Style="{StaticResource BtnAccent}" HeightRequest="54" Margin="0,10,0,0"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

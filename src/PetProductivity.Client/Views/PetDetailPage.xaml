@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+             xmlns:vm="clr-namespace:PetProductivity.Client.ViewModels"
+             xmlns:models="clr-namespace:PetProductivity.Shared.Models;assembly=PetProductivity.Shared"
+             xmlns:controls="clr-namespace:PetProductivity.Client.Controls"
+             x:Class="PetProductivity.Client.Views.PetDetailPage"
+             Shell.NavBarIsVisible="False"
+             Background="{StaticResource AppBgBrush}">
+
+    <Grid>
+    <ScrollView>
+        <VerticalStackLayout Padding="20,16,20,30" Spacing="14">
+
+            <controls:BackButton />
+
+            <!-- Banner Frenesí -->
+            <Border IsVisible="{Binding IsFrenzyActive}" StrokeThickness="1" Stroke="#59FFAC4D" StrokeShape="RoundRectangle 14" Padding="12"
+                    BackgroundColor="{StaticResource StWorkSoft}">
+                <Label Text="{loc:T '🔥 ¡FRENESÍ! ×2 XP — ¡varios trabajando!'}" HorizontalOptions="Center" FontAttributes="Bold" TextColor="#FFD9A8"/>
+            </Border>
+
+            <!-- Escena: diorama vivo + huevo → eclosión → bebé (reveal sincronizado por SignalR) -->
+            <Border Style="{StaticResource Card}" HeightRequest="200" Padding="0">
+                <Grid>
+                    <controls:RoomDiorama x:Name="RoomCanvas"/>
+                    <Image Source="spr_egg.png" HeightRequest="120" WidthRequest="120" Aspect="AspectFit"
+                           HorizontalOptions="Center" VerticalOptions="Center" IsVisible="{Binding IsEgg}"/>
+                    <Image Source="egg_crack.gif" IsAnimationPlaying="{Binding IsHatching}" HeightRequest="150" WidthRequest="150"
+                           Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" IsVisible="{Binding IsHatching}"/>
+                    <Image x:Name="GroupPet" Source="{Binding PetImageSource}" HeightRequest="130" Aspect="AspectFit"
+                           HorizontalOptions="Center" VerticalOptions="Center" IsVisible="{Binding IsHatched}"/>
+                    <!-- T5: burbuja de humor (misma tabla que el Dashboard) -->
+                    <Label Text="{Binding MoodEmoji}" IsVisible="{Binding IsHatched}" InputTransparent="True"
+                           FontSize="20" HorizontalOptions="Center" VerticalOptions="Center"
+                           TranslationX="50" TranslationY="-64"/>
+                </Grid>
+            </Border>
+            <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                <Label Text="{Binding PetName}" Style="{StaticResource DisplayTitle}" FontSize="24" HorizontalOptions="Center"/>
+                <Label Text="{Binding StatusText}" Style="{StaticResource Caption}" TextColor="{StaticResource AccentPink}" HorizontalOptions="Center"/>
+                <Label Text="{Binding HealthText}" Style="{StaticResource Caption}" HorizontalOptions="Center" IsVisible="{Binding IsHatched}"/>
+            </VerticalStackLayout>
+
+            <!-- Nacimiento del huevo de grupo -->
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding IsEgg}">
+                <Button Text="{loc:T '🥚 Hacer nacer'}" Command="{Binding HatchCommand}" Style="{StaticResource BtnAccent}"
+                        HeightRequest="52" IsVisible="{Binding ShowHatchButton}"/>
+                <VerticalStackLayout Spacing="2" IsVisible="{Binding ShowHatchWaiting}">
+                    <Label Text="{Binding HatchInfo}" Style="{StaticResource DisplayTitle}" FontSize="16" HorizontalOptions="Center"/>
+                    <Label Text="{loc:T 'Esperando a que todos lo hagan nacer…'}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <!-- Código -->
+            <Border Style="{StaticResource Card}" Padding="15">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout>
+                        <Label Text="{loc:T 'Código'}" Style="{StaticResource SectionLabel}"/>
+                        <Label Text="{Binding InviteCode}" Style="{StaticResource DisplayTitle}" FontSize="24" CharacterSpacing="3"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <Button Text="{loc:T 'Registrar tarea a esta mascota'}" Command="{Binding RegisterTaskCommand}" Style="{StaticResource BtnAccent}" HeightRequest="54" IsVisible="{Binding IsHatched}"/>
+            <Button Text="{Binding GroupFocusButtonText}" Command="{Binding GroupFocusCommand}" Style="{StaticResource BtnGhost}" HeightRequest="50" IsVisible="{Binding IsHatched}"/>
+            <Button Text="{loc:T '📷 Historial del grupo'}" Command="{Binding GroupHistoryCommand}" Style="{StaticResource BtnGhost}" HeightRequest="46" IsVisible="{Binding IsHatched}"/>
+
+            <!-- Miembros -->
+            <Label Text="{loc:T 'Miembros'}" Style="{StaticResource SectionLabel}" Margin="2,8,0,0"/>
+            <CollectionView ItemsSource="{Binding Members}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MemberRow">
+                        <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,8">
+                            <Grid ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="11">
+                                <Ellipse Grid.Column="0" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Fill="{Binding StatusColor}"/>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="{Binding Username}" TextColor="{StaticResource Ink}" FontSize="14"/>
+                                    <Label Text="{Binding StatusText}" Style="{StaticResource Caption}" FontSize="11"/>
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2" Text="{Binding Mood}" VerticalOptions="Center" TextColor="{StaticResource AccentPink}"/>
+                                <Label Grid.Column="3" Text="{Binding Affection, StringFormat='{0:0}%'}" VerticalOptions="Center" Style="{StaticResource Caption}"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Solicitudes -->
+            <Label Text="{loc:T 'Solicitudes pendientes'}" Style="{StaticResource SectionLabel}" IsVisible="{Binding HasPending}" Margin="2,8,0,0"/>
+            <CollectionView ItemsSource="{Binding PendingRequests}" IsVisible="{Binding HasPending}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:JoinRequest">
+                        <Border StrokeThickness="1" Stroke="{StaticResource StrokeHard}" StrokeShape="RoundRectangle 14" Padding="12" Margin="0,0,0,8">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <Label Grid.Column="0" Text="{Binding RequesterName, Converter={StaticResource LocFmt}, ConverterParameter='{0} quiere unirse'}" VerticalOptions="Center" TextColor="{StaticResource Ink2}"/>
+                                <Button Grid.Column="1" Text="{loc:T 'Aprobar'}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PetDetailViewModel}}, Path=ApproveCommand}"
+                                        CommandParameter="{Binding .}" Style="{StaticResource BtnAccent}" HeightRequest="36" FontSize="13" Padding="16,0"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- AC4: tareas por validar (validación social) -->
+            <Label Text="{loc:T 'Tareas por validar'}" Style="{StaticResource SectionLabel}" IsVisible="{Binding HasPendingTasks}" Margin="2,8,0,0"/>
+            <CollectionView ItemsSource="{Binding PendingTasks}" IsVisible="{Binding HasPendingTasks}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:PendingTaskDto">
+                        <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,8">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="{Binding Description}" TextColor="{StaticResource Ink}" FontSize="13.5" LineBreakMode="TailTruncation"/>
+                                    <HorizontalStackLayout Spacing="8">
+                                        <Label Text="{Binding RequesterName, Converter={StaticResource LocFmt}, ConverterParameter='por {0}'}" Style="{StaticResource Caption}" FontSize="11"/>
+                                        <Label Text="{Binding Votes, StringFormat='✓ {0}'}" Style="{StaticResource Caption}" FontSize="11" TextColor="{StaticResource StOk}"/>
+                                        <Label Text="{Binding Needed, StringFormat='/ {0}'}" Style="{StaticResource Caption}" FontSize="11"/>
+                                        <!-- T6-E: el silencio otorga — countdown a la auto-aprobación -->
+                                        <Label Text="{Binding HoursLeft, Converter={StaticResource LocFmt}, ConverterParameter='⏳ se aprueba sola en {0} h'}" Style="{StaticResource Caption}" FontSize="11"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                                <Button Grid.Column="1" Text="{loc:T 'Aprobar'}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PetDetailViewModel}}, Path=ApproveTaskCommand}"
+                                        CommandParameter="{Binding .}"
+                                        Style="{StaticResource BtnAccent}" HeightRequest="36" FontSize="13" Padding="16,0"
+                                        IsVisible="{Binding ViewerCanApprove}"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Button Text="{loc:T 'Salir de la familia'}" Command="{Binding LeaveCommand}" Style="{StaticResource BtnGhost}"
+                    TextColor="{StaticResource StBusy}" HeightRequest="48" Margin="0,10,0,0"/>
+        </VerticalStackLayout>
+    </ScrollView>
+    <!-- T27: spinner de primera carga (cold start de Render) -->
+    <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}"
+                       Color="{StaticResource AccentPink}" HorizontalOptions="Center" VerticalOptions="Center"/>
+    </Grid>
+</ContentPage>

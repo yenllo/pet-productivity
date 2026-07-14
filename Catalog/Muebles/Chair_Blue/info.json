@@ -1,0 +1,17 @@
+{
+  "name": "Chair Blue",
+  "price": 250,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_chair_blue",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_chair_blue.png"
+  ]
+}

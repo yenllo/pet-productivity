@@ -1,0 +1,18 @@
+{
+  "name": "Cat Watching Tv",
+  "price": 300,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_cat_watching_tv_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_cat_watching_tv_l.png",
+    "obj_cat_watching_tv_r.png"
+  ]
+}

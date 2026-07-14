@@ -1,0 +1,20 @@
+{
+  "name": "2 Sleeper Red",
+  "price": 280,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_2_sleeper_red_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_2_sleeper_red_l.png",
+    "obj_2_sleeper_red_r.png",
+    "obj_2_sleeper_red_tl.png",
+    "obj_2_sleeper_red_tr.png"
+  ]
+}

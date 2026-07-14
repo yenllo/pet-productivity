@@ -1,0 +1,17 @@
+{
+  "name": "Kitchen 4",
+  "price": 260,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_kitchen_4",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_kitchen_4.png"
+  ]
+}

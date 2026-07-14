@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+             xmlns:vm="clr-namespace:PetProductivity.Client.ViewModels"
+             xmlns:views="clr-namespace:PetProductivity.Client.Views"
+             xmlns:ctrl="clr-namespace:PetProductivity.Client.Controls"
+             x:Class="PetProductivity.Client.Views.ProfilePage"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:T 'Perfil'}"
+             Background="{StaticResource AppBgBrush}">
+
+    <Grid>
+    <views:MokoBackground />
+    <ScrollView>
+        <VerticalStackLayout Padding="20,40,20,30" Spacing="8">
+
+            <!-- Header -->
+            <Border HeightRequest="92" WidthRequest="92" HorizontalOptions="Center" StrokeThickness="0"
+                    StrokeShape="RoundRectangle 46" Background="{StaticResource AccentGradientBrush}" Padding="3">
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 43">
+                    <Border.Background>
+                        <RadialGradientBrush Center="0.4,0.35" Radius="0.8">
+                            <GradientStop Color="#FF7EF0D6" Offset="0.0"/>
+                            <GradientStop Color="#FF6F6EF0" Offset="1.0"/>
+                        </RadialGradientBrush>
+                    </Border.Background>
+                    <!-- placeholder cara pixel -->
+                    <Label Text="{loc:T '🙂'}" FontSize="34" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+            </Border>
+            <Label Text="{Binding UserName}" Style="{StaticResource DisplayTitle}" FontSize="24" HorizontalOptions="Center" Margin="0,4,0,0" />
+            <Label Text="{Binding Handle}" Style="{StaticResource Caption}" HorizontalOptions="Center" IsVisible="{Binding IsRegistered}" />
+            <Border Style="{StaticResource Chip}" BackgroundColor="#1FFF5F8F" Stroke="#40FF5F8F"
+                    HorizontalOptions="Center" Padding="13,6" HeightRequest="-1">
+                <Label Text="{loc:T 'Cuidador'}" TextColor="{StaticResource AccentPink}" FontSize="12" />
+            </Border>
+
+            <!-- Resumen de nivel (XP/racha/tareas: placeholder, pendiente de wiring) -->
+            <Border Style="{StaticResource Card}" Margin="0,14,0,0" Padding="16">
+                <VerticalStackLayout Spacing="9">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="{loc:T 'Nivel'}" Style="{StaticResource DisplayTitle}" FontSize="18" />
+                        <Label Grid.Column="1" Text="{Binding LevelNumber}" Style="{StaticResource DisplayTitle}" FontSize="18"
+                               TextColor="{StaticResource AccentPink}" />
+                    </Grid>
+                    <ctrl:RoundedBar Progress="{Binding XpProgress}" Fill="{StaticResource AccentPink}" Track="{StaticResource Glass2}" BarHeight="8" />
+                    <Label Text="{Binding XpLabel}" Style="{StaticResource Caption}" HorizontalOptions="End" />
+                    <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="18" Margin="0,5,0,0">
+                        <Label Text="{Binding Streak, Converter={StaticResource LocFmt}, ConverterParameter='🔥 {0} racha'}" Style="{StaticResource Caption}" TextColor="{StaticResource Ink2}" />
+                        <Label Grid.Column="1" Text="{Binding TasksCount, Converter={StaticResource LocFmt}, ConverterParameter='✅ {0} tareas'}" Style="{StaticResource Caption}" TextColor="{StaticResource Ink2}" />
+                    </Grid>
+                    <Label Text="{Binding FocusStatsLabel}" Style="{StaticResource Caption}" TextColor="{StaticResource Ink2}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Atributos (placeholder, pendiente de wiring) -->
+            <Label Text="{loc:T 'Atributos'}" Style="{StaticResource SectionLabel}" Margin="2,16,0,8" />
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="2">
+                        <HorizontalStackLayout Spacing="6"><Image Source="ic_body.png" HeightRequest="15" WidthRequest="15" VerticalOptions="Center"/><Label Text="{loc:T 'Cuerpo'}" Style="{StaticResource Caption}" VerticalOptions="Center"/></HorizontalStackLayout>
+                        <Label Text="{Binding CuerpoXp}" Style="{StaticResource DisplayTitle}" FontSize="17"/>
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="2">
+                        <HorizontalStackLayout Spacing="6"><Image Source="ic_mind.png" HeightRequest="15" WidthRequest="15" VerticalOptions="Center"/><Label Text="{loc:T 'Mente'}" Style="{StaticResource Caption}" VerticalOptions="Center"/></HorizontalStackLayout>
+                        <Label Text="{Binding MenteXp}" Style="{StaticResource DisplayTitle}" FontSize="17"/>
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="2">
+                        <HorizontalStackLayout Spacing="6"><Image Source="ic_home.png" HeightRequest="15" WidthRequest="15" VerticalOptions="Center"/><Label Text="{loc:T 'Hogar'}" Style="{StaticResource Caption}" VerticalOptions="Center"/></HorizontalStackLayout>
+                        <Label Text="{Binding HogarXp}" Style="{StaticResource DisplayTitle}" FontSize="17"/>
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="2">
+                        <HorizontalStackLayout Spacing="6"><Image Source="ic_leaf.png" HeightRequest="15" WidthRequest="15" VerticalOptions="Center"/><Label Text="{loc:T 'Bienestar'}" Style="{StaticResource Caption}" VerticalOptions="Center"/></HorizontalStackLayout>
+                        <Label Text="{Binding BienestarXp}" Style="{StaticResource DisplayTitle}" FontSize="17"/>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- Historial -->
+            <Button Text="{loc:T '📷 Ver historial de tareas'}" Command="{Binding OpenHistoryCommand}" Style="{StaticResource BtnGhost}" Margin="0,16,0,0" />
+
+            <!-- Cuenta -->
+            <Button Text="{loc:T 'Iniciar sesión o registrarse'}" Command="{Binding GoToAuthCommand}" IsVisible="{Binding IsGuest}"
+                    Style="{StaticResource BtnAccent}" Margin="0,20,0,0" />
+            <Label Text="{loc:T 'Guarda tu progreso en la nube y juega en cualquier dispositivo.'}" Style="{StaticResource Caption}"
+                   HorizontalTextAlignment="Center" IsVisible="{Binding IsGuest}" Margin="0,8,0,0" />
+            <Button Text="{loc:T 'Cerrar sesión'}" Command="{Binding LogoutCommand}" IsVisible="{Binding IsRegistered}"
+                    Style="{StaticResource BtnGhost}" TextColor="{StaticResource StBusy}" Margin="0,20,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+    </Grid>
+</ContentPage>

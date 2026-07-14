@@ -1,0 +1,18 @@
+{
+  "name": "Piano",
+  "price": 280,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_piano_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_piano_l.png",
+    "obj_piano_r.png"
+  ]
+}

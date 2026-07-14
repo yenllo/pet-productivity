@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+             xmlns:vm="clr-namespace:PetProductivity.Client.ViewModels"
+             x:Class="PetProductivity.Client.Views.RegisterPage"
+             Shell.NavBarIsVisible="False"
+             Background="{StaticResource AppBgBrush}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30,40,30,30" Spacing="14">
+
+            <Button Text="{loc:T '✕  Cancelar'}" Command="{Binding CancelCommand}" BackgroundColor="Transparent"
+                    TextColor="{StaticResource Ink3}" FontSize="15" Padding="0" HorizontalOptions="Start" BorderWidth="0"/>
+            <Label Text="{loc:T 'Crear cuenta'}" Style="{StaticResource DisplayTitle}" FontSize="28"/>
+            <Label Text="{loc:T 'Únete a la revolución productiva'}" Style="{StaticResource Caption}" FontSize="15" Margin="0,0,0,6"/>
+
+            <Border StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" Padding="14,2">
+                <Entry Placeholder="{loc:T 'Nombre completo'}" Text="{Binding Name}"
+                       BackgroundColor="Transparent" TextColor="{StaticResource Ink}" PlaceholderColor="{StaticResource Ink4}" HeightRequest="48"/>
+            </Border>
+            <Border StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" Padding="14,2">
+                <Entry Placeholder="{loc:T 'Correo electrónico'}" Text="{Binding Email}" Keyboard="Email"
+                       BackgroundColor="Transparent" TextColor="{StaticResource Ink}" PlaceholderColor="{StaticResource Ink4}" HeightRequest="48"/>
+            </Border>
+            <Border StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" Padding="14,2">
+                <Entry Placeholder="{loc:T 'Contraseña'}" Text="{Binding Password}" IsPassword="True"
+                       BackgroundColor="Transparent" TextColor="{StaticResource Ink}" PlaceholderColor="{StaticResource Ink4}" HeightRequest="48"/>
+            </Border>
+            <Border StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" Padding="14,2">
+                <Entry Placeholder="{loc:T 'Confirmar contraseña'}" Text="{Binding ConfirmPassword}" IsPassword="True"
+                       BackgroundColor="Transparent" TextColor="{StaticResource Ink}" PlaceholderColor="{StaticResource Ink4}" HeightRequest="48"/>
+            </Border>
+
+            <Button Text="{loc:T 'Registrarse'}" Command="{Binding RegisterCommand}" Style="{StaticResource BtnAccent}" Margin="0,8,0,0"/>
+            <Button Text="{loc:T 'Continuar con Google'}" Command="{Binding GoogleLoginCommand}"
+                    BackgroundColor="{StaticResource White}" TextColor="{StaticResource Black}"
+                    FontFamily="Inter" CornerRadius="26" HeightRequest="52" BorderWidth="0"/>
+
+            <Label Text="{loc:T '¿Ya tienes cuenta? Inicia Sesión'}" Style="{StaticResource Caption}" TextColor="{StaticResource Ink2}"
+                   HorizontalOptions="Center" TextDecorations="Underline" Margin="0,4,0,0">
+                <Label.GestureRecognizers><TapGestureRecognizer Command="{Binding NavigateToLoginCommand}"/></Label.GestureRecognizers>
+            </Label>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

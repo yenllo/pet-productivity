@@ -1,0 +1,18 @@
+{
+  "name": "Plain Rectangle Carpet",
+  "price": 120,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_plain_rectangle_carpet_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_plain_rectangle_carpet_l.png",
+    "obj_plain_rectangle_carpet_r.png"
+  ]
+}

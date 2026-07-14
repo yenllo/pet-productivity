@@ -1,0 +1,17 @@
+{
+  "name": "Rug Square Red",
+  "price": 150,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_rug_square_red",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_rug_square_red.png"
+  ]
+}

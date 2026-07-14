@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+             xmlns:vm="clr-namespace:PetProductivity.Client.ViewModels"
+             xmlns:views="clr-namespace:PetProductivity.Client.Views"
+             x:Class="PetProductivity.Client.Views.HubPage"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:T 'Familias'}"
+             Background="{StaticResource AppBgBrush}">
+
+    <Grid>
+    <views:MokoBackground />
+    <Grid RowDefinitions="Auto, *, Auto" Padding="20,50,20,20" RowSpacing="14">
+
+        <VerticalStackLayout Grid.Row="0">
+            <Label Text="{loc:T 'Comunidad'}" Style="{StaticResource Eyebrow}" />
+            <Label Text="{loc:T 'Mis familias'}" Style="{StaticResource DisplayTitle}" />
+        </VerticalStackLayout>
+
+        <CollectionView Grid.Row="1" ItemsSource="{Binding Pets}" SelectionMode="None" Margin="0,8,0,0">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="2"
+                                 HorizontalItemSpacing="12" VerticalItemSpacing="12"/>
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:PetTile">
+                    <Border Style="{StaticResource Card}" Padding="14">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:HubViewModel}}, Path=OpenPetCommand}"
+                                CommandParameter="{Binding .}"/>
+                        </Border.GestureRecognizers>
+                        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+                            <!-- mini-mascota (placeholder pixel) + punto de actividad -->
+                            <Border Grid.Row="0" HeightRequest="50" WidthRequest="50" HorizontalOptions="Start"
+                                    StrokeThickness="0" StrokeShape="RoundRectangle 16">
+                                <Border.Background>
+                                    <RadialGradientBrush Center="0.4,0.35" Radius="0.8">
+                                        <GradientStop Color="#FF7EF0D6" Offset="0.0"/>
+                                        <GradientStop Color="#FF6F6EF0" Offset="1.0"/>
+                                    </RadialGradientBrush>
+                                </Border.Background>
+                                <Image Source="{Binding ImageSource}" Aspect="AspectFit" Margin="6" />
+                            </Border>
+                            <Ellipse Grid.Row="0" HeightRequest="10" WidthRequest="10" HorizontalOptions="End" VerticalOptions="Start"
+                                     Fill="{StaticResource StOk}" />
+
+                            <Label Grid.Row="1" Text="{Binding Name}" Style="{StaticResource DisplayTitle}" FontSize="16" Margin="0,8,0,0" />
+                            <Label Grid.Row="2" Text="{Binding Subtitle}" Style="{StaticResource Caption}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                           Color="{StaticResource AccentPink}" VerticalOptions="Center" HorizontalOptions="Center" />
+        <VerticalStackLayout Grid.Row="1" IsVisible="{Binding ShowEmpty}" VerticalOptions="Center" HorizontalOptions="Center" Spacing="6">
+            <Label Text="{loc:T '👨‍👩‍👧'}" FontSize="40" HorizontalOptions="Center" />
+            <Label Text="{loc:T 'Aún no estás en ninguna familia'}" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+            <Label Text="{loc:T 'Crea una o únete con un código.'}" Style="{StaticResource Caption}" TextColor="{StaticResource Ink4}" HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Grid.Row="2" Spacing="10">
+            <Button Text="{loc:T '+ Crear familia'}" Command="{Binding CreateFamilyCommand}" Style="{StaticResource BtnAccent}" />
+            <Button Text="{loc:T 'Unirse por código'}" Command="{Binding JoinByCodeCommand}" Style="{StaticResource BtnGhost}" />
+        </VerticalStackLayout>
+    </Grid>
+
+    <!-- T27-L2 (#12): código de grupo con input del estilo del app (reemplaza DisplayPromptAsync) -->
+    <Grid IsVisible="{Binding ShowJoinPrompt}">
+        <BoxView Color="#CC0A0616">
+            <BoxView.GestureRecognizers><TapGestureRecognizer Command="{Binding CancelJoinPromptCommand}"/></BoxView.GestureRecognizers>
+        </BoxView>
+        <Border Style="{StaticResource Card}" Stroke="#59FF5F8F" StrokeThickness="2" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
+            <VerticalStackLayout Spacing="14">
+                <Label Text="{loc:T 'Unirse por código'}" Style="{StaticResource DisplayTitle}" FontSize="18" HorizontalOptions="Center"/>
+                <Border StrokeThickness="1" Stroke="{StaticResource StrokeSoft}" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Padding="12,2">
+                    <Entry Text="{Binding JoinCodeText}" MaxLength="6" Placeholder="{loc:T 'Ej: 3GKD7L'}" BackgroundColor="Transparent"
+                           TextColor="{StaticResource Ink}" PlaceholderColor="{StaticResource Ink4}" HorizontalTextAlignment="Center" CharacterSpacing="3"/>
+                </Border>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Grid.Column="0" Text="{loc:T 'Cancelar'}" Command="{Binding CancelJoinPromptCommand}" Style="{StaticResource BtnGhost}" HeightRequest="46"/>
+                    <Button Grid.Column="1" Text="{loc:T 'Enviar'}" Command="{Binding ConfirmJoinCommand}" Style="{StaticResource BtnAccent}" HeightRequest="46"/>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+    </Grid>
+</ContentPage>

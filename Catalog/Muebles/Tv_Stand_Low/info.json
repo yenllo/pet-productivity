@@ -1,0 +1,18 @@
+{
+  "name": "Tv Stand Low",
+  "price": 250,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_tv_stand_low_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_tv_stand_low_l.png",
+    "obj_tv_stand_low_r.png"
+  ]
+}

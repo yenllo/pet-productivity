@@ -1,0 +1,18 @@
+{
+  "name": "Laptopoff",
+  "price": 280,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_laptopoff_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_laptopoff_l.png",
+    "obj_laptopoff_r.png"
+  ]
+}

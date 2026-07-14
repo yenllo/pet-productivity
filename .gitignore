@@ -1,0 +1,187 @@
+﻿# Build results
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Android SDK cmdline tools in root
+/cmdline-tools/
+
+# Logs and temporary files in root
+/logs/
+/java_paths_safe
+/jvm_content_safe
+/jvm_list.txt
+/current_view.png
+/restore_log
+/restore_log.txt
+/native_crash_5.txt
+/build_error_log.md
+
+# Log / Text patterns
+*.log
+*log
+*.txt
+!/src/PetProductivity.Client/Resources/Raw/AboutAssets.txt
+# El patrón *log de arriba matchea "Catalog" (termina en "log"); el catálogo de la tienda
+# es fuente de verdad y DEBE trackearse (lo referencian ambos .csproj).
+!/Catalog/
+!/Catalog/**
+
+# Database files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Screenshots
+screenshot_*.png
+/capture/
+
+# Scripts
+*.sh
+
+# Raw asset packs (reference only, not for repo)
+IsometricThings/
+
+# Secrets / credenciales (NUNCA al repo: van en user-secrets local + env vars en Render)
+google-services.json
+**/google-services.json
+*service-account*.json
+firebase-*.json
+*.firebase.json
+
+# ============================================================================
+# ARTE DE TERCEROS â€” NO REDISTRIBUIBLE  (repo publico)
+# ============================================================================
+# Los sprites de mobiliario isometrico son de Bongseng (bongseng.itch.io).
+# Su licencia permite usarlos dentro de la app, incluso comercialmente, pero
+# prohibe redistribuirlos ("you can't redistribute or resell this asset pack
+# in total or partly") â€” y publicarlos en un repo abierto ES redistribucion.
+#
+# Por eso *.png se ignora POR DEFECTO y solo se permite, una a una, el arte
+# propio del proyecto (lista de abajo). El fallo por defecto es "no subi mi
+# dibujo" (inofensivo), nunca "filtre arte con licencia" (caro).
+#
+# Si anades arte de terceros: NO lo anadas a la allowlist.
+# Si anades arte propio: anadelo con "!ruta/al/archivo.png".
+#
+# Para compilar el cliente Android hacen falta los sprites de Bongseng en
+# disco; comprarlos/descargarlos en itch.io y colocarlos segun ASSETS.md.
+# El SERVIDOR no necesita ni una sola imagen (solo lee los info.json).
+# ============================================================================
+*.png
+*.rar
+*.aseprite
+archivos originales sprites/
+*.zip
+
+# ---- Arte propio del proyecto (permitido explicitamente) ----
+!Catalog/Decoración/Box_1/obj_box_1.png
+!Catalog/Decoración/Curtaindown_1/obj_curtaindown_1.png
+!Catalog/Decoración/Curtainup_1/obj_curtainup_1.png
+!Catalog/Decoración/Hanger_Empty/obj_hanger_empty.png
+!Catalog/Decoración/Library_Books/obj_library_books.png
+!Catalog/Decoración/Litter_Box/obj_litter_box_l.png
+!Catalog/Decoración/Litter_Box/obj_litter_box_r.png
+!Catalog/Decoración/Pet_Bowl/obj_pet_bowl_l.png
+!Catalog/Decoración/Pet_Bowl/obj_pet_bowl_r.png
+!Catalog/Decoración/Rug_1/obj_rug_1.png
+!Catalog/Decoración/Rug_Circle_Blue/obj_rug_circle_blue.png
+!Catalog/Decoración/Rug_Circle_Green/obj_rug_circle_green.png
+!Catalog/Decoración/Rug_Circle_Red/obj_rug_circle_red.png
+!Catalog/Decoración/Rug_Circle_Yellow/obj_rug_circle_yellow.png
+!Catalog/Decoración/Rug_Square_Blue/obj_rug_square_blue.png
+!Catalog/Decoración/Rug_Square_Green/obj_rug_square_green.png
+!Catalog/Decoración/Rug_Square_Red/obj_rug_square_red.png
+!Catalog/Decoración/Rug_Square_Yellow/obj_rug_square_yellow.png
+!Catalog/Decoración/Scratching_Post/obj_scratching_post_l.png
+!Catalog/Decoración/Scratching_Post/obj_scratching_post_r.png
+!Catalog/Decoración/Trash_Bin/obj_trash_bin_l.png
+!Catalog/Decoración/Trash_Bin/obj_trash_bin_r.png
+!Catalog/Estructural/Door_1/obj_door_1.png
+!Catalog/Estructural/Door_2/obj_door_2.png
+!Catalog/Estructural/Wall_Clock/obj_wall_clock_l.png
+!Catalog/Estructural/Wall_Clock/obj_wall_clock_r.png
+!Catalog/Muebles/Chair_1/obj_chair_1.png
+!Catalog/Muebles/Chair_2/obj_chair_2.png
+!Catalog/Muebles/Chair_3/obj_chair_3.png
+!Catalog/Muebles/Chair_4/obj_chair_4.png
+!Catalog/Muebles/Chair_Blue/obj_chair_blue.png
+!Catalog/Muebles/Chair_Green/obj_chair_green.png
+!Catalog/Muebles/Chair_Red/obj_chair_red.png
+!Catalog/Muebles/Chair_Yellow/obj_chair_yellow.png
+!Catalog/Muebles/Desk_Work/obj_desk_work_l.png
+!Catalog/Muebles/Desk_Work/obj_desk_work_r.png
+!Catalog/Muebles/Library_Empty/obj_library_empty.png
+!Catalog/Muebles/Office_Chair/obj_office_chair_l.png
+!Catalog/Muebles/Office_Chair/obj_office_chair_r.png
+!Catalog/Muebles/Piano/obj_piano_l.png
+!Catalog/Muebles/Piano/obj_piano_r.png
+!Catalog/Muebles/Shelf_1/obj_shelf_1.png
+!Catalog/Muebles/Table_1/obj_table_1.png
+!Catalog/Muebles/Table_2/obj_table_2.png
+!Catalog/Muebles/Tv_1/obj_tv_1.png
+!Catalog/Vida/Ac_1/obj_ac_1.png
+!Catalog/Vida/Ac_Off/obj_ac_off.png
+!Catalog/Vida/Ac_On/obj_ac_on.png
+!Catalog/Vida/Aquarium/obj_aquarium_l.png
+!Catalog/Vida/Aquarium/obj_aquarium_r.png
+!Catalog/Vida/Fireplace/obj_fireplace_l.png
+!Catalog/Vida/Fireplace/obj_fireplace_r.png
+!Catalog/Vida/Fridge_1/obj_fridge_1.png
+!Catalog/Vida/Game_Console/obj_game_console_l.png
+!Catalog/Vida/Game_Console/obj_game_console_r.png
+!Catalog/Vida/Kitchen_1/obj_kitchen_1.png
+!Catalog/Vida/Kitchen_2/obj_kitchen_2.png
+!Catalog/Vida/Kitchen_3/obj_kitchen_3.png
+!Catalog/Vida/Kitchen_4/obj_kitchen_4.png
+!Catalog/Vida/Kitchen_5/obj_kitchen_5.png
+!Catalog/Vida/Kitchen_6/obj_kitchen_6.png
+!Catalog/Vida/Kitchenknife_1/obj_kitchenknife_1.png
+!Catalog/Vida/Kitchentable_1/obj_kitchentable_1.png
+!Catalog/Vida/Microwave_1/obj_microwave_1.png
+!Catalog/Vida/Oven_1/obj_oven_1.png
+!Catalog/Vida/Stereo/obj_stereo_l.png
+!Catalog/Vida/Stereo/obj_stereo_r.png
+!Catalog/Vida/Telephone_1/obj_telephone_1.png
+!Catalog/Vida/Washing_Machine/obj_washing_machine_l.png
+!Catalog/Vida/Washing_Machine/obj_washing_machine_r.png
+!Catalog/Vida/Window_1/obj_window_1.png
+!src/PetProductivity.Client/Resources/Images/dotnet_bot.png
+!src/PetProductivity.Client/Resources/Images/egg_frame_0.png
+!src/PetProductivity.Client/Resources/Images/egg_frame_1.png
+!src/PetProductivity.Client/Resources/Images/egg_frame_2.png
+!src/PetProductivity.Client/Resources/Images/egg_frame_3.png
+!src/PetProductivity.Client/Resources/Images/egg_frame_4.png
+!src/PetProductivity.Client/Resources/Images/egg_frame_5.png
+!src/PetProductivity.Client/Resources/Images/pet_aqua_adult.png
+!src/PetProductivity.Client/Resources/Images/pet_aqua_baby.png
+!src/PetProductivity.Client/Resources/Images/pet_aqua_master.png
+!src/PetProductivity.Client/Resources/Images/pet_crystal.png
+!src/PetProductivity.Client/Resources/Images/pet_egg.png
+!src/PetProductivity.Client/Resources/Images/pet_ember_adult.png
+!src/PetProductivity.Client/Resources/Images/pet_ember_baby.png
+!src/PetProductivity.Client/Resources/Images/pet_ember_master.png
+!src/PetProductivity.Client/Resources/Images/pet_sprout_adult.png
+!src/PetProductivity.Client/Resources/Images/pet_sprout_baby.png
+!src/PetProductivity.Client/Resources/Images/pet_sprout_master.png
+!src/PetProductivity.Client/Resources/Raw/room_bg.png
+!src/PetProductivity.Client/Resources/Raw/room_bg_bathroom.png
+!src/PetProductivity.Client/Resources/Raw/room_bg_forest.png
+!src/PetProductivity.Client/Resources/Raw/room_bg_galaxy.png
+!src/PetProductivity.Client/Resources/Raw/room_bg_kitchen.png
+!src/PetProductivity.Client/Resources/Raw/room_bg_loft.png

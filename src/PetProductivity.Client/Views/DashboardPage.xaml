@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+             xmlns:vm="clr-namespace:PetProductivity.Client.ViewModels"
+             xmlns:views="clr-namespace:PetProductivity.Client.Views"
+             xmlns:ctrl="clr-namespace:PetProductivity.Client.Controls"
+             x:Class="PetProductivity.Client.Views.DashboardPage"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:T 'Mascota'}"
+             Background="{StaticResource AppBgBrush}">
+
+  <Grid>
+    <views:MokoBackground />
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto" Padding="18,50,18,12" RowSpacing="0">
+
+        <!-- Tira de estado -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+            <Border Style="{StaticResource Chip}" BackgroundColor="{StaticResource GoldSoft}" Stroke="{StaticResource Gold}">
+                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                    <Image Source="spr_coin.png" HeightRequest="16" WidthRequest="16" VerticalOptions="Center"/>
+                    <Label Text="{Binding CurrentPet.GoldCoins}" TextColor="{StaticResource Gold}" FontAttributes="Bold" FontSize="14" VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- T27-L2 (#14): chip de estado tocable (abre overlay del app); antes era un Picker recortado -->
+            <Border Grid.Column="1" Style="{StaticResource Chip}" Stroke="{Binding StatusColor}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenStatusPickerCommand}"/>
+                </Border.GestureRecognizers>
+                <Label Text="{Binding StatusLabel}" TextColor="{StaticResource Ink}" FontSize="13"
+                       HorizontalOptions="Center" VerticalOptions="Center"/>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource Chip}">
+                <Label Text="{Binding LevelLabel}" TextColor="{StaticResource Ink2}" FontAttributes="Bold" FontSize="14" VerticalOptions="Center"/>
+            </Border>
+
+            <!-- T1: racha diaria; punto naranja = "aún nada hoy". T27-L2 (#18): tap = explicación. -->
+            <Border Grid.Column="3" Style="{StaticResource Chip}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ExplainStreakCommand}"/>
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                    <Label Text="{Binding StreakLabel}" TextColor="{StaticResource Ink2}" FontAttributes="Bold" FontSize="14" VerticalOptions="Center"/>
+                    <Label Text="{loc:T '●'}" TextColor="#FF8A5F" FontSize="10" IsVisible="{Binding StreakAtRisk}" VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Banner invitado -->
+        <Border Grid.Row="1" IsVisible="{Binding ShowClaimBanner}" Margin="0,10,0,0" Padding="12,9"
+                StrokeThickness="1" Stroke="#38FF5F8F" BackgroundColor="#1AFF5F8F" StrokeShape="RoundRectangle 12">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding GoToRegisterCommand}"/>
+            </Border.GestureRecognizers>
+            <Grid ColumnDefinitions="*,Auto,Auto" VerticalOptions="Center">
+                <Label Text="{Binding RegisterPromptText}" TextColor="{DynamicResource Ink2}" FontSize="12.5" VerticalOptions="Center"/>
+                <Label Grid.Column="1" Text="{loc:T 'Crear cuenta'}" TextColor="{StaticResource Ink}" FontAttributes="Bold" FontSize="12.5" VerticalOptions="Center"/>
+                <Label Grid.Column="2" Text="{loc:T '✕'}" TextColor="#AAFFD0DE" FontSize="14" Margin="10,0,0,0" VerticalOptions="Center">
+                    <Label.GestureRecognizers><TapGestureRecognizer Command="{Binding DismissClaimBannerCommand}"/></Label.GestureRecognizers>
+                </Label>
+            </Grid>
+        </Border>
+
+        <!-- Contenido -->
+        <ScrollView Grid.Row="2" VerticalScrollBarVisibility="Never" Margin="0,12,0,0">
+            <!-- T27-L2 (#11): Spacing 12→18 — con 12 la sombra/borde de una tarjeta translúcida se veía
+                 a través de la siguiente y leía como sobreposición (Evolución bajo Hambre/Salud). -->
+            <VerticalStackLayout x:Name="ContentStack" Spacing="18" Padding="0,0,0,26">
+
+                <!-- T27-L1 (#2): volver a un foco activo (sin esto no había regreso mid-sesión) -->
+                <Border IsVisible="{Binding IsFocusActive}" Padding="12,10"
+                        StrokeThickness="1" Stroke="#3A5FA8FF" BackgroundColor="#1A5FA8FF" StrokeShape="RoundRectangle 12">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ResumeFocusCommand}"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <Label Text="{loc:T '🔒 Tienes un foco activo'}" TextColor="{StaticResource Ink}" FontAttributes="Bold" FontSize="13" VerticalOptions="Center"/>
+                        <Label Grid.Column="1" Text="{loc:T 'Volver ›'}" TextColor="#8FC0FF" FontAttributes="Bold" FontSize="13" VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- DIORAMA isométrico (SkiaSharp con iluminación) + Moko encima -->
+                <Border StrokeThickness="1" Stroke="{StaticResource StrokeSoft}" StrokeShape="RoundRectangle 18"
+                        HeightRequest="280">
+                    <Border.Shadow>
+                        <Shadow Brush="#000000" Offset="0,12" Radius="26" Opacity="0.5"/>
+                    </Border.Shadow>
+                    <Grid>
+                        <ctrl:RoomDiorama x:Name="RoomCanvas" IsCrystallized="{Binding IsCrystallized}" RoomStyle="{Binding RoomStyle}"
+                                          Furniture="{Binding Furniture}" Placements="{Binding Placements}"/>
+                        <Image x:Name="MokoImage" InputTransparent="True"
+                               Source="{Binding PetImageSource, FallbackValue='pet_egg.png', TargetNullValue='pet_egg.png'}"
+                               Opacity="{Binding PetOpacity}" Aspect="AspectFit"
+                               HeightRequest="92" WidthRequest="92" HorizontalOptions="Center" VerticalOptions="Center"
+                               TranslationY="-6">
+                            <Image.Shadow>
+                                <Shadow Brush="#000000" Offset="0,10" Radius="14" Opacity="0.45"/>
+                            </Image.Shadow>
+                        </Image>
+                        <!-- T5: burbuja de humor (deriva de Hunger/Health reales; la anima OnFrameTick) -->
+                        <Label x:Name="MoodBubble" Text="{Binding MoodEmoji}" IsVisible="{Binding ShowMood}"
+                               InputTransparent="True" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"
+                               TranslationX="38" TranslationY="-56"/>
+                        <BoxView Color="#5586B4FF" IsVisible="{Binding IsCrystallized}"/>
+                        <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}"
+                                           Color="{StaticResource AccentPink}" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        <!-- T27-L2 (#15): lápiz arriba-derecha; ahora abre el sandbox inmersivo de edición -->
+                        <Button Text="✏️" Command="{Binding EnterSandboxCommand}"
+                                HorizontalOptions="End" VerticalOptions="Start" Margin="0,10,10,0"
+                                HeightRequest="40" WidthRequest="40" CornerRadius="20" Padding="0" FontSize="17"
+                                BackgroundColor="#B3160E2E" TextColor="{StaticResource Ink}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Nombre — T27-L2: colapsa si aún no hay mascota (antes el label de 30px reservaba
+                     ~56px vacíos = "vacío volumétrico" mientras carga o sin datos). -->
+                <VerticalStackLayout Spacing="0" HorizontalOptions="Center" IsVisible="{Binding HasPet}">
+                    <Label Text="{Binding CurrentPet.Name}" Style="{StaticResource DisplayXL}" HorizontalOptions="Center"/>
+                    <Label Text="{Binding PetSubtitle}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+
+                <!-- Evolución -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="11">
+                        <Label Text="{loc:T 'Evolución'}" TextColor="{StaticResource Ink2}" FontSize="13" FontAttributes="Bold"/>
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                            <Border Grid.Column="0" StrokeThickness="1" Stroke="#73FF5F8F" StrokeShape="RoundRectangle 13" BackgroundColor="#1FFF5F8F" Padding="4,11">
+                                <VerticalStackLayout Spacing="7" HorizontalOptions="Center">
+                                    <Grid HeightRequest="34" WidthRequest="34" HorizontalOptions="Center"><Image Source="{Binding BabySprite}" Aspect="AspectFit"/></Grid>
+                                    <Label Text="{loc:T 'Cría'}" FontSize="11" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/></VerticalStackLayout>
+                            </Border>
+                            <Border Grid.Column="1" StrokeThickness="0" StrokeShape="RoundRectangle 13" BackgroundColor="{StaticResource Glass2}" Padding="4,11" Opacity="0.42">
+                                <VerticalStackLayout Spacing="7" HorizontalOptions="Center">
+                                    <Grid HeightRequest="34" WidthRequest="34" HorizontalOptions="Center"><Image Source="{Binding AdultSprite}" Aspect="AspectFit"/></Grid>
+                                    <Label Text="{loc:T 'Adulto'}" FontSize="11" TextColor="{StaticResource Ink3}" HorizontalOptions="Center"/></VerticalStackLayout>
+                            </Border>
+                            <Border Grid.Column="2" StrokeThickness="0" StrokeShape="RoundRectangle 13" BackgroundColor="{StaticResource Glass2}" Padding="4,11" Opacity="0.42">
+                                <VerticalStackLayout Spacing="7" HorizontalOptions="Center">
+                                    <Grid HeightRequest="34" WidthRequest="34" HorizontalOptions="Center"><Image Source="{Binding MasterSprite}" Aspect="AspectFit"/></Grid>
+                                    <Label Text="{loc:T 'Maestro'}" FontSize="11" TextColor="{StaticResource Ink3}" HorizontalOptions="Center"/></VerticalStackLayout>
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Vitales: T27-L2 (#11) — UNA sola Card con 2 columnas (antes eran 2 Cards sueltas dentro
+                     de un Grid; esa estructura distinta a Evolución/Crecimiento/Ritual daba espaciado y
+                     sombra inconsistentes: apretado arriba, hueco de más abajo). -->
+                <Border Style="{StaticResource Card}">
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="22">
+                        <VerticalStackLayout Grid.Column="0" Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <HorizontalStackLayout Spacing="6">
+                                    <Image Source="ic_food.png" HeightRequest="15" WidthRequest="15" VerticalOptions="Center"/>
+                                    <Label Text="{loc:T 'Hambre'}" TextColor="{StaticResource Ink2}" FontSize="13" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                                <Label Grid.Column="1" Text="{Binding CurrentPet.Hunger, StringFormat='{0}%'}" Style="{StaticResource DisplayTitle}" FontSize="15"/>
+                            </Grid>
+                            <ctrl:RoundedBar Progress="{Binding CurrentPet.Hunger, Converter={StaticResource IntToDoubleConverter}}" Fill="{StaticResource Hunger}" Track="{StaticResource Glass2}" BarHeight="8"/>
+                        </VerticalStackLayout>
+                        <!-- T5: fuera la barra de Felicidad (columna muerta — nunca se movía); Salud es real -->
+                        <VerticalStackLayout Grid.Column="1" Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <HorizontalStackLayout Spacing="6">
+                                    <Image Source="ic_heart.png" HeightRequest="15" WidthRequest="15" VerticalOptions="Center"/>
+                                    <Label Text="{loc:T 'Salud'}" TextColor="{StaticResource Ink2}" FontSize="13" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                                <Label Grid.Column="1" Text="{Binding CurrentPet.Health, StringFormat='{0}%'}" Style="{StaticResource DisplayTitle}" FontSize="15"/>
+                            </Grid>
+                            <ctrl:RoundedBar Progress="{Binding CurrentPet.Health, Converter={StaticResource IntToDoubleConverter}}" Fill="{StaticResource AccentPink}" Track="{StaticResource Glass2}" BarHeight="8"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Crecimiento -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="11">
+                        <Label Text="{loc:T 'Crecimiento'}" TextColor="{StaticResource Ink2}" FontSize="13" FontAttributes="Bold"/>
+                        <Grid ColumnDefinitions="*,*,*,*">
+                            <VerticalStackLayout Grid.Column="0" Spacing="6" HorizontalOptions="Center">
+                                <Grid HeightRequest="46" WidthRequest="46" HorizontalOptions="Center">
+                                    <Ellipse HeightRequest="46" WidthRequest="46" Stroke="{StaticResource StBusy}" StrokeThickness="5" Fill="Transparent"/>
+                                    <Image Source="ic_body.png" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Grid>
+                                <Label Text="{loc:T 'Cuerpo'}" FontSize="11" TextColor="{StaticResource Ink3}" HorizontalOptions="Center"/>
+                                <Label Text="{Binding CuerpoXp}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="6" HorizontalOptions="Center">
+                                <Grid HeightRequest="46" WidthRequest="46" HorizontalOptions="Center">
+                                    <Ellipse HeightRequest="46" WidthRequest="46" Stroke="{StaticResource StWork}" StrokeThickness="5" Fill="Transparent"/>
+                                    <Image Source="ic_mind.png" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Grid>
+                                <Label Text="{loc:T 'Mente'}" FontSize="11" TextColor="{StaticResource Ink3}" HorizontalOptions="Center"/>
+                                <Label Text="{Binding MenteXp}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="2" Spacing="6" HorizontalOptions="Center">
+                                <Grid HeightRequest="46" WidthRequest="46" HorizontalOptions="Center">
+                                    <Ellipse HeightRequest="46" WidthRequest="46" Stroke="{StaticResource StOk}" StrokeThickness="5" Fill="Transparent"/>
+                                    <Image Source="ic_home.png" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Grid>
+                                <Label Text="{loc:T 'Hogar'}" FontSize="11" TextColor="{StaticResource Ink3}" HorizontalOptions="Center"/>
+                                <Label Text="{Binding HogarXp}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="3" Spacing="6" HorizontalOptions="Center">
+                                <Grid HeightRequest="46" WidthRequest="46" HorizontalOptions="Center">
+                                    <Ellipse HeightRequest="46" WidthRequest="46" Stroke="{StaticResource StCrystal}" StrokeThickness="5" Fill="Transparent"/>
+                                    <Image Source="ic_leaf.png" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Grid>
+                                <Label Text="{loc:T 'Bienestar'}" FontSize="11" TextColor="{StaticResource Ink3}" HorizontalOptions="Center"/>
+                                <Label Text="{Binding BienestarXp}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Ritual diario -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                            <Label Text="{loc:T 'Ritual diario'}" TextColor="{StaticResource Ink2}" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
+                            <!-- T7-A: renombrar celdas (tus 9 hábitos reales) -->
+                            <Button Grid.Column="2" Text="{Binding RitualEditText}" Command="{Binding ToggleRitualRenameCommand}"
+                                    Style="{StaticResource BtnGhost}" HeightRequest="30" FontSize="12" Padding="10,0"/>
+                            <Border Grid.Column="1" IsVisible="{Binding IsXpBuffActive}" BackgroundColor="{StaticResource StWorkSoft}"
+                                    Stroke="#4DFFAC4D" StrokeThickness="1" StrokeShape="RoundRectangle 10" Padding="8,2">
+                                <HorizontalStackLayout Spacing="5">
+                                    <Image Source="ic_fire.png" HeightRequest="13" WidthRequest="13" VerticalOptions="Center"/>
+                                    <Label Text="XP x1.2" TextColor="{StaticResource StWork}" FontAttributes="Bold" FontSize="11" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                            </Border>
+                        </Grid>
+                        <!-- 3x3 sin scroll interno (FlexLayout): así el ScrollView de la página baja completo. -->
+                        <FlexLayout BindableLayout.ItemsSource="{Binding RitualCells}"
+                                    Wrap="Wrap" Direction="Row" JustifyContent="SpaceBetween" AlignItems="Stretch">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Border FlexLayout.Basis="31%" StrokeThickness="0" StrokeShape="RoundRectangle 12" HeightRequest="58" Margin="0,0,0,8">
+                                        <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding ToggleCommand}"/></Border.GestureRecognizers>
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Glass2}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger TargetType="Border" Binding="{Binding IsCompleted}" Value="True">
+                                                        <Setter Property="BackgroundColor" Value="#29FF5F8F"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Label Text="{Binding Label}" TextColor="{StaticResource Ink}" FontSize="11" FontAttributes="Bold"
+                                               HorizontalTextAlignment="Center" VerticalTextAlignment="Center" LineBreakMode="WordWrap"/>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+                        <!-- T27-L2 (#16): wrap explícito — el texto salía cortado -->
+                        <Label Text="{loc:T 'Toca una celda para nombrar ese hábito.'}" IsVisible="{Binding RitualRenameMode}"
+                               Style="{StaticResource Caption}" HorizontalOptions="Center"
+                               LineBreakMode="WordWrap" HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- T7-C: quick-log — repetir un hábito reciente con 1 tap (misma IA + recompensa) -->
+                <Border Style="{StaticResource Card}" IsVisible="{Binding HasQuickChips}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="{loc:T 'Repetir de un toque'}" TextColor="{StaticResource Ink2}" FontSize="13" FontAttributes="Bold"/>
+                        <FlexLayout BindableLayout.ItemsSource="{Binding QuickChips}" Wrap="Wrap" Direction="Row">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Border StrokeThickness="1" Stroke="{StaticResource StrokeSoft}" StrokeShape="RoundRectangle 14"
+                                            BackgroundColor="{StaticResource Glass2}" Padding="12,7" Margin="0,0,8,8">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DashboardViewModel}}, Path=QuickLogCommand}"
+                                                                  CommandParameter="{Binding .}"/>
+                                        </Border.GestureRecognizers>
+                                        <Label Text="{Binding .}" TextColor="{StaticResource Ink}" FontSize="12.5"
+                                               LineBreakMode="TailTruncation" MaximumWidthRequest="240" VerticalOptions="Center"/>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- CTA -->
+        <Button Grid.Row="3" Text="{loc:T 'Registrar progreso'}" Command="{Binding NavigateToNewTaskCommand}"
+                Style="{StaticResource BtnAccent}" HeightRequest="54" Margin="0,8,0,2"/>
+        <!-- T27-L2 (#19): quitado el botón debug 💀 que se superponía al CTA (matar mascota = solo dev). -->
+
+    </Grid>
+
+    <!-- Overlays a nivel de página (cubren todo, sin el inset del padding del grid interior) -->
+
+    <!-- Sandbox de edición del cuarto: overlay inmersivo con listas y pad tipo Gameboy.
+         Fondo = el brush de página del tema (claro/oscuro), NO un color fijo. -->
+    <Grid x:Name="SandboxOverlay" IsVisible="{Binding EditMode}" ZIndex="105"
+          Background="{StaticResource AppBgBrush}">
+            <Grid RowDefinitions="Auto,Auto,*" Padding="14,52,14,10" RowSpacing="10">
+
+                <!-- Barra superior -->
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                    <Button Text="{loc:T '✕ Cancelar'}" Command="{Binding CancelSandboxCommand}"
+                            Style="{StaticResource BtnGhost}" HeightRequest="40" FontSize="13" Padding="12,0"/>
+                    <Label Grid.Column="1" Text="{loc:T 'Editar cuarto'}" Style="{StaticResource DisplayTitle}" FontSize="17"
+                           HorizontalOptions="Center" VerticalOptions="Center"/>
+                    <Button Grid.Column="2" Text="{loc:T '✓ Guardar'}" Command="{Binding SaveSandboxCommand}"
+                            Style="{StaticResource BtnAccent}" HeightRequest="40" FontSize="13" Padding="12,0"/>
+                </Grid>
+
+                <!-- Diorama sandbox (grande, con grilla) -->
+                <Border Grid.Row="1" StrokeThickness="1" Stroke="{StaticResource StrokeSoft}" StrokeShape="RoundRectangle 18"
+                        HeightRequest="340">
+                    <ctrl:RoomDiorama x:Name="SandboxCanvas" RoomStyle="{Binding RoomStyle}"
+                                      Placements="{Binding Placements}" EditMode="True"/>
+                </Border>
+
+                <!-- Controles y listas -->
+                <ScrollView Grid.Row="2" VerticalScrollBarVisibility="Never">
+                    <VerticalStackLayout Spacing="10">
+
+                        <Label Text="{loc:T 'Toca un objeto del cuarto o de las listas.'}"
+                               IsVisible="{Binding SandboxHintVisible}" Style="{StaticResource Caption}"
+                               HorizontalOptions="Center" LineBreakMode="WordWrap" HorizontalTextAlignment="Center"/>
+
+                        <!-- Objeto seleccionado: guardar en inventario / mover -->
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8" IsVisible="{Binding SelectionActionsVisible}">
+                            <Button Grid.Column="0" Text="{loc:T '🗄️ Guardar en inventario'}" Command="{Binding RemoveSelectedCommand}"
+                                    Style="{StaticResource BtnGhost}" HeightRequest="44" FontSize="12.5"/>
+                            <Button Grid.Column="1" Text="{loc:T '✥ Mover'}" Command="{Binding StartMoveCommand}"
+                                    Style="{StaticResource BtnAccent}" HeightRequest="44" FontSize="12.5"/>
+                        </Grid>
+
+                        <!-- Pad tipo Gameboy (modo mover) -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16" IsVisible="{Binding PadVisible}">
+                            <Grid Grid.Column="0" RowDefinitions="52,52,52" ColumnDefinitions="52,52,52" RowSpacing="4" ColumnSpacing="4">
+                                <Button Grid.Row="0" Grid.Column="1" Text="▲" Command="{Binding MoveStepCommand}" CommandParameter="up"
+                                        Style="{StaticResource BtnGhost}" Padding="0" FontSize="16"/>
+                                <Button Grid.Row="1" Grid.Column="0" Text="◀" Command="{Binding MoveStepCommand}" CommandParameter="left"
+                                        Style="{StaticResource BtnGhost}" Padding="0" FontSize="16"/>
+                                <Button Grid.Row="1" Grid.Column="2" Text="▶" Command="{Binding MoveStepCommand}" CommandParameter="right"
+                                        Style="{StaticResource BtnGhost}" Padding="0" FontSize="16"/>
+                                <Button Grid.Row="2" Grid.Column="1" Text="▼" Command="{Binding MoveStepCommand}" CommandParameter="down"
+                                        Style="{StaticResource BtnGhost}" Padding="0" FontSize="16"/>
+                            </Grid>
+                            <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                                <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                                    <VerticalStackLayout Spacing="2">
+                                        <Button Text="🗄️" Command="{Binding StoreMoveCommand}"
+                                                HeightRequest="52" WidthRequest="52" CornerRadius="26" Padding="0" FontSize="18"
+                                                BackgroundColor="{StaticResource Glass2}" TextColor="{StaticResource Ink}"/>
+                                        <Label Text="B" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Spacing="2">
+                                        <Button Text="⟳" Command="{Binding RotateSelectedCommand}" IsEnabled="{Binding CanRotateSelected}"
+                                                HeightRequest="52" WidthRequest="52" CornerRadius="26" Padding="0" FontSize="18"
+                                                BackgroundColor="{StaticResource Glass2}" TextColor="{StaticResource Ink}"/>
+                                        <Label Text="A" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </HorizontalStackLayout>
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                    <Button Grid.Column="0" Text="{loc:T '✕'}" Command="{Binding CancelMoveCommand}"
+                                            Style="{StaticResource BtnGhost}" HeightRequest="40" FontSize="13"/>
+                                    <Button Grid.Column="1" Text="{loc:T '✓ Listo'}" Command="{Binding ConfirmMoveCommand}"
+                                            Style="{StaticResource BtnAccent}" HeightRequest="40" FontSize="13"/>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- 🗄️ Guardados: tap = poner en la habitación -->
+                        <Border Style="{StaticResource Card}" Padding="14,12">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="{Binding StoredHeader}" TextColor="{StaticResource Ink2}" FontSize="13" FontAttributes="Bold"/>
+                                <Label Text="{loc:T 'Todo lo tuyo está en el cuarto. Lo que guardes aparecerá aquí.'}"
+                                       IsVisible="{Binding StoredEmpty}" Style="{StaticResource Caption}"/>
+                                <CollectionView ItemsSource="{Binding StoredItems}" IsVisible="{Binding StoredNotEmpty}"
+                                                HeightRequest="96" SelectionMode="None" ItemsLayout="HorizontalList">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border StrokeThickness="1" Stroke="{StaticResource StrokeSoft}" StrokeShape="RoundRectangle 12"
+                                                    BackgroundColor="{StaticResource Glass2}" Padding="6" Margin="0,0,8,0" WidthRequest="78">
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DashboardViewModel}}, Path=PlaceStoredCommand}"
+                                                                          CommandParameter="{Binding .}"/>
+                                                </Border.GestureRecognizers>
+                                                <VerticalStackLayout Spacing="4">
+                                                    <Image Source="{Binding Thumb}" HeightRequest="42" Aspect="AspectFit"/>
+                                                    <Label Text="{loc:T 'Poner ↴'}" FontSize="9.5" TextColor="{StaticResource Ink3}" HorizontalOptions="Center"/>
+                                                    <Label Text="{Binding Name}" FontSize="10" TextColor="{StaticResource Ink}"
+                                                           HorizontalTextAlignment="Center" MaxLines="1" LineBreakMode="TailTruncation"/>
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- 🛋️ En el cuarto: tap = seleccionar en el diorama -->
+                        <Border Style="{StaticResource Card}" Padding="14,12">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="{Binding PlacedHeader}" TextColor="{StaticResource Ink2}" FontSize="13" FontAttributes="Bold"/>
+                                <CollectionView ItemsSource="{Binding PlacedItems}" HeightRequest="88"
+                                                SelectionMode="None" ItemsLayout="HorizontalList">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border StrokeThickness="1" Stroke="{StaticResource StrokeSoft}" StrokeShape="RoundRectangle 12"
+                                                    BackgroundColor="{StaticResource Glass2}" Padding="6" Margin="0,0,8,0" WidthRequest="78">
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DashboardViewModel}}, Path=SelectPlacedCommand}"
+                                                                          CommandParameter="{Binding .}"/>
+                                                </Border.GestureRecognizers>
+                                                <VerticalStackLayout Spacing="4">
+                                                    <Image Source="{Binding Thumb}" HeightRequest="42" Aspect="AspectFit"/>
+                                                    <Label Text="{Binding Name}" FontSize="10" TextColor="{StaticResource Ink}"
+                                                           HorizontalTextAlignment="Center" MaxLines="2" LineBreakMode="TailTruncation"/>
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </VerticalStackLayout>
+                        </Border>
+
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Grid>
+        </Grid>
+
+        <!-- T4-E: ceremonia de evolución (hito hoy silencioso). Tap para cerrar. -->
+        <Grid Grid.RowSpan="4" BackgroundColor="#E6120A20" IsVisible="{Binding ShowEvolution}" ZIndex="100">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding DismissEvolutionCommand}"/>
+            </Grid.GestureRecognizers>
+            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="16" Padding="30">
+                <Label Text="{loc:T '✨'}" FontSize="72" HorizontalOptions="Center"/>
+                <Label Text="{loc:T '¡Evolución!'}" Style="{StaticResource DisplayTitle}" FontSize="26" HorizontalOptions="Center"/>
+                <Label Text="{Binding EvolutionText}" TextColor="{StaticResource Ink}" FontSize="16"
+                       HorizontalTextAlignment="Center" WidthRequest="280"/>
+                <Image Source="{Binding PetImageSource}" HeightRequest="110" WidthRequest="110" Aspect="AspectFit" HorizontalOptions="Center"/>
+                <Label Text="{loc:T 'Toca para continuar'}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Overlay cristalizado -->
+        <Grid Grid.RowSpan="4" BackgroundColor="#D8070610" IsVisible="{Binding IsCrystallized}" ZIndex="99">
+            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="18" Padding="30">
+                <Image Source="spr_gem.png" HeightRequest="64" WidthRequest="64" HorizontalOptions="Center"/>
+                <Label Text="{loc:T 'Estado cristalizado'}" Style="{StaticResource DisplayTitle}" FontSize="22" HorizontalOptions="Center"/>
+                <!-- T3: dos puertas de regreso — constancia (3 días de esfuerzo real) o hazaña épica -->
+                <Label Text="{loc:T 'Tu mascota se cristalizó. Rompe el cristal con esfuerzo real (un foco o una tarea 5+) durante 3 días distintos, o con una hazaña épica (9+).'}"
+                       TextColor="{StaticResource Ink2}" HorizontalTextAlignment="Center" WidthRequest="280"/>
+                <Label Text="{Binding CurrentPet.RevivalProgress, Converter={StaticResource LocFmt}, ConverterParameter='💠 Grietas del cristal: {0}/3'}"
+                       TextColor="{StaticResource Ink}" FontAttributes="Bold" HorizontalOptions="Center"/>
+                <Button Text="{loc:T '🔥 Iniciar misión de resurrección'}" Command="{Binding DebugRevivePetCommand}"
+                        Style="{StaticResource BtnAccent}" Padding="20,0"/>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- T27-L2 (#14): selector de estado con estilo del app (reemplaza el Picker recortado) -->
+        <Grid Grid.RowSpan="4" IsVisible="{Binding ShowStatusPicker}" ZIndex="111">
+            <BoxView Color="#CC0A0616">
+                <BoxView.GestureRecognizers><TapGestureRecognizer Command="{Binding CloseStatusPickerCommand}"/></BoxView.GestureRecognizers>
+            </BoxView>
+            <Border Style="{StaticResource Card}" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{loc:T 'Tu estado'}" Style="{StaticResource DisplayTitle}" FontSize="18" HorizontalOptions="Center" Margin="0,0,0,4"/>
+                    <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Padding="14,13">
+                        <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding PickStatusCommand}" CommandParameter="Available"/></Border.GestureRecognizers>
+                        <Label Text="{loc:T '🟢 Disponible'}" TextColor="{StaticResource Ink}" FontSize="15"/>
+                    </Border>
+                    <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Padding="14,13">
+                        <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding PickStatusCommand}" CommandParameter="Working"/></Border.GestureRecognizers>
+                        <Label Text="{loc:T '🔨 Trabajando'}" TextColor="{StaticResource Ink}" FontSize="15"/>
+                    </Border>
+                    <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Padding="14,13">
+                        <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding PickStatusCommand}" CommandParameter="Busy"/></Border.GestureRecognizers>
+                        <Label Text="{loc:T '🔴 Ocupado'}" TextColor="{StaticResource Ink}" FontSize="15"/>
+                    </Border>
+                    <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Padding="14,13">
+                        <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding PickStatusCommand}" CommandParameter="Offline"/></Border.GestureRecognizers>
+                        <Label Text="{loc:T '⚫ Desconectado'}" TextColor="{StaticResource Ink}" FontSize="15"/>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- T27-L2 (#12): renombrar hábito con input del estilo del app (reemplaza DisplayPromptAsync) -->
+        <Grid Grid.RowSpan="4" IsVisible="{Binding ShowRitualPrompt}" ZIndex="112">
+            <BoxView Color="#CC0A0616">
+                <BoxView.GestureRecognizers><TapGestureRecognizer Command="{Binding CancelRitualPromptCommand}"/></BoxView.GestureRecognizers>
+            </BoxView>
+            <Border Style="{StaticResource Card}" Stroke="#59FF5F8F" StrokeThickness="2" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="{loc:T 'Nombra este hábito'}" Style="{StaticResource DisplayTitle}" FontSize="18" HorizontalOptions="Center"/>
+                    <Border StrokeThickness="1" Stroke="{StaticResource StrokeSoft}" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Padding="12,2">
+                        <Entry Text="{Binding RitualPromptText}" MaxLength="16" Placeholder="{loc:T 'Ej: Gym'}" BackgroundColor="Transparent"
+                               TextColor="{StaticResource Ink}" PlaceholderColor="{StaticResource Ink4}"/>
+                    </Border>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0" Text="{loc:T 'Cancelar'}" Command="{Binding CancelRitualPromptCommand}" Style="{StaticResource BtnGhost}" HeightRequest="46"/>
+                        <Button Grid.Column="1" Text="{loc:T 'Guardar'}" Command="{Binding ConfirmRitualRenameCommand}" Style="{StaticResource BtnAccent}" HeightRequest="46"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+  </Grid>
+</ContentPage>

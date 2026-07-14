@@ -1,0 +1,17 @@
+{
+  "name": "Cristal Evolutivo",
+  "price": 1500,
+  "description": "Cristal brillante para tu colección (cosmético)",
+  "category": "Cosmético",
+  "rarity": "Rare",
+  "currency": "Gold",
+  "spriteId": "",
+  "styleKey": "",
+  "icon": "💎",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "spr_gem.svg"
+  ]
+}

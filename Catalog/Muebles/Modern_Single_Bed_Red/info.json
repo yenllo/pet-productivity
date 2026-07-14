@@ -1,0 +1,18 @@
+{
+  "name": "Modern Single Bed Red",
+  "price": 280,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_modern_single_bed_red_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_modern_single_bed_red_l.png",
+    "obj_modern_single_bed_red_r.png"
+  ]
+}

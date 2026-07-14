@@ -1,0 +1,17 @@
+{
+  "name": "Chair Red",
+  "price": 230,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_chair_red",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_chair_red.png"
+  ]
+}

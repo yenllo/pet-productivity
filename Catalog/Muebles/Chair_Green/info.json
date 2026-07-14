@@ -1,0 +1,17 @@
+{
+  "name": "Chair Green",
+  "price": 250,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_chair_green",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_chair_green.png"
+  ]
+}

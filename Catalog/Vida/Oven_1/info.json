@@ -1,0 +1,17 @@
+{
+  "name": "Oven 1",
+  "price": 300,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_oven_1",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_oven_1.png"
+  ]
+}

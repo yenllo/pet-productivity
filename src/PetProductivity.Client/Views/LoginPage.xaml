@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+             xmlns:vm="clr-namespace:PetProductivity.Client.ViewModels"
+             x:Class="PetProductivity.Client.Views.LoginPage"
+             Shell.NavBarIsVisible="False"
+             Background="{StaticResource AppBgBrush}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30,60,30,30" Spacing="18">
+
+            <Label Text="{loc:T 'Bienvenido de vuelta'}" Style="{StaticResource DisplayTitle}" FontSize="28" Margin="0,0,0,20"/>
+
+            <Border StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" Padding="14,2">
+                <Entry Placeholder="{loc:T 'Correo electrónico'}" Text="{Binding Email}" Keyboard="Email"
+                       BackgroundColor="Transparent" TextColor="{StaticResource Ink}" PlaceholderColor="{StaticResource Ink4}" HeightRequest="48"/>
+            </Border>
+            <Border StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" Padding="14,2">
+                <Entry Placeholder="{loc:T 'Contraseña'}" Text="{Binding Password}" IsPassword="True"
+                       BackgroundColor="Transparent" TextColor="{StaticResource Ink}" PlaceholderColor="{StaticResource Ink4}" HeightRequest="48"/>
+            </Border>
+
+            <Button Text="{loc:T 'Iniciar sesión'}" Command="{Binding LoginCommand}" Style="{StaticResource BtnAccent}"/>
+
+            <BoxView HeightRequest="1" Color="{StaticResource StrokeSoft}" Margin="0,6"/>
+
+            <Button Text="{loc:T 'Continuar con Google'}" Command="{Binding GoogleLoginCommand}"
+                    BackgroundColor="{StaticResource White}" TextColor="{StaticResource Black}"
+                    FontFamily="Inter" CornerRadius="26" HeightRequest="52" BorderWidth="0"/>
+
+            <Label Text="{loc:T '¿No tienes cuenta? Regístrate'}" Style="{StaticResource Caption}" TextColor="{StaticResource Ink2}"
+                   HorizontalOptions="Center" TextDecorations="Underline" Margin="0,4,0,0">
+                <Label.GestureRecognizers><TapGestureRecognizer Command="{Binding NavigateToRegisterCommand}"/></Label.GestureRecognizers>
+            </Label>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

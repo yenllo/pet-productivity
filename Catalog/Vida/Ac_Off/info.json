@@ -1,0 +1,17 @@
+{
+  "name": "Ac Off",
+  "price": 330,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_ac_off",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_ac_off.png"
+  ]
+}

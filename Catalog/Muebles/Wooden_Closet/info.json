@@ -1,0 +1,18 @@
+{
+  "name": "Wooden Closet",
+  "price": 210,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_wooden_closet_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_wooden_closet_l.png",
+    "obj_wooden_closet_r.png"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Rug Square Green",
+  "price": 90,
+  "description": "",
+  "category": "Decoración",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_rug_square_green",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_rug_square_green.png"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Congelador de Racha",
+  "price": 200,
+  "description": "Si un día no haces nada, se consume solo y tu racha sobrevive.",
+  "category": "Consumibles",
+  "rarity": "Rare",
+  "currency": "Gold",
+  "spriteId": "",
+  "styleKey": "",
+  "icon": "🧊",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "effect": "",
+  "effectValue": 0,
+  "sprites": []
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Cofre Festivo",
+  "price": 180,
+  "description": "Edición limitada de temporada",
+  "category": "Eventos",
+  "rarity": "Event",
+  "currency": "Gold",
+  "spriteId": "",
+  "styleKey": "",
+  "icon": "🎁",
+  "availableFrom": null,
+  "availableTo": "2026-07-31T23:59:00Z",
+  "source": "",
+  "sprites": []
+}

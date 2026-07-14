@@ -1,0 +1,18 @@
+{
+  "name": "Roomba Charing",
+  "price": 250,
+  "description": "",
+  "category": "Vida",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_roomba_charing_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_roomba_charing_l.png",
+    "obj_roomba_charing_r.png"
+  ]
+}

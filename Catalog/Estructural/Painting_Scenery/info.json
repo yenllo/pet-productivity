@@ -1,0 +1,18 @@
+{
+  "name": "Painting Scenery",
+  "price": 150,
+  "description": "",
+  "category": "Estructural",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_painting_scenery_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_painting_scenery_l.png",
+    "obj_painting_scenery_r.png"
+  ]
+}

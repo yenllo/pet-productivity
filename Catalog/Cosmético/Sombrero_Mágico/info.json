@@ -1,0 +1,17 @@
+{
+  "name": "Sombrero Mágico",
+  "price": 200,
+  "description": "Un sombrero con estilo",
+  "category": "Cosmético",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "",
+  "styleKey": "",
+  "icon": "🎩",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "spr_hat.svg"
+  ]
+}

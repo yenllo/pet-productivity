@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:PetProductivity.Client.Services"
+             xmlns:vm="clr-namespace:PetProductivity.Client.ViewModels"
+             xmlns:controls="clr-namespace:PetProductivity.Client.Controls"
+             x:Class="PetProductivity.Client.Views.TaskPage"
+             Shell.NavBarIsVisible="False"
+             Background="{StaticResource AppBgBrush}">
+
+    <Grid>
+    <Grid RowDefinitions="Auto, Auto, Auto, *" Padding="22,16,22,22" RowSpacing="16">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="6">
+            <controls:BackButton />
+            <Label Text="{loc:T '¿Qué lograste hoy?'}" Style="{StaticResource DisplayTitle}"/>
+        </VerticalStackLayout>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}" Stroke="#59FF5F8F" StrokeThickness="2" Padding="14">
+            <Editor Placeholder="{loc:T 'Ej: Estudié 2 horas de Cálculo Diferencial...'}"
+                    Text="{Binding TaskInput}" BackgroundColor="Transparent"
+                    TextColor="{StaticResource Ink}" PlaceholderColor="{StaticResource Ink4}"
+                    MinimumHeightRequest="96" AutoSize="TextChanges" VerticalOptions="Start"/>
+        </Border>
+
+        <VerticalStackLayout Grid.Row="2" Spacing="10">
+            <VerticalStackLayout IsVisible="{Binding IsBusy}" Spacing="4">
+                <ActivityIndicator IsRunning="True" Color="{StaticResource AccentPink}"/>
+                <Label Text="{loc:T 'Analizando dificultad...'}" HorizontalOptions="Center" Style="{StaticResource Caption}"/>
+            </VerticalStackLayout>
+            <Label Text="{Binding AiFeedbackMessage}" TextColor="{StaticResource Ink2}" HorizontalTextAlignment="Center" FontAttributes="Italic"/>
+
+            <!-- Reclamar (IA juzga el texto) o ir al Modo foco (apartado cronometrado + bloqueo) -->
+            <Button Text="{loc:T 'Reclamar recompensa'}" Command="{Binding SubmitTaskCommand}" IsEnabled="{Binding IsNotBusy}"
+                    Style="{StaticResource BtnAccent}" HeightRequest="58"/>
+            <Button Text="{loc:T '⏱ Modo foco'}" Command="{Binding GoToFocusCommand}"
+                    Style="{StaticResource BtnGhost}" HeightRequest="50"/>
+        </VerticalStackLayout>
+
+        <CollectionView Grid.Row="3" ItemsSource="{Binding RecentTasks}" Margin="0,8,0,0">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="8">
+                    <Label Text="{loc:T '📝'}" FontSize="40" HorizontalOptions="Center"/>
+                    <Label Text="{loc:T 'Aún no has registrado tareas hoy'}" Style="{StaticResource Caption}" FontSize="16" HorizontalOptions="Center"/>
+                    <Label Text="{loc:T '¡Completa tu primera tarea para ganar XP!'}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,8">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Border Grid.Column="0" WidthRequest="52" HeightRequest="52" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 10" BackgroundColor="{StaticResource Glass2}" IsVisible="{Binding HasPhoto}">
+                                <Image Source="{Binding Photo}" Aspect="AspectFill"/>
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding Description}" TextColor="{StaticResource Ink}" LineBreakMode="TailTruncation"/>
+                                <Label Text="{Binding DateText}" Style="{StaticResource Caption}" FontSize="11"/>
+                                <Label Text="{Binding RewardText}" Style="{StaticResource Caption}" FontSize="11" TextColor="{StaticResource AccentPink}"/>
+                            </VerticalStackLayout>
+                            <Label Grid.Column="2" Text="{Binding Verdict}" IsVisible="{Binding HasVerdict}" FontSize="20"
+                                   FontAttributes="Bold" TextColor="{Binding VerdictColor}" VerticalOptions="Center"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+
+    <!-- T27-L3 (#20): overlay de celebración de recompensa (mismo patrón que los overlays de estado/ritual) -->
+    <Grid IsVisible="{Binding ShowCelebration}" BackgroundColor="#CC0A0616">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding DismissCelebrationCommand}" />
+        </Grid.GestureRecognizers>
+        <Border x:Name="CelebCard" Style="{StaticResource Card}" Padding="24,28" Margin="30,0"
+                Background="#FF16102A" VerticalOptions="Center"
+                Stroke="{StaticResource AccentPink}" StrokeThickness="2">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="{loc:T '🎉'}" FontSize="44" HorizontalOptions="Center" />
+                <Label Text="{loc:T '¡Recompensa!'}" Style="{StaticResource DisplayTitle}" FontSize="24" HorizontalOptions="Center" />
+                <Label Text="{Binding CelebStars}" FontSize="16" TextColor="{StaticResource Gold}"
+                       HorizontalOptions="Center" CharacterSpacing="2" />
+                <HorizontalStackLayout Spacing="18" HorizontalOptions="Center" Margin="0,4,0,0">
+                    <Label Text="{Binding CelebXp}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource AccentPink}" />
+                    <HorizontalStackLayout Spacing="5">
+                        <Image Source="spr_coin.png" HeightRequest="18" WidthRequest="18" VerticalOptions="Center" />
+                        <Label Text="{Binding CelebGold}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource Gold}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </HorizontalStackLayout>
+                <Label Text="{Binding CelebNote}" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" Margin="0,4,0,0" />
+                <Button Text="{loc:T '¡Genial!'}" Command="{Binding DismissCelebrationCommand}"
+                        Style="{StaticResource BtnAccent}" HeightRequest="46" Margin="0,8,0,0" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+    </Grid>
+</ContentPage>

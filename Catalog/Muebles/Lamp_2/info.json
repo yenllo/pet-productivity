@@ -1,0 +1,18 @@
+{
+  "name": "Lamp 2",
+  "price": 240,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_lamp_2_l",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_lamp_2_l.png",
+    "obj_lamp_2_r.png"
+  ]
+}

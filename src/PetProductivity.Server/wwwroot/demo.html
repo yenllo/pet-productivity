@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PetProductivity — your effort keeps it alive</title>
+<meta name="description" content="A gamified productivity app: an AI judges the tasks you describe in plain language and pays you in stats that evolve your pet. Try the AI judge right here.">
+<style>
+  :root{
+    --bg:#12101d; --panel:#1c1930; --panel2:#242040; --line:#37325c;
+    --text:#e8e5f5; --muted:#9a94bd; --accent:#8f7bff; --accent2:#5ee6a8;
+    --gold:#f2c94c; --danger:#ff7a7a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
+  a{color:var(--accent)}
+  header{padding:64px 0 40px;text-align:center}
+  .egg{font-size:56px;line-height:1}
+  h1{font-size:clamp(28px,5vw,44px);margin:12px 0 8px}
+  .tag{color:var(--muted);font-size:18px;max-width:560px;margin:0 auto}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:3px 12px;font-size:13px;color:var(--muted);margin-top:16px}
+  section{margin:48px 0}
+  h2{font-size:22px;margin-bottom:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .feat h3{font-size:15px;margin-bottom:4px}
+  .feat p{font-size:14px;color:var(--muted)}
+  .feat .ico{font-size:22px;margin-bottom:8px}
+  /* judge demo */
+  .judge textarea{width:100%;min-height:88px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit;font-size:16px;resize:vertical}
+  .judge textarea:focus{outline:2px solid var(--accent);border-color:transparent}
+  .judge .row{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .judge button{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:11px 22px;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+  .judge button:disabled{opacity:.5;cursor:wait}
+  .judge .count{color:var(--muted);font-size:13px;margin-left:auto}
+  .verdict{margin-top:16px;display:none}
+  .verdict.show{display:block}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:14px}
+  .stat b{font-size:18px;display:block}
+  .stat .gold{color:var(--gold)} .stat .xp{color:var(--accent2)} .stat .dif{color:var(--accent)}
+  .feedback{font-style:italic;color:var(--muted);border-left:3px solid var(--accent);padding-left:12px}
+  .err{color:var(--danger);margin-top:10px;display:none}
+  .hint{color:var(--muted);font-size:13px;margin-top:10px}
+  /* install */
+  .btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+  .btn{display:inline-block;border-radius:10px;padding:12px 20px;font-weight:600;text-decoration:none;font-size:15px}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.ghost{border:1px solid var(--line);color:var(--text)}
+  .btn.soon{border:1px dashed var(--line);color:var(--muted);cursor:default}
+  footer{border-top:1px solid var(--line);margin-top:64px;padding:28px 0;color:var(--muted);font-size:13px;text-align:center}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="egg">🥚</div>
+  <h1>PetProductivity</h1>
+  <p class="tag">Tell an AI what you actually did today. It judges how hard it was — skeptically — and pays your pet. Slack off and the pet dies. Really.</p>
+  <span class="pill">Android · open source · AGPL-3.0</span>
+</header>
+
+<main class="wrap">
+
+  <section class="judge">
+    <h2>⚖️ Try the AI judge — no install, no account</h2>
+    <div class="card">
+      <textarea id="task" maxlength="280" placeholder="e.g. Studied linear algebra for 2 hours and did all the practice problems"></textarea>
+      <div class="row">
+        <button id="go">Judge me</button>
+        <span class="count"><span id="n">0</span>/280</span>
+      </div>
+      <div class="verdict" id="verdict">
+        <div class="stats">
+          <div class="stat"><b class="dif" id="dif">–</b>difficulty /10</div>
+          <div class="stat"><b id="cat">–</b>category</div>
+          <div class="stat"><b class="xp" id="xp">–</b>pet XP</div>
+          <div class="stat"><b class="gold" id="gold">–</b>gold</div>
+        </div>
+        <p class="feedback" id="fb"></p>
+      </div>
+      <p class="err" id="err"></p>
+      <p class="hint">This hits the same Gemini-powered judge the app uses (rate-limited — a few tries per hour). Try bragging about something impossible: it scores plausibility too.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="grid">
+      <div class="card feat"><div class="ico">📝</div><h3>Report in plain language</h3><p>No forms, no checkboxes. "Cleaned the whole kitchen" is a valid input. The AI rates difficulty 1–10 and picks which stat it trains: Body, Mind, Home or Wellbeing.</p></div>
+      <div class="card feat"><div class="ico">🐣</div><h3>Your pet evolves</h3><p>Stats hatch the egg and drive evolution — Baby, Adult, Master — branching by your dominant stat. Gold is separate and purely cosmetic: furniture for its isometric room.</p></div>
+      <div class="card feat"><div class="ico">💀</div><h3>The Phoenix rule</h3><p>Health decays if you disappear. At zero the pet crystallizes — dead. The only revival: come back with a task the judge rates difficulty ≥ 9. Your comeback has to be real.</p></div>
+      <div class="card feat"><div class="ico">📸</div><h3>Photo-verified focus</h3><p>Pomodoro sessions ask for one photo halfway through; Gemini Vision checks you're actually doing what you claimed. Verified sessions multiply the reward.</p></div>
+      <div class="card feat"><div class="ico">👨‍👩‍👧</div><h3>Shared pets</h3><p>Groups of 2–6 share one pet that lives on collective effort. A live availability semaphore shows who's working, and when several members work at once, Frenzy mode boosts everyone.</p></div>
+      <div class="card feat"><div class="ico">🛡️</div><h3>Hard to cheat</h3><p>Everything resolves server-side: rewards, shop, evolution. The judge scores plausibility and pays liars less. Duplicate tasks and grinding pay less too.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Get it</h2>
+    <div class="card">
+      <p style="color:var(--muted);font-size:15px">Google Play release is in progress. Meanwhile the whole project is open source — server, client and the shop catalog.</p>
+      <div class="btns">
+        <span class="btn soon">📱 Google Play — coming soon</span>
+        <a class="btn primary" href="https://github.com/yenllo/pet-productivity">View on GitHub</a>
+        <a class="btn ghost" href="https://github.com/yenllo/pet-productivity#running-the-server">Build it yourself</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    .NET 10 MAUI · ASP.NET Core · PostgreSQL · Gemini · SignalR<br>
+    Furniture sprites by <a href="https://bongseng.itch.io/">Bongseng</a> · <a href="/privacidad.html">Privacy policy</a> · <a href="https://github.com/yenllo/pet-productivity">Source code</a>
+  </div>
+</footer>
+
+<script>
+  const task = document.getElementById('task'), go = document.getElementById('go'),
+        verdict = document.getElementById('verdict'), err = document.getElementById('err');
+  task.addEventListener('input', () => document.getElementById('n').textContent = task.value.length);
+  go.addEventListener('click', async () => {
+    err.style.display = 'none'; verdict.classList.remove('show');
+    const description = task.value.trim();
+    if (!description) { task.focus(); return; }
+    go.disabled = true; go.textContent = 'Judging…';
+    try {
+      const r = await fetch('/api/demo/judge', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ description })
+      });
+      if (r.status === 429) throw new Error("The judge needs a break — you've used your tries for this hour.");
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Something went wrong. Try again.');
+      const j = await r.json();
+      document.getElementById('dif').textContent = j.difficulty;
+      document.getElementById('cat').textContent = j.category;
+      document.getElementById('xp').textContent = '+' + j.xp;
+      document.getElementById('gold').textContent = '+' + j.gold;
+      document.getElementById('fb').textContent = '“' + j.feedback + '”';
+      verdict.classList.add('show');
+    } catch (e) {
+      err.textContent = e.message; err.style.display = 'block';
+    } finally {
+      go.disabled = false; go.textContent = 'Judge me';
+    }
+  });
+  task.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) go.click(); });
+</script>
+
+</body>
+</html>

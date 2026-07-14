@@ -1,0 +1,753 @@
+using SkiaSharp;
+using SkiaSharp.Views.Maui;
+using SkiaSharp.Views.Maui.Controls;
+using PetProductivity.Shared.Models;
+
+namespace PetProductivity.Client.Controls;
+
+// Diorama isométrico VIVO (suelo continuo + ventana con cielo día/noche, nubes y haz de luz,
+// planta y cortinas que se mecen, motas, brillo de lámpara). La mascota va como overlay encima
+// en cada página (queda quieta salvo en Foco). Reutilizable: Dashboard, grupo y Foco.
+// Un solo timer: la página engancha FrameTick para animar su overlay (respiración) sin abrir otro.
+// La paleta (paredes/suelo/alfombra/cama) cambia con RoomStyle (estilo comprado en la tienda).
+public class RoomDiorama : SKCanvasView
+{
+    public static readonly BindableProperty IsCrystallizedProperty =
+        BindableProperty.Create(nameof(IsCrystallized), typeof(bool), typeof(RoomDiorama), false,
+            propertyChanged: (b, _, _) => ((RoomDiorama)b).InvalidateSurface());
+
+    public bool IsCrystallized
+    {
+        get => (bool)GetValue(IsCrystallizedProperty);
+        set => SetValue(IsCrystallizedProperty, value);
+    }
+
+    public static readonly BindableProperty RoomStyleProperty =
+        BindableProperty.Create(nameof(RoomStyle), typeof(string), typeof(RoomDiorama), "default",
+            propertyChanged: (b, _, _) => ((RoomDiorama)b).InvalidateSurface());
+
+    public string RoomStyle
+    {
+        get => (string)GetValue(RoomStyleProperty);
+        set => SetValue(RoomStyleProperty, value);
+    }
+
+    public static readonly BindableProperty FurnitureProperty =
+        BindableProperty.Create(nameof(Furniture), typeof(string), typeof(RoomDiorama), string.Empty,
+            propertyChanged: (b, _, _) => ((RoomDiorama)b).InvalidateSurface());
+
+    // CSV de claves de muebles poseídos (lamp/poster/clock); cada uno se dibuja en su slot fijo.
+    public string Furniture
+    {
+        get => (string)GetValue(FurnitureProperty);
+        set => SetValue(FurnitureProperty, value);
+    }
+
+    public static readonly BindableProperty RoomWidthProperty =
+        BindableProperty.Create(nameof(RoomWidth), typeof(int), typeof(RoomDiorama), 6,
+            propertyChanged: (b, _, _) => { ((RoomDiorama)b)._grid = null; ((RoomDiorama)b).InvalidateSurface(); });
+
+    public int RoomWidth
+    {
+        get => (int)GetValue(RoomWidthProperty);
+        set => SetValue(RoomWidthProperty, value);
+    }
+
+    public static readonly BindableProperty RoomDepthProperty =
+        BindableProperty.Create(nameof(RoomDepth), typeof(int), typeof(RoomDiorama), 6,
+            propertyChanged: (b, _, _) => { ((RoomDiorama)b)._grid = null; ((RoomDiorama)b).InvalidateSurface(); });
+
+    public int RoomDepth
+    {
+        get => (int)GetValue(RoomDepthProperty);
+        set => SetValue(RoomDepthProperty, value);
+    }
+
+    // Muebles colocados por el usuario (F5.2). Si es no-vacío reemplaza el seed por defecto.
+    public static readonly BindableProperty PlacementsProperty =
+        BindableProperty.Create(nameof(Placements), typeof(IReadOnlyList<PlacedFurniture>), typeof(RoomDiorama), null,
+            propertyChanged: (b, _, _) => { var r = (RoomDiorama)b; r._grid = null; r.EnsurePlacementSprites(); r.InvalidateSurface(); });
+
+    public IReadOnlyList<PlacedFurniture>? Placements
+    {
+        get => (IReadOnlyList<PlacedFurniture>?)GetValue(PlacementsProperty);
+        set => SetValue(PlacementsProperty, value);
+    }
+
+    // Modo edición: dibuja la grilla del piso y resalta la celda/mueble seleccionado.
+    public static readonly BindableProperty EditModeProperty =
+        BindableProperty.Create(nameof(EditMode), typeof(bool), typeof(RoomDiorama), false,
+            propertyChanged: (b, _, _) => ((RoomDiorama)b).InvalidateSurface());
+
+    public bool EditMode
+    {
+        get => (bool)GetValue(EditModeProperty);
+        set => SetValue(EditModeProperty, value);
+    }
+
+    // Celda resaltada en modo edición (mueble seleccionado). null = ninguna.
+    public (int X, int Y)? Highlight { get; set; }
+
+    private RoomGrid? _grid;
+
+    // Carga los sprites que referencian las colocaciones (además del seed base) y repinta al terminar.
+    void EnsurePlacementSprites()
+    {
+        var keys = Placements?.Select(p => p.Sprite).Where(s => !string.IsNullOrEmpty(s)).Distinct().ToArray();
+        if (keys == null || keys.Length == 0) return;
+        _ = RoomSprites.EnsureNamedAsync(keys, () => MainThread.BeginInvokeOnMainThread(InvalidateSurface));
+    }
+
+    // Escala por objeto (compensa el tamaño intrínseco del sprite Bongseng). Clave = base sin vista.
+    static float ModFor(string spriteKey)
+    {
+        var b = spriteKey;
+        foreach (var suf in new[] { "_tl", "_tr", "_l", "_r" })
+            if (b.EndsWith(suf)) { b = b[..^suf.Length]; break; }
+        return b switch
+        {
+            "obj_bed" => 1.6f, "obj_closet" => 1.5f, "obj_tv" => 1.4f, "obj_shelf" => 1.4f,
+            "obj_table" => 1.35f, "obj_cat_tower" => 1.3f, "obj_plant" => 1.25f, "obj_mirror" => 1.2f,
+            "obj_sliding_door" => 1.4f, "obj_window" => 1.3f, "obj_cat" => 1.05f, "obj_lamp" => 0.8f,
+            "obj_carpet" => 1.5f, "obj_roomba" => 1.0f, "obj_laptop" => 0.9f, "obj_coffee_cup" => 0.55f,
+            "obj_teddybear" => 0.7f, "obj_cushion" => 0.9f, "obj_books" => 0.8f, "obj_box" => 0.9f,
+            "obj_bedside_table" => 0.95f, "obj_chair" => 1.0f,
+            _ => KeywordMod(b)   // objetos importados del pack (nombres largos): inferir por palabra clave
+        };
+    }
+
+    static float KeywordMod(string b)
+    {
+        bool Has(params string[] ks) { foreach (var k in ks) if (b.Contains(k)) return true; return false; }
+        if (Has("bed") && !Has("bedside")) return 1.6f;
+        if (Has("closet", "cupboard", "fridge", "wardrobe", "drawer")) return 1.5f;
+        if (Has("carpet", "rug")) return 1.5f;
+        if (Has("tv", "shelf", "bookshelf", "sliding", "wall", "door", "window")) return 1.4f;
+        if (Has("table", "desk", "sofa", "futon", "oven", "kitchen")) return 1.35f;
+        if (Has("cup", "coffee", "book", "cushion", "teddy", "box", "cookie", "knife")) return 0.75f;
+        return 1.15f;
+    }
+
+    void EnsureGrid()
+    {
+        if (_grid != null && _grid.Width == RoomWidth && _grid.Depth == RoomDepth) return;
+        
+        _grid = new RoomGrid(RoomWidth, RoomDepth);
+
+        // Si el usuario ya colocó muebles (F5.2), esos mandan; el sprite ya trae la vista resuelta.
+        var placed = Placements;
+        if (placed != null && placed.Count > 0)
+        {
+            foreach (var p in placed)
+                _grid.TryPlace(new FurnitureDef(p.Sprite, Math.Max(1, p.GridW), Math.Max(1, p.GridD), p.Sprite), p.GridX, p.GridY);
+            return;
+        }
+
+        // Seed inicial (slots fijos, calibrado por simulación). Centro (3,3) queda libre para la mascota.
+        // Sprites = pack Bongseng (obj_<id>_<vista>). Regla de vista de muebles de 2 vistas (cerrada):
+        // contra pared derecha → "l", contra pared izquierda → "r". Como los slots son fijos, la vista se
+        // resuelve aquí. ponytail: el modelo ViewSet/Slot llega con el modo edición de la tienda (F5.2);
+        // hoy no hay rotación que justifique la abstracción.
+        var furn = Furniture ?? string.Empty;
+
+        // Cama: contra la pared trasera-derecha → vista "l".
+        _grid.TryPlace(new FurnitureDef("bed", 2, 2, "obj_bed_l"), RoomWidth - 3, 1);
+        // Lámpara de pie: esquina trasera-izquierda (si se posee).
+        if (furn.Contains("lamp"))
+            _grid.TryPlace(new FurnitureDef("lamp", 1, 1, "obj_lamp_l"), 0, 0);
+        // Planta: esquina frontal-izquierda (simétrica, sin vista).
+        _grid.TryPlace(new FurnitureDef("plant", 1, 1, "obj_plant"), 0, RoomDepth - 2);
+        // Gato: frontal-derecha, fuera de la columna de la mascota.
+        _grid.TryPlace(new FurnitureDef("cat", 1, 1, "obj_cat_l"), RoomWidth - 1, RoomDepth / 2);
+    }
+
+    // La página engancha esto para mover su overlay (respiración) con el mismo reloj.
+    public event Action<float>? FrameTick;
+
+    // Modo edición: la página se entera de qué celda de piso tocó el usuario (grilla lógica).
+    public event Action<int, int>? CellTapped;
+
+    // Geometría del último frame (para invertir pantalla→grilla al tocar).
+    float _lastScale = 1, _lastOffX, _lastOffY;
+
+    public RoomDiorama()
+    {
+        InitParticles();
+        // Cargar sprites de la sala (Bongseng) en segundo plano; al terminar, repintar.
+        _ = RoomSprites.EnsureLoadedAsync(() => MainThread.BeginInvokeOnMainThread(InvalidateSurface));
+        EnableTouchEvents = true;
+        Touch += OnTouch;
+    }
+
+    void OnTouch(object? sender, SKTouchEventArgs e)
+    {
+        if (EditMode && e.ActionType == SKTouchAction.Released && TryScreenToGrid(e.Location, out int gx, out int gy))
+            CellTapped?.Invoke(gx, gy);
+        e.Handled = true;
+    }
+
+    // Invierte el mapeo iso: punto de pantalla (px del canvas) → celda de piso (i,j). false si cae fuera.
+    bool TryScreenToGrid(SKPoint p, out int gx, out int gy)
+    {
+        gx = gy = 0;
+        if (_lastScale <= 0) return false;
+        float u = (p.X - _lastOffX) / _lastScale - O_X; // = (i-j)*T_W/2
+        float v = (p.Y - _lastOffY) / _lastScale - O_Y; // = (i+j)*T_H/2
+        float iMinusJ = u * 2f / T_W, iPlusJ = v * 2f / T_H;
+        gx = (int)Math.Floor((iPlusJ + iMinusJ) / 2f);
+        gy = (int)Math.Floor((iPlusJ - iMinusJ) / 2f);
+        return gx >= 0 && gy >= 0 && gx < RoomWidth && gy < RoomDepth;
+    }
+
+    // Dibuja el rombo del piso celda por celda (guía tenue) en modo edición.
+    void DrawEditGrid(SKCanvas canvas, Func<float, float, SKPoint> iso)
+    {
+        using var line = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, 34), StrokeWidth = 1, Style = SKPaintStyle.Stroke };
+        for (int i = 0; i <= RoomWidth; i++) canvas.DrawLine(iso(i, 0), iso(i, RoomDepth), line);
+        for (int j = 0; j <= RoomDepth; j++) canvas.DrawLine(iso(0, j), iso(RoomWidth, j), line);
+        // Celda (3,3) reservada a la mascota: tinte rosado para que se entienda por qué bloquea.
+        using var pet = new SKPaint { IsAntialias = true, Color = new SKColor(0xFF, 0x5F, 0x8F, 42) };
+        using var petPath = Quad(iso(3, 3), iso(4, 3), iso(4, 4), iso(3, 4));
+        canvas.DrawPath(petPath, pet);
+    }
+
+    static readonly SKSamplingOptions RoomSampling = new(SKFilterMode.Linear, SKMipmapMode.Linear);
+    // Muebles = pixel-art Bongseng escalado ~2x; nearest mantiene el borde nítido (linear los emborrona).
+    static readonly SKSamplingOptions PixelSampling = new(SKFilterMode.Nearest, SKMipmapMode.None);
+
+    // ---------- Bucle de animación (un solo timer mueve todo el escenario) ----------
+    // ponytail: ~25fps con blur ligero; si pesa en gama baja, subir intervalo o quitar partículas.
+    // (Se omite cachear capas estáticas en SKPicture: no hay problema de rendimiento medido.)
+    IDispatcherTimer? _timer;
+    float _t;
+
+    public void StartAnimation()
+    {
+        if (_timer != null) { _timer.Start(); return; }
+        _timer = Dispatcher.CreateTimer();
+        _timer.Interval = TimeSpan.FromMilliseconds(40);
+        _timer.Tick += (_, _) =>
+        {
+            _t += 0.04f;
+            FrameTick?.Invoke(_t);
+            InvalidateSurface();
+        };
+        _timer.Start();
+    }
+
+    public void StopAnimation() => _timer?.Stop();
+
+    // ---------- Partículas (motas de luz) ----------
+    struct Particle { public float X, Y, Speed, Size, Phase; }
+    Particle[] _particles = Array.Empty<Particle>();
+
+    void InitParticles()
+    {
+        var r = new Random(7);
+        _particles = new Particle[16];
+        for (int i = 0; i < _particles.Length; i++)
+            _particles[i] = new Particle
+            {
+                X = (float)r.NextDouble(),
+                Y = (float)r.NextDouble(),
+                Speed = 0.02f + (float)r.NextDouble() * 0.05f,
+                Size = 1.5f + (float)r.NextDouble() * 3f,
+                Phase = (float)r.NextDouble() * 6.28f
+            };
+    }
+
+    const int N = 5; // 5x5 casillas (geometría iso)
+
+    protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
+    {
+        base.OnPaintSurface(e);
+        PaintRoom(e.Info, e.Surface.Canvas);
+    }
+
+    void PaintRoom(SKImageInfo info, SKCanvas canvas)
+    {
+        if (RoomSprites.Ready) { PaintModularRoom(canvas, info); return; }
+        canvas.Clear();
+
+        float W = info.Width, H = info.Height;
+        float tileW = W / 6.2f;
+        float tileH = tileW / 2f;
+        float wallH = tileW * 0.62f;
+        float floorH = N * tileH;
+        float originX = W / 2f;
+        float originY = (H - (floorH + wallH)) / 2f + wallH;
+        if (originY < wallH + 6) originY = wallH + 6;
+
+        SKPoint Iso(float i, float j) => new(originX + (i - j) * (tileW / 2f), originY + (i + j) * (tileH / 2f));
+
+        var sky = DayNight();
+        var pal = Palette(RoomStyle);
+        var furn = Furniture ?? string.Empty; // claves de muebles poseídos: lamp/poster/clock
+
+        // Luz ambiental desde arriba-derecha — más cálida al atardecer, tenue de noche
+        byte ambA = (byte)Math.Clamp(18 + 46 * sky.Light + 40 * sky.Warm, 0, 255);
+        var ambColor = LerpC(new SKColor(255, 240, 220), new SKColor(255, 180, 120), sky.Warm);
+        using (var amb = new SKPaint { IsAntialias = true, Shader = SKShader.CreateRadialGradient(
+                new SKPoint(W * 0.82f, H * 0.04f), W * 0.95f,
+                new[] { ambColor.WithAlpha(ambA), ambColor.WithAlpha(0) },
+                new[] { 0f, 1f }, SKShaderTileMode.Clamp) })
+            canvas.DrawRect(0, 0, W, H, amb);
+
+        var A = Iso(0, 0); var L = Iso(0, N); var R = Iso(N, 0); var B = Iso(N, N);
+
+        // Oclusión difuminada donde paredes encuentran el suelo
+        SoftShadow(canvas, A.X, A.Y - wallH * 0.2f, tileW * 2.4f, wallH * 0.9f, 70, wallH * 0.5f);
+
+        // Paredes (atenuadas de noche)
+        float wb = 0.5f + 0.5f * sky.Light;
+        DrawWall(canvas, A, L, wallH, Scale(pal.WallLTop, wb), Scale(pal.WallLBot, wb));
+        DrawWall(canvas, A, R, wallH, Scale(pal.WallRTop, wb), Scale(pal.WallRBot, wb));
+
+        // Ventana (pared derecha): cielo día/noche + nubes a la deriva + marco + cortinas
+        DrawWindow(canvas, Iso(2f, 0), Iso(3.4f, 0), wallH, sky);
+
+        // Muebles de pared comprables (solo si se poseen)
+        if (furn.Contains("poster")) DrawPoster(canvas, Iso(0, 1.1f), Iso(0, 2.2f), wallH);
+        if (furn.Contains("clock")) DrawClock(canvas, Iso(4.0f, 0), wallH);
+
+        // --- Suelo CONTINUO (tablones a lo largo de un eje → lee como piso, no como grilla) ---
+        for (int i = 0; i < N; i++)
+        {
+            int d = (i % 2 == 0) ? 0 : 8; // variación MUY sutil entre tablones
+            using var plank = new SKPaint { IsAntialias = true, Color = Scale(Offset(pal.Floor, d), 0.7f + 0.3f * sky.Light) };
+            canvas.DrawPath(Quad(Iso(i, 0), Iso(i + 1, 0), Iso(i + 1, N), Iso(i, N)), plank);
+        }
+        // Costuras tenues SOLO en una dirección (no es rejilla)
+        using (var seam = new SKPaint { IsAntialias = true, Color = new SKColor(0, 0, 0, 30), StrokeWidth = 1, Style = SKPaintStyle.Stroke })
+            for (int i = 1; i < N; i++) canvas.DrawLine(Iso(i, 0), Iso(i, N), seam);
+
+        // Realce cálido hacia el centro del suelo
+        using (var floorLight = new SKPaint { IsAntialias = true, Shader = SKShader.CreateRadialGradient(
+                new SKPoint(originX + tileW, originY + floorH * 0.5f), tileW * 2.6f,
+                new[] { new SKColor(255, 245, 230, (byte)(16 + 22 * sky.Light)), new SKColor(255, 245, 230, 0) },
+                new[] { 0f, 1f }, SKShaderTileMode.Clamp) })
+            canvas.DrawPath(Quad(A, R, B, L), floorLight);
+
+        // Haz de luz de la ventana sobre el suelo (sutil, respira; más fuerte de día)
+        float beam = 0.5f + 0.5f * (float)Math.Sin(_t * 0.6f);
+        using (var shaft = new SKPaint { IsAntialias = true, Color = new SKColor(255, 240, 200,
+                (byte)((22 + 16 * beam) * (0.3f + 0.7f * sky.Light))) })
+            canvas.DrawPath(Quad(Iso(2f, 0.2f), Iso(3.4f, 0.2f), Iso(2.6f, 2.6f), Iso(1.2f, 2.6f)), shaft);
+
+        var center = Iso(N / 2f, N / 2f);
+
+        // Planta en una esquina (las hojas se mecen)
+        DrawPlant(canvas, Iso(0.55f, 1.7f), tileW);
+
+        // Lámpara de pie comprable (mueble de suelo, brilla de noche)
+        if (furn.Contains("lamp")) DrawLamp(canvas, Iso(0.7f, 3.7f), tileW, sky);
+
+        // Aura/bloom que late bajo la mascota
+        float pulse = 0.5f + 0.5f * (float)Math.Sin(_t * 2 * Math.PI / 2.6);
+        byte auraA = (byte)(70 + 60 * pulse);
+        float auraR = tileW * (1.5f + 0.18f * pulse);
+        using (var aura = new SKPaint { IsAntialias = true, Shader = SKShader.CreateRadialGradient(
+                new SKPoint(center.X, center.Y - tileH * 0.4f), auraR,
+                new[] { new SKColor(0x3D, 0xDC, 0x97, auraA), new SKColor(0x3D, 0xDC, 0x97, 0) },
+                new[] { 0f, 1f }, SKShaderTileMode.Clamp) })
+            canvas.DrawCircle(center.X, center.Y - tileH * 0.4f, auraR, aura);
+
+        // Alfombra
+        SoftShadow(canvas, Iso(2, 3.5f).X, Iso(2, 3.5f).Y + 4, tileW * 0.7f, tileH * 0.6f, 60, 10);
+        using (var rug = new SKPaint { IsAntialias = true, Color = pal.Rug.WithAlpha(150) })
+            canvas.DrawPath(Quad(Iso(1, 3), Iso(3, 3), Iso(3, 4), Iso(1, 4)), rug);
+
+        // Cama (caja iso)
+        var bedBase = Iso(4.5f, 1.5f);
+        SoftShadow(canvas, bedBase.X, bedBase.Y + 4, tileW * 0.55f, tileH * 0.6f, 80, 9);
+        DrawBox(canvas, Iso(4, 1), Iso(5, 1), Iso(5, 2), Iso(4, 2), tileW * 0.34f,
+            pal.BedTop, pal.BedSide, pal.BedSideDark);
+
+        // Sombra de contacto de la mascota (bajo el overlay)
+        SoftShadow(canvas, center.X, center.Y + tileH * 0.15f, tileW * 0.5f, tileH * 0.5f, 95, 8);
+
+        // Brillo de lámpara cálido (cozy) — fuerte de noche, nulo de día
+        if (sky.Light < 0.85f)
+        {
+            var lampP = Iso(4.6f, 1.4f);
+            float ly = lampP.Y - wallH * 0.2f;
+            using var lamp = new SKPaint { IsAntialias = true, Shader = SKShader.CreateRadialGradient(
+                new SKPoint(lampP.X, ly), tileW * 1.6f,
+                new[] { new SKColor(255, 210, 140, (byte)(70 * (1 - sky.Light))), new SKColor(255, 210, 140, 0) },
+                new[] { 0f, 1f }, SKShaderTileMode.Clamp) };
+            canvas.DrawCircle(lampP.X, ly, tileW * 1.6f, lamp);
+        }
+
+        // Partículas flotantes (motas de luz difuminadas)
+        using (var dust = new SKPaint { IsAntialias = true, MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 2.2f) })
+        {
+            foreach (var p in _particles)
+            {
+                float y = (p.Y - p.Speed * _t) % 1f; if (y < 0) y += 1f;
+                float x = p.X + 0.02f * (float)Math.Sin(_t + p.Phase);
+                float px = x * W;
+                float py = originY - wallH + y * (floorH + wallH);
+                byte a = (byte)(40 + 60 * (0.5 + 0.5 * Math.Sin(_t * 1.5 + p.Phase)));
+                dust.Color = new SKColor(255, 250, 235, a);
+                canvas.DrawCircle(px, py, p.Size, dust);
+            }
+        }
+
+        // Escarcha de cristalización
+        if (IsCrystallized)
+            using (var frost = new SKPaint { IsAntialias = true, Color = new SKColor(0x7F, 0xB0, 0xFF, 46) })
+                canvas.DrawRect(0, 0, W, H, frost);
+    }
+
+    // ---------- Cuarto = fondo único (room_bg) + muebles por grilla (ROOM_PIECE_SPEC.md) ----------
+    // Diseño del lienzo de la pieza: 1024x1024, iso 2:1, 6x6 tiles, vértice trasero en (512,330).
+    const float DESIGN = 1024f, T_W = 150f, T_H = 75f, O_X = 512f, O_Y = 330f;
+
+    void PaintModularRoom(SKCanvas canvas, SKImageInfo info)
+    {
+        canvas.Clear();
+        // Fondo por estilo equipado (room_bg_<styleKey>.png, misma geometría — ver ROOM_PIECE_SPEC.md);
+        // si el arte del estilo no existe (aún) se usa el fondo base.
+        SKImage? bg = null;
+        if (!string.IsNullOrEmpty(RoomStyle) && RoomStyle != "default")
+        {
+            var styled = $"room_bg_{RoomStyle}";
+            bg = RoomSprites.Get(styled);
+            if (bg == null)
+                _ = RoomSprites.EnsureNamedAsync(new[] { styled }, () => MainThread.BeginInvokeOnMainThread(InvalidateSurface));
+        }
+        bg ??= RoomSprites.Get("room_bg");
+        if (bg == null) return; // sin fondo aún → no pintar (el gate de Ready ya lo exige)
+        EnsureGrid();
+
+        float W = info.Width, H = info.Height;
+        var sky = DayNight();
+
+        // Fit-contain centrado del lienzo 1024² en el canvas.
+        float scale = Math.Min(W / DESIGN, H / DESIGN);
+        float offX = (W - DESIGN * scale) / 2f;
+        float offY = (H - DESIGN * scale) / 2f;
+        // Punto de pantalla del nodo de grilla (i,j) en coords iso de diseño.
+        SKPoint Iso(float i, float j) => new(
+            offX + (O_X + (i - j) * T_W / 2f) * scale,
+            offY + (O_Y + (i + j) * T_H / 2f) * scale);
+
+        // 1) Fondo del cuarto (piso + paredes).
+        canvas.DrawImage(bg, new SKRect(offX, offY, offX + DESIGN * scale, offY + DESIGN * scale), RoomSampling);
+
+        // Geometría de este frame (para hit-testing pantalla→grilla en modo edición).
+        _lastScale = scale; _lastOffX = offX; _lastOffY = offY;
+
+        // Modo edición: grilla del piso bajo los muebles.
+        if (EditMode) DrawEditGrid(canvas, Iso);
+
+        // 2) Muebles (back-to-front), anclados por borde inferior-centro al centro de su footprint.
+        if (_grid != null)
+            foreach (var pl in _grid.Placements.OrderBy(p => p.GridX + p.GridY))
+            {
+                var sprite = RoomSprites.Get(pl.Def.SpriteName);
+                if (sprite == null) continue;
+                var basePt = Iso(pl.GridX + pl.Def.GridW / 2f, pl.GridY + pl.Def.GridD / 2f);
+                float mod = ModFor(pl.Def.SpriteName);
+                float wScr = T_W * pl.Def.GridW * mod * scale;
+                float hScr = wScr * sprite.Height / sprite.Width;
+                if (pl.Def.GridW == 1 && pl.Def.GridD == 1)
+                    SoftShadow(canvas, basePt.X, basePt.Y, wScr * 0.30f, hScr * 0.06f, 70, 6);
+                if (EditMode && Highlight is { } hi && hi.X == pl.GridX && hi.Y == pl.GridY)
+                {
+                    // Footprint WxD completo en el piso (se ve cuánto espacio ocupa) + tinte suave del sprite.
+                    using (var fp = new SKPaint { IsAntialias = true, Color = new SKColor(0x3D, 0xDC, 0x97, 88) })
+                    using (var fpPath = Quad(Iso(pl.GridX, pl.GridY), Iso(pl.GridX + pl.Def.GridW, pl.GridY),
+                                             Iso(pl.GridX + pl.Def.GridW, pl.GridY + pl.Def.GridD), Iso(pl.GridX, pl.GridY + pl.Def.GridD)))
+                        canvas.DrawPath(fpPath, fp);
+                    using (var sel = new SKPaint { IsAntialias = true, Color = new SKColor(0x3D, 0xDC, 0x97, 45) })
+                        canvas.DrawRoundRect(basePt.X - wScr / 2f, basePt.Y - hScr, wScr, hScr, 8, 8, sel);
+                }
+                canvas.DrawImage(sprite, new SKRect(basePt.X - wScr / 2f, basePt.Y - hScr, basePt.X + wScr / 2f, basePt.Y), PixelSampling);
+            }
+
+        // 3) Sombra de contacto de la mascota (overlay de la página) en el centro del piso (tile 3,3).
+        var petPt = Iso(3f, 3f);
+        SoftShadow(canvas, petPt.X, petPt.Y, W * 0.10f, H * 0.03f, 80, 8);
+
+        // 4) Tinte día/noche.
+        byte tintA = (byte)(150 * (1 - sky.Light));
+        if (tintA > 0)
+            using (var tint = new SKPaint { Color = sky.Top.WithAlpha(tintA) })
+                canvas.DrawRect(0, 0, W, H, tint);
+        if (sky.Warm > 0.05f)
+            using (var warm = new SKPaint { Color = new SKColor(255, 170, 90, (byte)(60 * sky.Warm)) })
+                canvas.DrawRect(0, 0, W, H, warm);
+
+        // 5) Motas flotantes.
+        using (var dust = new SKPaint { IsAntialias = true, MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 2.2f) })
+            foreach (var p in _particles)
+            {
+                float y = (p.Y - p.Speed * _t) % 1f; if (y < 0) y += 1f;
+                float x = p.X + 0.02f * (float)Math.Sin(_t + p.Phase);
+                byte a = (byte)(40 + 60 * (0.5 + 0.5 * Math.Sin(_t * 1.5 + p.Phase)));
+                dust.Color = new SKColor(255, 250, 235, a);
+                canvas.DrawCircle(x * W, y * H, p.Size, dust);
+            }
+
+        if (IsCrystallized)
+            using (var frost = new SKPaint { Color = new SKColor(0x7F, 0xB0, 0xFF, 46) })
+                canvas.DrawRect(0, 0, W, H, frost);
+    }
+
+    // ---------- Ventana: cielo, nubes, estrellas, marco y cortinas ----------
+    void DrawWindow(SKCanvas canvas, SKPoint baseL, SKPoint baseR, float wallH, Sky sky)
+    {
+        const float top = 0.80f, bot = 0.30f;
+        var p0 = new SKPoint(baseL.X, baseL.Y - wallH * top); // sup-izq
+        var p1 = new SKPoint(baseR.X, baseR.Y - wallH * top); // sup-der
+        var p2 = new SKPoint(baseR.X, baseR.Y - wallH * bot); // inf-der
+        var p3 = new SKPoint(baseL.X, baseL.Y - wallH * bot); // inf-izq
+        var win = Quad(p0, p1, p2, p3);
+
+        canvas.Save();
+        canvas.ClipPath(win, SKClipOperation.Intersect, true);
+
+        using (var skyP = new SKPaint { IsAntialias = true, Shader = SKShader.CreateLinearGradient(
+                new SKPoint(0, p0.Y), new SKPoint(0, p2.Y),
+                new[] { sky.Top, sky.Bottom }, null, SKShaderTileMode.Clamp) })
+            canvas.DrawPath(win, skyP);
+
+        float wMin = Math.Min(p0.X, p3.X), wMax = Math.Max(p1.X, p2.X);
+        float span = wMax - wMin, cy0 = (p0.Y + p2.Y) / 2f;
+
+        // Nubes a la deriva (más visibles de día)
+        byte cloudA = (byte)(120 * (0.25f + 0.75f * sky.Light));
+        using (var cloud = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, cloudA), MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 6f) })
+            for (int k = 0; k < 3; k++)
+            {
+                float prog = (0.33f * k + _t * 0.012f * (1 + 0.3f * k)) % 1.2f;
+                float cx = wMin + (prog - 0.1f) * span;
+                float cy = cy0 - (k - 1) * wallH * 0.12f;
+                canvas.DrawOval(new SKRect(cx - span * 0.22f, cy - wallH * 0.06f, cx + span * 0.22f, cy + wallH * 0.06f), cloud);
+            }
+
+        // Estrellas titilando (solo de noche)
+        if (sky.Light < 0.25f)
+            using (var star = new SKPaint { IsAntialias = true, Color = SKColors.White })
+                for (int s = 0; s < 6; s++)
+                {
+                    float sx = wMin + span * (0.12f + 0.15f * s);
+                    float sy = p0.Y + wallH * (0.12f + 0.06f * ((s * 7) % 5));
+                    float tw = 0.5f + 0.5f * (float)Math.Sin(_t * 1.3f + s);
+                    canvas.DrawCircle(sx, sy, 1.1f + 0.8f * tw, star);
+                }
+
+        canvas.Restore();
+
+        // Marco + parteluz (cruz)
+        using (var frame = new SKPaint { IsAntialias = true, Color = new SKColor(0x12, 0x0E, 0x24), StrokeWidth = 3, Style = SKPaintStyle.Stroke })
+        {
+            canvas.DrawPath(win, frame);
+            canvas.DrawLine(new SKPoint((p0.X + p1.X) / 2f, (p0.Y + p1.Y) / 2f), new SKPoint((p3.X + p2.X) / 2f, (p3.Y + p2.Y) / 2f), frame);
+            canvas.DrawLine(new SKPoint((p0.X + p3.X) / 2f, (p0.Y + p3.Y) / 2f), new SKPoint((p1.X + p2.X) / 2f, (p1.Y + p2.Y) / 2f), frame);
+        }
+
+        // Cortinas laterales que se mecen (borde inferior oscila)
+        float sway = (float)Math.Sin(_t * 1.1f) * (p1.X - p0.X) * 0.05f;
+        float panelW = (p1.X - p0.X) * 0.16f;
+        using (var curtain = new SKPaint { IsAntialias = true, Color = new SKColor(0x7A, 0x32, 0x55, 175) })
+        {
+            canvas.DrawPath(Quad(p0, new SKPoint(p0.X + panelW, p0.Y), new SKPoint(p3.X + panelW + sway, p3.Y), p3), curtain);
+            canvas.DrawPath(Quad(new SKPoint(p1.X - panelW, p1.Y), p1, p2, new SKPoint(p2.X - panelW + sway, p2.Y)), curtain);
+        }
+    }
+
+    // ---------- Planta con hojas que se mecen ----------
+    void DrawPlant(SKCanvas canvas, SKPoint baseP, float tileW)
+    {
+        float potW = tileW * 0.2f, potH = tileW * 0.16f;
+        SoftShadow(canvas, baseP.X, baseP.Y + 2, potW * 1.1f, potH * 0.5f, 70, 6);
+
+        using (var pot = new SKPaint { IsAntialias = true, Color = new SKColor(0xC8, 0x6E, 0x4B) })
+        {
+            var path = new SKPath();
+            path.MoveTo(baseP.X - potW * 0.5f, baseP.Y - potH);
+            path.LineTo(baseP.X + potW * 0.5f, baseP.Y - potH);
+            path.LineTo(baseP.X + potW * 0.38f, baseP.Y);
+            path.LineTo(baseP.X - potW * 0.38f, baseP.Y);
+            path.Close();
+            canvas.DrawPath(path, pot);
+        }
+
+        var topP = new SKPoint(baseP.X, baseP.Y - potH);
+        const int leaves = 5;
+        using var leaf = new SKPaint { IsAntialias = true, Color = new SKColor(0x4E, 0xC0, 0x7E) };
+        for (int k = 0; k < leaves; k++)
+        {
+            float baseAngle = -70 + 140f * k / (leaves - 1); // abanico
+            float sway = (float)Math.Sin(_t * 1.4f + k) * 4f;
+            canvas.Save();
+            canvas.Translate(topP.X, topP.Y);
+            canvas.RotateDegrees(baseAngle + sway);
+            float lh = tileW * (0.34f + 0.05f * (k % 2));
+            canvas.DrawOval(new SKRect(-tileW * 0.045f, -lh, tileW * 0.045f, 0), leaf);
+            canvas.Restore();
+        }
+    }
+
+    // ---------- Muebles comprables (se dibujan en slots fijos si se poseen) ----------
+    void DrawLamp(SKCanvas canvas, SKPoint baseP, float tileW, Sky sky)
+    {
+        float poleH = tileW * 0.62f;
+        float cx = baseP.X, sy = baseP.Y - poleH;
+        SoftShadow(canvas, cx, baseP.Y + 2, tileW * 0.14f, tileW * 0.06f, 70, 6);
+        // brillo de la pantalla (más fuerte de noche)
+        using (var glow = new SKPaint { IsAntialias = true, Shader = SKShader.CreateRadialGradient(
+                new SKPoint(cx, sy), tileW * 0.55f,
+                new[] { new SKColor(255, 214, 150, (byte)(50 + 80 * (1 - sky.Light))), new SKColor(255, 214, 150, 0) },
+                new[] { 0f, 1f }, SKShaderTileMode.Clamp) })
+            canvas.DrawCircle(cx, sy, tileW * 0.55f, glow);
+        using (var pole = new SKPaint { IsAntialias = true, Color = new SKColor(0x3A, 0x33, 0x55) })
+            canvas.DrawRect(new SKRect(cx - tileW * 0.012f, sy, cx + tileW * 0.012f, baseP.Y), pole);
+        using (var foot = new SKPaint { IsAntialias = true, Color = new SKColor(0x2A, 0x24, 0x42) })
+            canvas.DrawOval(new SKRect(cx - tileW * 0.06f, baseP.Y - tileW * 0.02f, cx + tileW * 0.06f, baseP.Y + tileW * 0.03f), foot);
+        float sw = tileW * 0.16f, sh = tileW * 0.14f;
+        using (var shade = new SKPaint { IsAntialias = true, Color = new SKColor(255, 226, 170) })
+            canvas.DrawPath(Quad(
+                new SKPoint(cx - sw * 0.5f, sy - sh), new SKPoint(cx + sw * 0.5f, sy - sh),
+                new SKPoint(cx + sw * 0.72f, sy), new SKPoint(cx - sw * 0.72f, sy)), shade);
+    }
+
+    void DrawPoster(SKCanvas canvas, SKPoint a, SKPoint b, float wallH)
+    {
+        var bl = new SKPoint(a.X, a.Y - wallH * 0.30f);
+        var br = new SKPoint(b.X, b.Y - wallH * 0.30f);
+        var tr = new SKPoint(b.X, b.Y - wallH * 0.72f);
+        var tl = new SKPoint(a.X, a.Y - wallH * 0.72f);
+        var art = Quad(tl, tr, br, bl);
+        using (var fill = new SKPaint { IsAntialias = true, Shader = SKShader.CreateLinearGradient(
+                new SKPoint(tl.X, tl.Y), new SKPoint(br.X, br.Y),
+                new[] { new SKColor(0x4E, 0xC0, 0xB5), new SKColor(0xFF, 0x8F, 0xB0) }, null, SKShaderTileMode.Clamp) })
+            canvas.DrawPath(art, fill);
+        using (var frame = new SKPaint { IsAntialias = true, Color = new SKColor(0x14, 0x10, 0x28), Style = SKPaintStyle.Stroke, StrokeWidth = 3 })
+            canvas.DrawPath(art, frame);
+    }
+
+    void DrawClock(SKCanvas canvas, SKPoint baseR, float wallH)
+    {
+        var c = new SKPoint(baseR.X, baseR.Y - wallH * 0.58f);
+        float r = wallH * 0.22f;
+        using (var face = new SKPaint { IsAntialias = true, Color = new SKColor(0xF4, 0xEC, 0xD8) })
+            canvas.DrawCircle(c, r, face);
+        using (var rim = new SKPaint { IsAntialias = true, Color = new SKColor(0x2A, 0x22, 0x42), Style = SKPaintStyle.Stroke, StrokeWidth = 2.5f })
+            canvas.DrawCircle(c, r, rim);
+        var now = DateTime.Now;
+        float minA = (float)(now.Minute / 60.0 * 2 * Math.PI);
+        float hourA = (float)(((now.Hour % 12) + now.Minute / 60.0) / 12.0 * 2 * Math.PI);
+        using var hand = new SKPaint { IsAntialias = true, Color = new SKColor(0x2A, 0x22, 0x42), Style = SKPaintStyle.Stroke, StrokeWidth = 2, StrokeCap = SKStrokeCap.Round };
+        canvas.DrawLine(c, new SKPoint(c.X + r * 0.5f * (float)Math.Sin(hourA), c.Y - r * 0.5f * (float)Math.Cos(hourA)), hand);
+        canvas.DrawLine(c, new SKPoint(c.X + r * 0.78f * (float)Math.Sin(minA), c.Y - r * 0.78f * (float)Math.Cos(minA)), hand);
+        using (var hub = new SKPaint { IsAntialias = true, Color = new SKColor(0x2A, 0x22, 0x42) })
+            canvas.DrawCircle(c, 2f, hub);
+    }
+
+    // ---------- Día / noche (según hora local del dispositivo) ----------
+    struct Sky { public SKColor Top, Bottom; public float Light, Warm; }
+
+    static Sky DayNight()
+    {
+        double h = DateTime.Now.TimeOfDay.TotalHours;
+        float light = (h < 6 || h > 18) ? 0.05f : (float)Math.Sin(Math.PI * (h - 6) / 12);
+        light = Math.Clamp(light, 0.05f, 1f);
+        float warm = Math.Max(Bump(h, 7.0, 2.2), Bump(h, 18.0, 2.2));
+
+        var nightTop = new SKColor(0x16, 0x1B, 0x3E); var nightBot = new SKColor(0x0B, 0x0E, 0x24);
+        var dayTop = new SKColor(0x6F, 0xB0, 0xE8); var dayBot = new SKColor(0xC2, 0xDC, 0xF2);
+        var duskTop = new SKColor(0xF2, 0x8C, 0x5A); var duskBot = new SKColor(0xF6, 0xC8, 0x8C);
+
+        var t = LerpC(LerpC(nightTop, dayTop, light), duskTop, warm * 0.7f);
+        var b = LerpC(LerpC(nightBot, dayBot, light), duskBot, warm * 0.7f);
+        return new Sky { Top = t, Bottom = b, Light = light, Warm = warm };
+
+        static float Bump(double x, double c, double w) => (float)Math.Exp(-((x - c) * (x - c)) / (2 * w * w));
+    }
+
+    // ---------- Paleta por estilo (cosmético comprado en la tienda) ----------
+    struct RoomPalette { public SKColor WallLTop, WallLBot, WallRTop, WallRBot, Floor, Rug, BedTop, BedSide, BedSideDark; }
+
+    static RoomPalette Palette(string? style) => style switch
+    {
+        "forest" => new RoomPalette
+        {
+            WallLTop = new(0x2C, 0x3D, 0x2A), WallLBot = new(0x16, 0x24, 0x14),
+            WallRTop = new(0x3C, 0x52, 0x36), WallRBot = new(0x22, 0x32, 0x1E),
+            Floor = new(0x4A, 0x39, 0x28), Rug = new(0x8F, 0xC4, 0x5F),
+            BedTop = new(0x77, 0xC4, 0x6A), BedSide = new(0x5F, 0xA8, 0x6A), BedSideDark = new(0x49, 0x88, 0x52)
+        },
+        "galaxy" => new RoomPalette
+        {
+            WallLTop = new(0x24, 0x1F, 0x4E), WallLBot = new(0x10, 0x0C, 0x28),
+            WallRTop = new(0x34, 0x2B, 0x68), WallRBot = new(0x1C, 0x14, 0x42),
+            Floor = new(0x2A, 0x22, 0x55), Rug = new(0xB9, 0x6B, 0xFF),
+            BedTop = new(0x9B, 0x6B, 0xFF), BedSide = new(0x6A, 0x5F, 0xD6), BedSideDark = new(0x52, 0x49, 0xA8)
+        },
+        _ => new RoomPalette // default (morado cozy actual)
+        {
+            WallLTop = new(0x2A, 0x1F, 0x4E), WallLBot = new(0x17, 0x10, 0x30),
+            WallRTop = new(0x3A, 0x2B, 0x68), WallRBot = new(0x22, 0x18, 0x42),
+            Floor = new(0x36, 0x29, 0x5E), Rug = new(0xFF, 0x5F, 0x8F),
+            BedTop = new(0xFF, 0x52, 0x77), BedSide = new(0x6A, 0x5F, 0xD6), BedSideDark = new(0x52, 0x49, 0xA8)
+        },
+    };
+
+    // ---------- Helpers de dibujo ----------
+    static SKColor LerpC(SKColor a, SKColor b, float t)
+    {
+        t = Math.Clamp(t, 0f, 1f);
+        return new SKColor(
+            (byte)(a.Red + (b.Red - a.Red) * t),
+            (byte)(a.Green + (b.Green - a.Green) * t),
+            (byte)(a.Blue + (b.Blue - a.Blue) * t));
+    }
+
+    static SKColor Scale(SKColor c, float f)
+    {
+        f = Math.Clamp(f, 0f, 1f);
+        return new SKColor((byte)(c.Red * f), (byte)(c.Green * f), (byte)(c.Blue * f));
+    }
+
+    static SKColor Offset(SKColor c, int d) => new(
+        (byte)Math.Min(255, c.Red + d), (byte)Math.Min(255, c.Green + d), (byte)Math.Min(255, c.Blue + d));
+
+    static SKPath Quad(SKPoint a, SKPoint b, SKPoint c, SKPoint d)
+    {
+        var path = new SKPath();
+        path.MoveTo(a); path.LineTo(b); path.LineTo(c); path.LineTo(d); path.Close();
+        return path;
+    }
+
+    static void DrawWall(SKCanvas canvas, SKPoint floor0, SKPoint floor1, float h, SKColor top, SKColor bottom)
+    {
+        var t0 = new SKPoint(floor0.X, floor0.Y - h);
+        var t1 = new SKPoint(floor1.X, floor1.Y - h);
+        using var p = new SKPaint { IsAntialias = true, Shader = SKShader.CreateLinearGradient(
+                new SKPoint(0, floor0.Y - h), new SKPoint(0, Math.Max(floor0.Y, floor1.Y)),
+                new[] { top, bottom }, null, SKShaderTileMode.Clamp) };
+        canvas.DrawPath(Quad(floor0, floor1, t1, t0), p);
+        using var hi = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, 18) };
+        canvas.DrawPath(Quad(t0, t1, new SKPoint(t1.X, t1.Y + 5), new SKPoint(t0.X, t0.Y + 5)), hi);
+    }
+
+    static void SoftShadow(SKCanvas canvas, float cx, float cy, float rx, float ry, byte alpha, float blur)
+    {
+        using var p = new SKPaint { IsAntialias = true, Color = new SKColor(0, 0, 0, alpha), MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, blur) };
+        canvas.DrawOval(new SKRect(cx - rx, cy - ry, cx + rx, cy + ry), p);
+    }
+
+    static void DrawBox(SKCanvas canvas, SKPoint a, SKPoint b, SKPoint c, SKPoint d, float h, SKColor top, SKColor side, SKColor sideDark)
+    {
+        SKPoint U(SKPoint p) => new(p.X, p.Y - h);
+        using var s1 = new SKPaint { IsAntialias = true, Color = sideDark };
+        canvas.DrawPath(Quad(d, c, U(c), U(d)), s1);
+        using var s2 = new SKPaint { IsAntialias = true, Color = side };
+        canvas.DrawPath(Quad(b, c, U(c), U(b)), s2);
+        using var tp = new SKPaint { IsAntialias = true, Color = top };
+        canvas.DrawPath(Quad(U(a), U(b), U(c), U(d)), tp);
+    }
+}

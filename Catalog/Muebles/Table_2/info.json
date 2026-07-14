@@ -1,0 +1,17 @@
+{
+  "name": "Table 2",
+  "price": 260,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_table_2",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_table_2.png"
+  ]
+}

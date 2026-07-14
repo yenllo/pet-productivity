@@ -1,0 +1,17 @@
+{
+  "name": "Small Lamp",
+  "price": 270,
+  "description": "",
+  "category": "Muebles",
+  "rarity": "Common",
+  "currency": "Gold",
+  "spriteId": "obj_small_lamp",
+  "styleKey": "",
+  "icon": "",
+  "availableFrom": null,
+  "availableTo": null,
+  "source": "",
+  "sprites": [
+    "obj_small_lamp.png"
+  ]
+}
