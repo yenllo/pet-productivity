@@ -202,6 +202,16 @@ public static class L
         ["Ej: Gremio de Estudio"] = "E.g.: Study Guild",
         ["Ej: Gym"] = "E.g.: Gym",
         ["Contexto (arquetipo)"] = "Context (archetype)",
+        // Opciones del picker de arquetipo en "Nueva familia" (CreateGroupViewModel.Archetypes):
+        // vivían como strings sueltos sin pasar por L.T, así que con el idioma en inglés se veía
+        // "Estudio" en medio de una pantalla en inglés (encontrado probando en el emulador).
+        ["Estudio"] = "Study",
+        ["Tecnología"] = "Technology",
+        ["Creativo"] = "Creative",
+        ["Atlético"] = "Athletic",
+        ["Ejecutivo"] = "Executive",
+        ["Hogar (pareja)"] = "Home (couple)",
+        ["Gremio"] = "Guild",
         ["Miembros"] = "Members",
         ["Código"] = "Code",
         ["Solicitudes pendientes"] = "Pending requests",

@@ -14,9 +14,11 @@ public partial class CreateGroupViewModel : ObservableObject
     [ObservableProperty] private double maxMembers = 4;
 
     // Índices alineados con IndexToArchetype. Neutral queda excluido (es solo personal).
+    // L.T(...): sin esto, con el idioma en inglés esta lista se veía en español en medio de una
+    // pantalla ya traducida (encontrado navegando "Nueva familia" en el emulador).
     public List<string> Archetypes { get; } = new()
     {
-        "Estudio", "Tecnología", "Creativo", "Atlético", "Ejecutivo", "Hogar (pareja)", "Gremio"
+        L.T("Estudio"), L.T("Tecnología"), L.T("Creativo"), L.T("Atlético"), L.T("Ejecutivo"), L.T("Hogar (pareja)"), L.T("Gremio")
     };
 
     public CreateGroupViewModel(GroupService groups) => _groups = groups;
