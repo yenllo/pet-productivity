@@ -37,8 +37,8 @@ public class GroupsController : ControllerBase
     public Task<IActionResult> Join([FromBody] JoinByCodeRequest r) =>
         Run(async () => Ok(await _groups.RequestJoinByCodeAsync(r.InviteCode.Trim().ToUpperInvariant(), User.GetUserId())));
 
-    [HttpGet("mine/{userId}")]
-    public Task<IActionResult> Mine(Guid userId) =>
+    [HttpGet("mine")]
+    public Task<IActionResult> Mine() =>
         Run(async () => Ok(await _groups.GetMyGroupsAsync(User.GetUserId())));
 
     [HttpGet("{groupId}")]
@@ -63,7 +63,7 @@ public class GroupsController : ControllerBase
         Run(async () => Ok(await _groups.GetPendingRequestsAsync(groupId, User.GetUserId())));
 
     [HttpPost("requests/{requestId}/approve")]
-    public Task<IActionResult> Approve(Guid requestId, [FromBody] UserIdRequest r) =>
+    public Task<IActionResult> Approve(Guid requestId) =>
         Run(async () =>
         {
             var group = await _groups.ApproveJoinAsync(requestId, User.GetUserId());
@@ -79,14 +79,18 @@ public class GroupsController : ControllerBase
             return Ok(new { approved, votes, needed });
         });
 
-    [HttpDelete("{groupId}/members/{userId}")]
-    public Task<IActionResult> Leave(Guid groupId, Guid userId) =>
+    // Antes: DELETE {groupId}/members/{userId}. El userId de la ruta se ignoraba SIEMPRE (solo salías
+    // de ti mismo, vía token) — un caller podía pasar el id de cualquier otro miembro y no pasaba nada
+    // distinto. T18 ya mató este mismo patrón ("un UserId que viaja sugiere que el server lo usa; no")
+    // en TasksController/ShopController; esta ruta se quedó fuera de esa pasada. Ruta honesta: sin
+    // parámetro fantasma, "leave" dice lo que hace.
+    [HttpDelete("{groupId}/leave")]
+    public Task<IActionResult> Leave(Guid groupId) =>
         Run(async () => { await _groups.LeaveGroupAsync(groupId, User.GetUserId()); return NoContent(); });
 }
 
 public class CreateGroupRequest
 {
-    public Guid UserId { get; set; }
     public string Name { get; set; } = string.Empty;
     public Archetype Archetype { get; set; }
     public int MaxMembers { get; set; } = 6;
@@ -94,11 +98,5 @@ public class CreateGroupRequest
 
 public class JoinByCodeRequest
 {
-    public Guid UserId { get; set; }
     public string InviteCode { get; set; } = string.Empty;
-}
-
-public class UserIdRequest
-{
-    public Guid UserId { get; set; }
 }

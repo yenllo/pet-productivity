@@ -18,13 +18,15 @@ public class GroupService
     }
 
     private string Base => _settings.ServerUrl.TrimEnd('/');
-    private Guid Uid => _auth.CurrentUser?.Id ?? Guid.Empty;
 
     public async Task<List<Group>> GetMyGroupsAsync()
     {
         try
         {
-            var r = await _http.GetAsync($"{Base}/api/groups/mine/{Uid}");
+            // El server saca el usuario del token (nunca de la URL) — antes viajaba el propio id en la
+            // ruta y el server lo ignoraba; mismo patrón "UserId fantasma" que T18 ya purgó en otros
+            // controllers.
+            var r = await _http.GetAsync($"{Base}/api/groups/mine");
             if (r.IsSuccessStatusCode)
                 return await r.Content.ReadFromJsonAsync<List<Group>>() ?? new();
         }
@@ -49,7 +51,7 @@ public class GroupService
         try
         {
             var r = await _http.PostAsJsonAsync($"{Base}/api/groups",
-                new { UserId = Uid, Name = name, Archetype = archetype, MaxMembers = maxMembers });
+                new { Name = name, Archetype = archetype, MaxMembers = maxMembers });
             return r.IsSuccessStatusCode ? (true, L.T("¡Familia creada!")) : (false, await r.Content.ReadAsStringAsync());
         }
         catch (Exception ex) { return (false, ex.Message); }
@@ -59,8 +61,7 @@ public class GroupService
     {
         try
         {
-            var r = await _http.PostAsJsonAsync($"{Base}/api/groups/join",
-                new { UserId = Uid, InviteCode = inviteCode });
+            var r = await _http.PostAsJsonAsync($"{Base}/api/groups/join", new { InviteCode = inviteCode });
             return r.IsSuccessStatusCode
                 ? (true, "Solicitud enviada. Debe aprobarla cada miembro actual.")
                 : (false, await r.Content.ReadAsStringAsync());
@@ -72,8 +73,7 @@ public class GroupService
     {
         try
         {
-            var r = await _http.PostAsJsonAsync($"{Base}/api/groups/requests/{requestId}/approve",
-                new { UserId = Uid });
+            var r = await _http.PostAsync($"{Base}/api/groups/requests/{requestId}/approve", null);
             if (!r.IsSuccessStatusCode) return (false, await r.Content.ReadAsStringAsync());
             return (true, r.StatusCode == HttpStatusCode.Accepted
                 ? "Aprobado. Faltan otros miembros por aprobar."
@@ -108,7 +108,7 @@ public class GroupService
     {
         try
         {
-            var r = await _http.DeleteAsync($"{Base}/api/groups/{groupId}/members/{Uid}");
+            var r = await _http.DeleteAsync($"{Base}/api/groups/{groupId}/leave");
             return r.IsSuccessStatusCode;
         }
         catch { return false; }
