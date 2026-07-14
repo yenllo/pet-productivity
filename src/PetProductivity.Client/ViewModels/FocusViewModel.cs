@@ -269,9 +269,16 @@ public partial class FocusViewModel : ObservableObject
         var guard = _focus.Guard;
         if (guard.IsSupported && !guard.HasPermissions)
         {
+            // Decir SOLO lo que falta de verdad: con uno de los dos ya concedido, el mensaje genérico
+            // ("necesitas conceder acceso de uso Y mostrar sobre otras apps") sonaba a que no se había
+            // guardado nada, aunque uno de los dos ya estuviera listo.
+            var falta = new List<string>();
+            if (!guard.HasUsageAccess) falta.Add("'Acceso de uso'");
+            if (!guard.HasOverlay) falta.Add("'Mostrar sobre otras apps'");
+
             bool go = await Shell.Current.DisplayAlert(
                 "Permisos del modo foco",
-                "Para bloquear otras apps necesitas conceder 'Acceso de uso' y 'Mostrar sobre otras apps'. Lo haces en Ajustes → Modo foco.",
+                $"Para bloquear otras apps falta conceder {string.Join(" y ", falta)}. Lo haces en Ajustes → Modo foco.",
                 "Ir a Ajustes", "Ahora no");
             if (go) await Shell.Current.GoToAsync("//App/SettingsPage");
             return;

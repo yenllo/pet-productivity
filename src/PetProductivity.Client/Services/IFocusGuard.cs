@@ -21,6 +21,10 @@ public interface IFocusGuard
     void Suspend();                       // pausa la vigilancia (p. ej. al abrir la cámara del comprobante)
     void Resume();                        // reanuda la vigilancia
     event EventHandler? Cancelled;        // el usuario tocó "Cancelar foco" en la notificación
+    // Se toca la notificación/overlay de foco con la app YA VIVA (no arranque en frío): a diferencia
+    // del restore de App.xaml.cs (que solo corre al crear la App), esto cubre volver a FocusPage
+    // cuando el usuario navegó al menú principal sin cerrar la app.
+    event EventHandler? ReopenRequested;
 }
 
 /// No-op para plataformas sin bloqueo (iOS/Windows/Mac). El foco corre, pero sin bloquear apps.
@@ -38,4 +42,5 @@ public class NoopFocusGuard : IFocusGuard
     public void Suspend() { }
     public void Resume() { }
     public event EventHandler? Cancelled { add { } remove { } }
+    public event EventHandler? ReopenRequested { add { } remove { } }
 }

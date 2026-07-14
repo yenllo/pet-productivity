@@ -46,6 +46,18 @@ public partial class App : Application
                     await Task.Delay(600); // dar tiempo a que el Shell esté listo
                     try { await Shell.Current.GoToAsync("FocusPage"); } catch { }
                 });
+
+            // Cubre el caso EN CALIENTE (app ya viva): tocar la notificación/overlay de foco tras haber
+            // navegado al menú principal. El restore de arriba solo corre al crear la App (arranque en
+            // frío); esto es lo que faltaba para volver a FocusPage sin matar la app primero.
+            focus.Guard.ReopenRequested += (_, _) =>
+            {
+                if (!focus.IsActive) return; // la sesión ya terminó entre postear la notificación y tocarla
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    try { await Shell.Current.GoToAsync("FocusPage"); } catch { }
+                });
+            };
         }
 	}
 }

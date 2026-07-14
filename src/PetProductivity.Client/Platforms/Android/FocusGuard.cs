@@ -19,11 +19,19 @@ namespace PetProductivity.Client.Platforms.Android;
 public class FocusGuard : IFocusGuard
 {
     public event EventHandler? Cancelled;
+    public event EventHandler? ReopenRequested;
+
+    // MainActivity.OnNewIntent no tiene el contenedor de DI a mano; dispara este estático, que el
+    // singleton (ya vivo desde el arranque) reenvía a su evento de instancia. Mismo patrón que
+    // FocusGuardService.CancelRequested de abajo.
+    public static event EventHandler? ReopenRequestedStatic;
+    public static void RaiseReopenRequested() => ReopenRequestedStatic?.Invoke(null, EventArgs.Empty);
 
     public FocusGuard()
     {
         // "Cancelar foco" en el overlay → reenvía al evento de instancia (la sesión lo escucha).
         FocusGuardService.CancelRequested += (s, e) => Cancelled?.Invoke(this, EventArgs.Empty);
+        ReopenRequestedStatic += (s, e) => ReopenRequested?.Invoke(this, EventArgs.Empty);
     }
 
     public bool IsSupported => true;

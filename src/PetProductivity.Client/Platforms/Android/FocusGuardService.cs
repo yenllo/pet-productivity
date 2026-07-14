@@ -33,6 +33,8 @@ public class FocusGuardService : Service
     public static volatile bool Suspended;
 
     public const string ActionCancel = "yenllo.org.PetProductivity.FOCUS_CANCEL";
+    // Marca los intents que deben reabrir FocusPage aunque la app ya esté viva (MainActivity.OnNewIntent).
+    public const string ActionOpenFocus = "yenllo.org.PetProductivity.FOCUS_OPEN";
     private const string ChannelId = "focus_guard";
     private const int NotifId = 4242;
 
@@ -238,6 +240,7 @@ public class FocusGuardService : Service
         HideOverlay();
         var i = PackageManager?.GetLaunchIntentForPackage(_self);
         i?.AddFlags(ActivityFlags.NewTask | ActivityFlags.ReorderToFront);
+        i?.SetAction(ActionOpenFocus); // vuelve a FocusPage, no a donde estuviera el Shell
         if (i != null) StartActivity(i);
     }
 
@@ -250,6 +253,7 @@ public class FocusGuardService : Service
         }
 
         var launch = PackageManager?.GetLaunchIntentForPackage(_self);
+        launch?.SetAction(ActionOpenFocus); // tocar la notificación reabre FocusPage, no el último Shell visto
         var contentPi = PendingIntent.GetActivity(this, 0, launch,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
 
