@@ -21,6 +21,17 @@ plan cerrado; anotarlo y no reabrir la discusión.
   app. Requiere un popup custom (`Border`+`VerticalStackLayout` sobre un `Grid` a pantalla
   completa, patrón que la app ya usa en otros overlays) — no es difícil, es trabajo de UI puro.
 
+## Onboarding
+
+- **El que se registra DIRECTO nunca nombra a su mascota.** Camino: ceremonia → "¿Ya tienes cuenta?"
+  → "Regístrate". Como no es invitado, `RegisterViewModel` llama a `RegisterAsync` con un nombre por
+  defecto (hoy `L.F("Mascota de {0}", Name)` — antes era `Name + "'s Pet"` hardcodeado en inglés, ya
+  corregido). Nunca ve la ceremonia: no elige nombre ni ve nacer su especie. **Opciones:** (a) añadir
+  un campo "nombre de la mascota" al formulario de registro; (b) tras registrarse, mandarlo a la
+  ceremonia para que la nombre; (c) dejarlo así y que la renombre luego (¿existe renombrar hoy?).
+  Es una decisión de diseño del dueño, no un bug — el default localizado ya no es incorrecto, solo
+  impersonal.
+
 ## Contenido y arte
 
 - **Segunda fuente de arte propia.** Los muebles de Bongseng no son redistribuibles (ver

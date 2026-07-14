@@ -52,7 +52,14 @@ namespace PetProductivity.Client.ViewModels
             }
             else
             {
-                user = await _authService.RegisterAsync(Name, Email, Password, Name + "'s Pet", Archetype.Neutral);
+                // Registro directo (sin pasar por invitado): el usuario nunca vio la ceremonia, así que
+                // no pudo nombrar a su mascota. Antes el nombre por defecto era `Name + "'s Pet"` —
+                // genitivo sajón HARDCODEADO en inglés, en una app cuya política (T16) es que todo texto
+                // visible nace en español y se traduce con L. Reproducido en el emulador: registrarse
+                // como "Ana" dejaba la mascota llamada "Ana's Pet" incluso con la app en español.
+                // (Que este usuario no pueda ELEGIR el nombre es una decisión de diseño, no un bug:
+                //  anotada como candidata en tareas/29-ideas-futuras.md.)
+                user = await _authService.RegisterAsync(Name, Email, Password, L.F("Mascota de {0}", Name), Archetype.Neutral);
             }
 
             if (user != null)

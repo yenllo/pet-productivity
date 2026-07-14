@@ -41,6 +41,8 @@ public static class L
         ["Comenzar"] = "Start",
         ["Comenzar aventura"] = "Start adventure",
         ["¿Ya tienes cuenta? Inicia Sesión"] = "Already have an account? Log in",
+        // Nombre por defecto de la mascota al registrarse directo (sin pasar por la ceremonia).
+        ["Mascota de {0}"] = "{0}'s Pet",
         ["¿No tienes cuenta? Regístrate"] = "No account? Sign up",
         ["Bienvenido de vuelta"] = "Welcome back",
         ["Únete a la revolución productiva"] = "Join the productivity revolution",
