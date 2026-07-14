@@ -90,6 +90,25 @@ public class RoomDiorama : SKCanvasView
 
     private RoomGrid? _grid;
 
+    // Orden de dibujo (back-to-front) cacheado: depende solo de las posiciones, que no cambian entre
+    // frames. Se ordenaba 25 veces por segundo para obtener siempre lo mismo. Ojo: RoomGrid muta su
+    // lista EN SITIO al colocar un mueble, así que la referencia de la grilla no basta para invalidar
+    // — por eso RoomGrid.Version.
+    private List<FurniturePlacement>? _sorted;
+    private RoomGrid? _sortedFor;
+    private int _sortedVersion = -1;
+
+    private List<FurniturePlacement> SortedPlacements()
+    {
+        if (_sorted == null || !ReferenceEquals(_sortedFor, _grid) || _sortedVersion != _grid!.Version)
+        {
+            _sorted = _grid!.Placements.OrderBy(p => p.GridX + p.GridY).ToList();
+            _sortedFor = _grid;
+            _sortedVersion = _grid.Version;
+        }
+        return _sorted;
+    }
+
     // Carga los sprites que referencian las colocaciones (además del seed base) y repinta al terminar.
     void EnsurePlacementSprites()
     {
@@ -442,8 +461,10 @@ public class RoomDiorama : SKCanvasView
         if (EditMode) DrawEditGrid(canvas, Iso);
 
         // 2) Muebles (back-to-front), anclados por borde inferior-centro al centro de su footprint.
+        // El orden de dibujo depende solo de las posiciones, que no cambian entre frames: se ordena
+        // una vez por cambio de grilla, no 25 veces por segundo.
         if (_grid != null)
-            foreach (var pl in _grid.Placements.OrderBy(p => p.GridX + p.GridY))
+            foreach (var pl in SortedPlacements())
             {
                 var sprite = RoomSprites.Get(pl.Def.SpriteName);
                 if (sprite == null) continue;
@@ -470,25 +491,29 @@ public class RoomDiorama : SKCanvasView
         var petPt = Iso(3f, 3f);
         SoftShadow(canvas, petPt.X, petPt.Y, W * 0.10f, H * 0.03f, 80, 8);
 
-        // 4) Tinte día/noche.
+        // 4) Tinte día/noche. (Paint reutilizado: se pintaba 25 veces por segundo creando uno nuevo cada vez.)
         byte tintA = (byte)(150 * (1 - sky.Light));
         if (tintA > 0)
-            using (var tint = new SKPaint { Color = sky.Top.WithAlpha(tintA) })
-                canvas.DrawRect(0, 0, W, H, tint);
+        {
+            FlatPaint.Color = sky.Top.WithAlpha(tintA);
+            canvas.DrawRect(0, 0, W, H, FlatPaint);
+        }
         if (sky.Warm > 0.05f)
-            using (var warm = new SKPaint { Color = new SKColor(255, 170, 90, (byte)(60 * sky.Warm)) })
-                canvas.DrawRect(0, 0, W, H, warm);
+        {
+            FlatPaint.Color = new SKColor(255, 170, 90, (byte)(60 * sky.Warm));
+            canvas.DrawRect(0, 0, W, H, FlatPaint);
+        }
 
         // 5) Motas flotantes.
-        using (var dust = new SKPaint { IsAntialias = true, MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 2.2f) })
-            foreach (var p in _particles)
-            {
-                float y = (p.Y - p.Speed * _t) % 1f; if (y < 0) y += 1f;
-                float x = p.X + 0.02f * (float)Math.Sin(_t + p.Phase);
-                byte a = (byte)(40 + 60 * (0.5 + 0.5 * Math.Sin(_t * 1.5 + p.Phase)));
-                dust.Color = new SKColor(255, 250, 235, a);
-                canvas.DrawCircle(x * W, y * H, p.Size, dust);
-            }
+        DustPaint.MaskFilter = Blur(2.2f);
+        foreach (var p in _particles)
+        {
+            float y = (p.Y - p.Speed * _t) % 1f; if (y < 0) y += 1f;
+            float x = p.X + 0.02f * (float)Math.Sin(_t + p.Phase);
+            byte a = (byte)(40 + 60 * (0.5 + 0.5 * Math.Sin(_t * 1.5 + p.Phase)));
+            DustPaint.Color = new SKColor(255, 250, 235, a);
+            canvas.DrawCircle(x * W, y * H, p.Size, DustPaint);
+        }
 
         if (IsCrystallized)
             using (var frost = new SKPaint { Color = new SKColor(0x7F, 0xB0, 0xFF, 46) })
@@ -734,10 +759,27 @@ public class RoomDiorama : SKCanvasView
         canvas.DrawPath(Quad(t0, t1, new SKPoint(t1.X, t1.Y + 5), new SKPoint(t0.X, t0.Y + 5)), hi);
     }
 
+    // Los SKPaint y los filtros de desenfoque se reutilizan en vez de crearse por sombra y por frame.
+    // A 25 fps eso eran decenas de objetos nativos por segundo: no subía la media de pintado (8 ms de 40),
+    // pero la basura que generaba provocaba pausas de GC — los picos de 25-30 ms que se veían como tirones.
+    // Los SKMaskFilter son inmutables y solo se usan 2-3 radios, así que se cachean por radio.
+    static readonly Dictionary<float, SKMaskFilter> BlurCache = new();
+    static SKMaskFilter Blur(float radius)
+    {
+        if (!BlurCache.TryGetValue(radius, out var f))
+            BlurCache[radius] = f = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, radius);
+        return f;
+    }
+
+    static readonly SKPaint ShadowPaint = new() { IsAntialias = true };
+    static readonly SKPaint DustPaint = new() { IsAntialias = true };
+    static readonly SKPaint FlatPaint = new();   // rellenos planos (tintes de día/noche, escarcha)
+
     static void SoftShadow(SKCanvas canvas, float cx, float cy, float rx, float ry, byte alpha, float blur)
     {
-        using var p = new SKPaint { IsAntialias = true, Color = new SKColor(0, 0, 0, alpha), MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, blur) };
-        canvas.DrawOval(new SKRect(cx - rx, cy - ry, cx + rx, cy + ry), p);
+        ShadowPaint.Color = new SKColor(0, 0, 0, alpha);
+        ShadowPaint.MaskFilter = Blur(blur);
+        canvas.DrawOval(new SKRect(cx - rx, cy - ry, cx + rx, cy + ry), ShadowPaint);
     }
 
     static void DrawBox(SKCanvas canvas, SKPoint a, SKPoint b, SKPoint c, SKPoint d, float h, SKColor top, SKColor side, SKColor sideDark)

@@ -32,6 +32,11 @@ public class RoomGrid
 
     public IReadOnlyList<FurniturePlacement> Placements => _placements;
 
+    /// <summary>Sube en cada mutación. Quien cachee algo derivado de Placements (p. ej. el orden de
+    /// dibujo del diorama) lo invalida comparando esto — la lista muta en sitio, así que comparar la
+    /// referencia de la grilla NO basta.</summary>
+    public int Version { get; private set; }
+
     public RoomGrid(int width, int depth)
     {
         Width = width;
@@ -49,7 +54,8 @@ public class RoomGrid
 
         var placement = new FurniturePlacement(def, x, y);
         _placements.Add(placement);
-        
+        Version++;
+
         for (int i = 0; i < def.GridW; i++)
         {
             for (int j = 0; j < def.GridD; j++)
@@ -82,5 +88,6 @@ public class RoomGrid
     {
         _placements.Clear();
         _cells = new FurniturePlacement?[Width, Depth];
+        Version++;
     }
 }
