@@ -279,6 +279,20 @@ public class FocusController : ControllerBase
             fs = new FocusSession { UserId = uid, PetId = gfs.PetId, TargetMinutes = gfs.TargetMinutes, StartedAt = gfs.StartedAt };
             _db.FocusSessions.Add(fs);
         }
+        else
+        {
+            // Se reutilizó una fila existente para (usuario, mascota) — SIEMPRE realinearla al gfs
+            // actual. Sin esto: la mascota compartida también es alcanzable por el foco SOLO
+            // (POST /api/focus/start con el petId de la mascota de grupo — ocurre de verdad si el
+            // usuario entra por "Registrar tarea" desde el detalle del grupo y ahí le da a Foco sin
+            // pasar por "Foco grupal"). Si esa sesión solo queda abandonada (sin completar/cancelar,
+            // hasta 6 h por FocusCleanupHostedService), este mismo (uid, petId) vuelve a existir la
+            // próxima vez que el usuario se una a un foco grupal real — y sin este realineo, /complete
+            // mediría contra el StartedAt/TargetMinutes VIEJOS: tiempo ya vencido = recompensa
+            // instantánea sin haber esperado nada de la sesión grupal actual.
+            fs.StartedAt = gfs.StartedAt;
+            fs.TargetMinutes = gfs.TargetMinutes;
+        }
         await _db.SaveChangesAsync();
         await _hub.Clients.Group(FamilyHub.Room(gfs.GroupId)).SendAsync(evt, gfs.GroupId);
         return Ok(new GroupFocusInfo { GroupFocusId = gfs.Id, FocusSessionId = fs.Id, StartedAt = gfs.StartedAt, TargetMinutes = gfs.TargetMinutes, PetId = gfs.PetId, Topic = gfs.Topic });
