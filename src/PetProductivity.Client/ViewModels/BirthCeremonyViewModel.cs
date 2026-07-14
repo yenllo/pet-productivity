@@ -71,10 +71,17 @@ public partial class BirthCeremonyViewModel : ObservableObject
         finally { IsBusy = false; }
     }
 
+    // OJO: aquí NO se marca HasHatched. Antes sí, y era un camino sin retorno: tocar "¿Ya tienes
+    // cuenta?" y NO llegar a iniciar sesión (te arrepientes, te equivocas de contraseña, se cae la red,
+    // cierras la app) dejaba HasHatched=true igual. Al reabrir, App.xaml.cs ya no muestra la ceremonia
+    // → el usuario aterrizaba en el Dashboard con una mascota invitada llamada "Huevo" y especie
+    // aleatoria que él nunca eligió, sin forma de volver a nacer. Reproducido en el emulador.
+    // Ahora la ceremonia solo se da por superada cuando existe cuenta de verdad: StartJourney (arriba,
+    // tras registrar al invitado) o el login/registro exitoso (ProfileViewModel/LoginViewModel navegan
+    // al Shell por su cuenta). Si el usuario vuelve atrás sin autenticarse, la ceremonia sigue ahí.
     [RelayCommand]
     private async Task NavigateToLogin()
     {
-        Preferences.Set("HasHatched", true);
         Application.Current.MainPage = new AppShell();
         await Shell.Current.GoToAsync("//LoginPage");
     }

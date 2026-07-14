@@ -13,6 +13,13 @@ public class GameDataService
     public void SetUser(User? user)
     {
         CurrentUser = user;
+
+        // La ceremonia de nacimiento se da por superada al tener cuenta de verdad. Este es el único
+        // punto por el que pasan los 4 caminos de autenticación exitosa (login normal y Google, tanto
+        // en LoginViewModel como en RegisterViewModel), así que marcarlo aquí evita que un camino
+        // futuro se olvide de hacerlo. Antes lo marcaba BirthCeremonyViewModel al NAVEGAR al login —
+        // aunque el usuario nunca llegara a autenticarse, perdiendo la ceremonia para siempre.
+        if (user != null) Preferences.Set("HasHatched", true);
     }
 
     public List<TaskItem> TaskHistory { get; private set; } = new();
