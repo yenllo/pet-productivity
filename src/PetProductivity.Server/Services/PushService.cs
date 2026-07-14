@@ -49,26 +49,44 @@ public class PushService
         if (_app == null) return; // push deshabilitado (sin credenciales)
 
         var ids = userIds.ToList();
-        var tokens = await _db.Users
+        var users = await _db.Users
             .Where(u => ids.Contains(u.Id) && u.DeviceToken != null && u.NotificationsEnabled)
-            .Select(u => u.DeviceToken!)
+            .Select(u => new { u.Id, Token = u.DeviceToken! })
             .ToListAsync();
 
-        _logger.LogInformation("Push: enviando a {Count} token(s): {Title}", tokens.Count, title);
-        foreach (var token in tokens.Distinct())
+        _logger.LogInformation("Push: enviando a {Count} token(s): {Title}", users.Count, title);
+        var deadUserIds = new List<Guid>();
+        foreach (var u in users)
         {
             try
             {
                 var id = await FirebaseMessaging.DefaultInstance.SendAsync(new Message
                 {
-                    Token = token,
+                    Token = u.Token,
                     Notification = new Notification { Title = title, Body = body },
                     // Prioridad alta: MIUI/Xiaomi entrega mejor con app en segundo plano.
                     Android = new AndroidConfig { Priority = Priority.High }
                 });
                 _logger.LogInformation("Push enviado OK, messageId={Id}", id);
             }
-            catch (Exception ex) { _logger.LogWarning(ex, "Push falló para un token (¿caducado?)."); }
+            // Unregistered = FCM confirma que el token ya no existe (reinstaló, cambió de teléfono,
+            // desinstaló). Antes esto se logueaba como advertencia genérica y se reintentaba PARA
+            // SIEMPRE en cada notificación futura. El cliente vuelve a registrar su token vigente en
+            // cada apertura (PushRegistration.RegisterAsync), así que limpiar aquí es autosanable: no
+            // hay forma de perder al usuario, solo se evita seguir insistiendo contra un token muerto.
+            catch (FirebaseMessagingException ex) when (ex.MessagingErrorCode == MessagingErrorCode.Unregistered)
+            {
+                _logger.LogInformation("Token de {UserId} desregistrado en FCM; se limpia.", u.Id);
+                deadUserIds.Add(u.Id);
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Push falló para un token (fallo transitorio, se reintenta después)."); }
+        }
+
+        if (deadUserIds.Count > 0)
+        {
+            var deadUsers = await _db.Users.Where(u => deadUserIds.Contains(u.Id)).ToListAsync();
+            foreach (var u in deadUsers) u.DeviceToken = null;
+            await _db.SaveChangesAsync();
         }
     }
 }
