@@ -31,6 +31,15 @@ El **servidor** se despliega en Render (Dockerfile) desde la rama `main`. La **b
 - **Sentry (opcional, tier gratis):** crear proyecto *ASP.NET Core* en sentry.io y poner la env var
   **`Sentry__Dsn`** en Render. Sin la variable, el SDK queda apagado (no-op). `SendDefaultPii=false`
   ya viene fijado en código (no viajan usuario/IP).
+- **Sentry en el cliente Android (crashes de teléfonos reales):** crear un **segundo** proyecto en
+  sentry.io de tipo *Android* (o *.NET MAUI*) y exportar su DSN como variable de entorno
+  **`SENTRY_DSN_MAUI`** *antes de compilar el APK* — el `.csproj` la inyecta en el ensamblado. **No se
+  versiona a propósito:** el repo es público y un DSN hardcodeado haría que los crashes de cualquiera
+  que compile el código caigan en tu dashboard. Sin la variable, Sentry queda apagado (no-op), que es
+  el default correcto para quien clone el repo.
+  ```powershell
+  $env:SENTRY_DSN_MAUI = "https://...@...ingest.sentry.io/..."   # antes del build de release
+  ```
 - **UptimeRobot (gratis, ~15 min):** uptimerobot.com → *Add New Monitor* → tipo **HTTP(s)** →
   URL `https://petproductivity.onrender.com/health` → intervalo **5 min** → alerta al email.
   Además de avisar caídas, el ping evita/reduce el cold start de Render (~23 s medidos) — sinergia T10-B.

@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Runtime;
+using Sentry;
 
 namespace PetProductivity.Client;
 
@@ -36,6 +37,9 @@ public class MainApplication : MauiApplication
         Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += (sender, args) =>
         {
             Android.Util.Log.Error("ANTIGRAVITY_CRASH", $"💥 Unhandled Exception: {args.Exception.Message}\nStack: {args.Exception.StackTrace}");
+            // El proceso está por morir: capturar + flush síncrono o el evento no sale del teléfono.
+            SentrySdk.CaptureException(args.Exception);
+            SentrySdk.Flush(TimeSpan.FromSeconds(2));
         };
         Android.Util.Log.Info("ANTIGRAVITY", "MainApplication OnCreate Finished");
     }

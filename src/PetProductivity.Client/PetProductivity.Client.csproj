@@ -78,6 +78,18 @@
 		<PackageReference Include="CommunityToolkit.Maui" Version="13.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0" />
 		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="4.148.0" />
+		<PackageReference Include="Sentry.Maui" Version="6.6.0" />
+	</ItemGroup>
+
+	<!-- T15-C (cliente): el DSN de Sentry entra por la variable de entorno SENTRY_DSN_MAUI en tiempo de
+	     compilación, NO se versiona. El repo es público: un DSN hardcodeado haría que los crashes de
+	     cualquiera que compile el código caigan en el dashboard del dueño. Sin la variable = Sentry
+	     apagado (mismo contrato que el servidor: sin DSN, no-op). -->
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>SentryDsn</_Parameter1>
+			<_Parameter2>$(SENTRY_DSN_MAUI)</_Parameter2>
+		</AssemblyAttribute>
 	</ItemGroup>
 
 	<ItemGroup>

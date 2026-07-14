@@ -6,6 +6,13 @@ namespace PetProductivity.Client;
 
 public static class MauiProgram
 {
+	// DSN inyectado por el .csproj desde la env var SENTRY_DSN_MAUI (fuera del repo). Vacío = Sentry apagado.
+	private static string? SentryDsn =>
+		typeof(MauiProgram).Assembly
+			.GetCustomAttributes(typeof(System.Reflection.AssemblyMetadataAttribute), false)
+			.Cast<System.Reflection.AssemblyMetadataAttribute>()
+			.FirstOrDefault(a => a.Key == "SentryDsn")?.Value;
+
 	public static MauiApp CreateMauiApp()
 	{
 		var builder = MauiApp.CreateBuilder();
@@ -21,6 +28,15 @@ public static class MauiProgram
 				fonts.AddFont("Inter-Variable.ttf", "Inter");
 				fonts.AddFont("PlusJakartaSans-SemiBold.ttf", "PlusJakarta");
 				fonts.AddFont("PlusJakartaSans-Bold.ttf", "PlusJakartaBold");
+			});
+
+		// T15-C (cliente): crashes de teléfonos reales al mismo Sentry del servidor. Antes de esto, un
+		// crash en el móvil de un usuario solo dejaba rastro en su propio logcat/crash.txt: invisible.
+		if (!string.IsNullOrWhiteSpace(SentryDsn))
+			builder.UseSentry(options =>
+			{
+				options.Dsn = SentryDsn;
+				options.SendDefaultPii = false; // sin usuario/IP; las descripciones de tareas son datos del usuario
 			});
 
 #if DEBUG
