@@ -52,7 +52,13 @@ public class FocusCleanupHostedService : BackgroundService
         var staleProofs = await db.FocusProofs.Where(p => p.CreatedAt < proofCutoff).ToListAsync(ct);
 
         // Refresh tokens muertos: sin esto la tabla crece 1 fila por login para siempre. Los revocados
-        // se conservan 7 días (detección de reuso de token rotado = cascada de revocación) y luego fuera.
+        // se conservan 7 días antes de purgarse.
+        // OJO: la "detección de reuso = cascada de revocación" que este comentario prometía NUNCA se
+        // implementó (verificado 2026-07-14: SessionService.RotateAsync trata un token YA REVOCADO
+        // igual que uno expirado — 401 y ya, sin revocar el resto de la sesión del usuario). Los 7
+        // días de retención por sí solos no hacen nada de seguridad; sin la cascada, son solo
+        // ventana para trazas de auditoría manual. Candidata real (no implementada) en
+        // tareas/29-ideas-futuras.md.
         var now = DateTime.UtcNow;
         var revokedCutoff = now.AddDays(-7);
         var deadTokens = await db.RefreshTokens

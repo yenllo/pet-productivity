@@ -39,6 +39,26 @@ plan cerrado; anotarlo y no reabrir la discusión.
   soon". Cuando exista la ficha real, medir cuánta gente prueba el juez vs. cuánta más tarde
   instala — sin esa métrica, no se sabe si la demo cumple su propósito.
 
+## Seguridad (falta de verdad, no solo "estaría bien")
+
+- **Reuso de refresh token revocado no dispara cascada de revocación.** `SessionService.RotateAsync`
+  trata un token YA REVOCADO exactamente igual que uno expirado: 401 y ya. El comentario de
+  `FocusCleanupHostedService.cs` (retención de 7 días de revocados) prometía esta detección desde
+  T14-C0 y nunca se construyó — corregido el comentario para que no mienta (2026-07-14), pero la
+  protección real sigue sin existir. Impacto: si un refresh token se filtra (backup comprometido,
+  log, MITM previo a la rotación) y el atacante lo usa DESPUÉS de que el dueño legítimo ya rotó, el
+  intento del atacante falla (bien) pero no pasa nada más — las demás sesiones activas del usuario
+  siguen vivas sin aviso, cuando ese intento es justo la señal de que algo se filtró.
+  **Diseño mínimo si se decide construir:** en `RotateAsync`, si `FindAsync` encuentra un token con
+  `RevokedUtc != null` (en vez de no encontrarlo o estar solo expirado), llamar
+  `RevokeAllAsync(t.UserId)` antes de devolver null — fuerza re-login en todos los dispositivos.
+  No requiere trackear una "familia" de tokens (más simple que el diseño clásico de rotación
+  encadenada), a costa de ser más agresivo: cualquier reuso de un token viejo mata TODAS las
+  sesiones, no solo las descendientes de esa cadena. Suficiente para el tamaño actual del proyecto.
+  **Por qué no se implementó de una vez (loop 2026-07-14):** toca el camino más sensible del sistema
+  (auth); un error en el "revocar todo" podría dejar usuarios reales fuera de sesión sin causa —
+  necesita verificación con tests + revisión del dueño antes de desplegar, no autonomía total.
+
 ## Engagement (con cuidado — no reabrir la Serie A ya cerrada)
 
 - **Comparación entre amigos/familias** (leaderboard ligero). Choca potencialmente con "el oro es
