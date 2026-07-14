@@ -57,6 +57,10 @@ screenshot_*.png
 # Raw asset packs (reference only, not for repo)
 IsometricThings/
 
+# graphify: grafo de conocimiento GENERADO (regenerable con /graphify). Fuera del repo público:
+# incrusta rutas absolutas locales (C:\Renzo\...\renzo) y es un artefacto de 1.6MB por dev.
+graphify-out/
+
 # Secrets / credenciales (NUNCA al repo: van en user-secrets local + env vars en Render)
 google-services.json
 **/google-services.json

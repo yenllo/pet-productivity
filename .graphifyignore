@@ -1,0 +1,37 @@
+# Compilados y artefactos de .NET (regenerables, no son código fuente)
+bin/
+obj/
+*.dll
+*.pdb
+*.apk
+*.aab
+
+# Migraciones EF: 90% autogeneradas y enormes (los .Designer.cs son snapshots del modelo).
+# El modelo real vive en Data/AppDbContext.cs y Shared/Models/, que sí se grafican.
+src/PetProductivity.Server/Migrations/
+
+# Arte: sprites de Bongseng (no redistribuibles) + los propios. No aportan al grafo de código.
+*.png
+*.svg
+*.gif
+*.ttf
+*.otf
+Catalog/
+IsometricThings/
+Animations/
+src/PetProductivity.Client/Resources/
+
+# Basura del repo declarada en CLAUDE.md
+cmdline-tools/
+logs/
+crash_*.txt
+*.log
+apk_list_log
+adb_devices.txt
+pet_prod.db
+_Archivo/
+archivos originales sprites/
+*.zip
+
+# Salida del propio graphify
+graphify-out/
