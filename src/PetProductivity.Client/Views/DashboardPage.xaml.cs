@@ -11,7 +11,7 @@ public partial class DashboardPage : ContentPage
 		RoomCanvas.FrameTick += OnFrameTick;
 		SandboxCanvas.CellTapped += OnCellTapped;
 		// T5-D: al subir TotalXp, la mascota salta (~1.2 s) usando el mismo reloj del diorama.
-		viewModel.CelebrateXp += () => _celebrateUntil = _lastT + 1.2f;
+		viewModel.CelebrateXp += () => RoomCanvas.Celebrate();
 		viewModel.PropertyChanged += async (_, e) =>
 		{
 			// La selección vive en el VM (taps, pad, listas); aquí solo se refleja el resalte.
@@ -75,28 +75,12 @@ public partial class DashboardPage : ContentPage
 		SandboxCanvas.StopAnimation(); // por si salen de la pestaña con el sandbox abierto
 	}
 
-	// El diorama corre un solo timer (en RoomDiorama). Aquí solo respira/flota el overlay de la mascota.
+	// La mascota ya no es un overlay de XAML: respira y salta DENTRO del lienzo (RoomDiorama), que es
+	// donde vive su sombra — por eso ahora se apoya en el suelo en vez de flotar. Aquí solo se guarda
+	// el reloj del diorama para el resto de animaciones de la página.
 	float _lastT;
-	float _celebrateUntil = -1;
 
-	void OnFrameTick(float t)
-	{
-		_lastT = t;
-		double breathe = 1 + 0.03 * Math.Sin(t * 2 * Math.PI / 3.2);
-
-		// T5-D: 3 saltitos que se apagan (celebración de XP); 0 fuera de la ventana.
-		float hop = 0;
-		if (t < _celebrateUntil)
-		{
-			float p = (_celebrateUntil - t) / 1.2f; // 1 → 0
-			hop = (float)(Math.Abs(Math.Sin((1 - p) * Math.PI * 3)) * 18 * p);
-		}
-
-		MokoImage.Scale = breathe;
-		MokoImage.TranslationY = -8 + 4 * Math.Sin(t * 2 * Math.PI / 3.8) - hop;
-		// La burbuja flota suave junto a la mascota.
-		MoodBubble.TranslationY = -56 + 3 * Math.Sin(t * 2 * Math.PI / 3.8);
-	}
+	void OnFrameTick(float t) => _lastT = t;
 
 	async Task RevealAsync()
 	{

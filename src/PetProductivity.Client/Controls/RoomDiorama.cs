@@ -88,6 +88,48 @@ public class RoomDiorama : SKCanvasView
     // Celda resaltada en modo edición (mueble seleccionado). null = ninguna.
     public (int X, int Y)? Highlight { get; set; }
 
+    // ---------- La mascota vive DENTRO del lienzo (antes era una <Image> de XAML encima) ----------
+    // Como <Image>, Android la escalaba con filtro bilineal y el pixel-art salía borroso (los sprites
+    // son 112x112 y se pintaban a 92x92: reescalado ni siquiera entero), mientras los muebles —
+    // dibujados aquí con muestreo nearest— salían nítidos. Además iba centrada en la caja, así que
+    // flotaba lejos de la sombra de contacto que este control le pinta en el suelo.
+    // Aquí se dibuja con el mismo muestreo que los muebles y APOYADA en la baldosa central.
+    public static readonly BindableProperty PetSpriteProperty =
+        BindableProperty.Create(nameof(PetSprite), typeof(string), typeof(RoomDiorama), null,
+            propertyChanged: (b, _, _) => { var r = (RoomDiorama)b; r.EnsurePetSprite(); r.InvalidateSurface(); });
+
+    /// <summary>Nombre del archivo del sprite ("pet_sprout_baby.png"); se empaqueta también como MauiAsset.</summary>
+    public string? PetSprite
+    {
+        get => (string?)GetValue(PetSpriteProperty);
+        set => SetValue(PetSpriteProperty, value);
+    }
+
+    public static readonly BindableProperty PetOpacityProperty =
+        BindableProperty.Create(nameof(PetOpacity), typeof(double), typeof(RoomDiorama), 1.0,
+            propertyChanged: (b, _, _) => ((RoomDiorama)b).InvalidateSurface());
+
+    public double PetOpacity
+    {
+        get => (double)GetValue(PetOpacityProperty);
+        set => SetValue(PetOpacityProperty, value);
+    }
+
+    // Tamaño de la mascota en unidades del lienzo de diseño (1024²) — ~2,2 baldosas de ancho.
+    const float PET_DESIGN = 330f;
+    static readonly SKPaint PetPaint = new() { IsAntialias = false };
+    float _celebrateUntil = -1;
+
+    /// <summary>T5-D: saltitos de celebración al ganar XP (los dispara el Dashboard).</summary>
+    public void Celebrate() => _celebrateUntil = _t + 1.2f;
+
+    void EnsurePetSprite()
+    {
+        var name = Path.GetFileNameWithoutExtension(PetSprite);
+        if (string.IsNullOrEmpty(name) || RoomSprites.Get(name) != null) return;
+        _ = RoomSprites.EnsureNamedAsync(new[] { name }, () => MainThread.BeginInvokeOnMainThread(InvalidateSurface));
+    }
+
     private RoomGrid? _grid;
 
     // Orden de dibujo (back-to-front) cacheado: depende solo de las posiciones, que no cambian entre
@@ -463,9 +505,16 @@ public class RoomDiorama : SKCanvasView
         // 2) Muebles (back-to-front), anclados por borde inferior-centro al centro de su footprint.
         // El orden de dibujo depende solo de las posiciones, que no cambian entre frames: se ordena
         // una vez por cambio de grilla, no 25 veces por segundo.
+        // La MASCOTA entra en este mismo orden por profundidad (está en la baldosa 3,3): así un mueble
+        // que esté delante de ella la tapa, en vez de que ella quede siempre encima de todo.
+        bool petDrawn = false;
+        const int PET_DEPTH = 3 + 3; // clave de profundidad de la baldosa (3,3)
+
         if (_grid != null)
             foreach (var pl in SortedPlacements())
             {
+                if (!petDrawn && pl.GridX + pl.GridY > PET_DEPTH) { DrawPet(); petDrawn = true; }
+
                 var sprite = RoomSprites.Get(pl.Def.SpriteName);
                 if (sprite == null) continue;
                 var basePt = Iso(pl.GridX + pl.Def.GridW / 2f, pl.GridY + pl.Def.GridD / 2f);
@@ -487,9 +536,35 @@ public class RoomDiorama : SKCanvasView
                 canvas.DrawImage(sprite, new SKRect(basePt.X - wScr / 2f, basePt.Y - hScr, basePt.X + wScr / 2f, basePt.Y), PixelSampling);
             }
 
-        // 3) Sombra de contacto de la mascota (overlay de la página) en el centro del piso (tile 3,3).
-        var petPt = Iso(3f, 3f);
-        SoftShadow(canvas, petPt.X, petPt.Y, W * 0.10f, H * 0.03f, 80, 8);
+        // 3) Si no había ningún mueble por delante, la mascota va aquí (encima de todo lo de atrás).
+        if (!petDrawn) DrawPet();
+
+        // Mascota: sombra de contacto + criatura APOYADA sobre ella en la baldosa central (3,3).
+        void DrawPet()
+        {
+            var petPt = Iso(3f, 3f);
+            var petImg = RoomSprites.Get(Path.GetFileNameWithoutExtension(PetSprite) ?? "");
+
+            // Al saltar, la sombra encoge un pelo: es lo que vende el contacto con el suelo.
+            float breathe = 1f + 0.03f * (float)Math.Sin(_t * 2 * Math.PI / 3.2);
+            float hop = 0f;
+            if (_t < _celebrateUntil)
+            {
+                float p = (_celebrateUntil - _t) / 1.2f;                 // 1 → 0
+                hop = (float)(Math.Abs(Math.Sin((1 - p) * Math.PI * 3)) * 18 * p * scale);
+            }
+            float shrink = 1f - 0.25f * Math.Min(1f, hop / (18f * scale + 0.001f));
+            SoftShadow(canvas, petPt.X, petPt.Y, W * 0.10f * shrink, H * 0.03f * shrink, 80, 8);
+
+            if (petImg == null) return;
+            // Ancla: borde INFERIOR-centro en la baldosa (los pies tocan el suelo, no el centro de la caja).
+            float pw = PET_DESIGN * scale * breathe;
+            float ph = pw * petImg.Height / petImg.Width;
+            PetPaint.Color = new SKColor(255, 255, 255, (byte)(255 * Math.Clamp(PetOpacity, 0, 1)));
+            canvas.DrawImage(petImg,
+                new SKRect(petPt.X - pw / 2f, petPt.Y - ph - hop, petPt.X + pw / 2f, petPt.Y - hop),
+                PixelSampling, PetPaint); // nearest: pixel-art nítido, igual que los muebles
+        }
 
         // 4) Tinte día/noche. (Paint reutilizado: se pintaba 25 veces por segundo creando uno nuevo cada vez.)
         byte tintA = (byte)(150 * (1 - sky.Light));

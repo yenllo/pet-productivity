@@ -89,21 +89,12 @@
                         <Shadow Brush="#000000" Offset="0,12" Radius="26" Opacity="0.5"/>
                     </Border.Shadow>
                     <Grid>
+                        <!-- La mascota se dibuja DENTRO del diorama (nearest = pixel nítido, y apoyada en
+                             el suelo sobre su sombra). Antes era una <Image> encima: Android la escalaba
+                             con filtro bilineal (borrosa) y flotaba, centrada en la caja, lejos de su sombra. -->
                         <ctrl:RoomDiorama x:Name="RoomCanvas" IsCrystallized="{Binding IsCrystallized}" RoomStyle="{Binding RoomStyle}"
-                                          Furniture="{Binding Furniture}" Placements="{Binding Placements}"/>
-                        <Image x:Name="MokoImage" InputTransparent="True"
-                               Source="{Binding PetImageSource, FallbackValue='pet_egg.png', TargetNullValue='pet_egg.png'}"
-                               Opacity="{Binding PetOpacity}" Aspect="AspectFit"
-                               HeightRequest="92" WidthRequest="92" HorizontalOptions="Center" VerticalOptions="Center"
-                               TranslationY="-6">
-                            <Image.Shadow>
-                                <Shadow Brush="#000000" Offset="0,10" Radius="14" Opacity="0.45"/>
-                            </Image.Shadow>
-                        </Image>
-                        <!-- T5: burbuja de humor (deriva de Hunger/Health reales; la anima OnFrameTick) -->
-                        <Label x:Name="MoodBubble" Text="{Binding MoodEmoji}" IsVisible="{Binding ShowMood}"
-                               InputTransparent="True" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"
-                               TranslationX="38" TranslationY="-56"/>
+                                          Furniture="{Binding Furniture}" Placements="{Binding Placements}"
+                                          PetSprite="{Binding PetImageSource}" PetOpacity="{Binding PetOpacity}"/>
                         <BoxView Color="#5586B4FF" IsVisible="{Binding IsCrystallized}"/>
                         <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}"
                                            Color="{StaticResource AccentPink}" HorizontalOptions="Center" VerticalOptions="Center"/>
