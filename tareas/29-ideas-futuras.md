@@ -72,6 +72,17 @@ plan cerrado; anotarlo y no reabrir la discusión.
 
 ## Engagement (con cuidado — no reabrir la Serie A ya cerrada)
 
+- **Herencia real entre generaciones (T4-A).** El MVP de generaciones (2026-07-15) hereda solo
+  prestigio (insignia + legado), SIN bono mecánico. Candidata: un multiplicador permanente de XP
+  por generación (p. ej. +10%/gen con tope ×1.5). **Por qué no se implementó de una vez:** toca
+  `RewardMath` Y la tabla de tests de economía (T15), y el plan T4 advierte "hay que decidir qué se
+  hereda sin inflar el early game" — es una decisión de balance del dueño, mejor con datos reales de
+  cuánto tarda la gente en llegar a Maestro. Opciones: (a) nada (el prestigio se basta), (b) +X%/gen
+  al XP, (c) heredar un cosmético (color/accesorio) en vez de números — no toca la economía.
+- **Estatua de la mascota retirada en el diorama (T4-A, criterio 3).** Hoy el ancestro se ve como
+  lista en Perfil; la mitad visual (estatua colocable vía `PlacedFurniture`) espera arte F4 — una
+  estatua por especie, o una genérica de trofeo. Sin arte nuevo no se puede cerrar.
+
 - **Comparación entre amigos/familias** (leaderboard ligero). Choca potencialmente con "el oro es
   solo cosmético, nunca competitivo" — **decisión del dueño antes de anotar esto como plan**, no
   solo idea de código.
