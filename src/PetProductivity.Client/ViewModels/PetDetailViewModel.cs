@@ -293,12 +293,12 @@ public partial class PetDetailViewModel : ObservableObject
     };
     private static string StatusLabel(SyncStatus s) => s switch
     {
-        SyncStatus.Available => "Disponible",
-        SyncStatus.Working => "Trabajando",
-        SyncStatus.Busy => "Ocupado",
-        _ => "Desconectado"
+        SyncStatus.Available => L.T("Disponible"),
+        SyncStatus.Working => L.T("Trabajando"),
+        SyncStatus.Busy => L.T("Ocupado"),
+        _ => L.T("Desconectado")
     };
-    private static string MoodFor(double aff) => aff > 70 ? L.T("Feliz") : aff > 30 ? "Neutral" : L.T("Huraño");
+    private static string MoodFor(double aff) => aff > 70 ? L.T("Feliz") : aff > 30 ? L.T("Neutral") : L.T("Huraño");
 
     [RelayCommand]
     private async Task RegisterTask()
