@@ -102,7 +102,7 @@ public partial class TaskViewModel : ObservableObject
 
             if (result.IsRevived)
                 AiFeedbackMessage = L.T("🔥 ¡RENACIMIENTO! 🔥") + "\n" + result.Message;
-            else if (result.Message.Contains("sacrificio mayor"))
+            else if (result.IsCrystallized)
                 AiFeedbackMessage = L.T("⚠️ CRISTALIZADO ⚠️") + "\n" + result.Message;
             else
             {

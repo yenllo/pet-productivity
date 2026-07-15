@@ -5,6 +5,10 @@ public class TaskResult
     public Guid TaskId { get; set; }
     public string Message { get; set; } = string.Empty;
     public bool IsRevived { get; set; }
+    // La mascota sigue cristalizada (no revivió con esta tarea) — distingue este caso del éxito
+    // normal sin depender de matchear un texto del Message (antes el cliente buscaba una frase
+    // que el server nunca mandaba, y el resultado caía en la superposición de celebración normal).
+    public bool IsCrystallized { get; set; }
     public int XpEarned { get; set; }
     public int GoldEarned { get; set; }
     public int DifficultyScore { get; set; } // Renamed from Difficulty for clarity

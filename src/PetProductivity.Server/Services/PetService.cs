@@ -117,7 +117,7 @@ public class PetService
             {
                 Message = $"El esfuerzo fue noble (Dificultad {difficulty}), pero el cristal pide más: " +
                           $"una hazaña épica (9+), o esfuerzo real (foco o tarea 5+) durante {Pet.RevivalDaysNeeded} días distintos.{grietas}",
-                IsRevived = false, DifficultyScore = difficulty, PetName = pet.Name
+                IsRevived = false, IsCrystallized = true, DifficultyScore = difficulty, PetName = pet.Name
             };
         }
 
