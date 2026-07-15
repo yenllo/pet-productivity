@@ -191,7 +191,10 @@ public class AuthService
     // T14-C0/M5: el callback redirige con ?code= (un solo uso, 2 min) y la app lo canjea por HTTPS
     // en /api/auth/google/exchange — el JWT ya no viaja por el esquema propio interceptable.
     // Si hay un invitado activo, su id viaja en 'link' para conservar la mascota al ascender la cuenta.
-    public async Task<User?> LoginWithGoogleAsync()
+    // Devuelve Cancelled=true cuando el usuario cierra el navegador (no es un error real): antes
+    // ese caso volvía null igual que una falla de verdad y el ViewModel mostraba "no se pudo iniciar
+    // sesión" por algo que el propio usuario decidió — ahora el llamador puede distinguirlo y callar.
+    public async Task<(User? User, bool Cancelled)> LoginWithGoogleAsync()
     {
         try
         {
@@ -204,23 +207,23 @@ public class AuthService
             if (result.Properties.TryGetValue("error", out var err) && !string.IsNullOrEmpty(err))
             {
                 Console.WriteLine($"Google login error: {err}");
-                return null;
+                return (null, false);
             }
             if (result.Properties.TryGetValue("code", out var code) && !string.IsNullOrEmpty(code))
             {
                 var resp = await _httpClient.PostAsJsonAsync($"{Base}/api/auth/google/exchange", new { Code = code });
-                if (!resp.IsSuccessStatusCode) return null;
+                if (!resp.IsSuccessStatusCode) return (null, false);
                 var auth = await resp.Content.ReadFromJsonAsync<AuthResponse>();
-                if (auth == null) return null;
+                if (auth == null) return (null, false);
                 await StoreSessionAsync(auth);
                 Preferences.Remove("SavedEmail");
                 Preferences.Remove("SavedPassword");
-                return CurrentUser;
+                return (CurrentUser, false);
             }
         }
-        catch (TaskCanceledException) { /* el usuario cerró el navegador */ }
+        catch (TaskCanceledException) { return (null, true); /* el usuario cerró el navegador */ }
         catch (Exception ex) { Console.WriteLine($"Google login error: {ex.Message}"); }
-        return null;
+        return (null, false);
     }
 
     // T14-C1: borrado de cuenta. El server elimina todo (usuario, mascota, historial, fotos);

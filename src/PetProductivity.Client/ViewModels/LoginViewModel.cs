@@ -46,13 +46,13 @@ namespace PetProductivity.Client.ViewModels
         [RelayCommand]
         private async Task GoogleLogin()
         {
-            var user = await _authService.LoginWithGoogleAsync();
+            var (user, cancelled) = await _authService.LoginWithGoogleAsync();
             if (user != null)
             {
                 _gameDataService.SetUser(user);
                 await NavigateToDashboard();
             }
-            else
+            else if (!cancelled)
             {
                 await Application.Current.MainPage.DisplayAlert("Google", L.T("No se pudo iniciar sesión con Google."), "OK");
             }
