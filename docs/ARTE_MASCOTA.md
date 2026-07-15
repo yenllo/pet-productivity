@@ -150,8 +150,14 @@ ve parejo. Si prefieres el look chunky, trabaja el personaje en una grilla lógi
 
 ### 3.3 Ángulo, luz, sombra, silueta
 
-- **Perspectiva:** iso 2:1 coherente con la sala y los muebles (vista de 3/4 desde arriba, ~30°).
-  La mascota mira hacia el frente/abajo (hacia el usuario), de pie sobre la baldosa.
+- **Perspectiva — CRÍTICO:** iso 2:1 coherente con la sala y los muebles (vista de 3/4 desde arriba,
+  ~30°). **La mascota debe dibujarse en 3/4 ISOMÉTRICO, mirando hacia una DIAGONAL** — hacia el
+  frente-derecha o el frente-izquierda, bajando por uno de los dos ejes visibles de las baldosas.
+  **NO de frente plano** (elevación frontal, tipo retrato): un personaje de frente sobre una escena
+  isométrica se ve como un recorte de cartón pegado encima ("vive en otra dimensión", no pisa el
+  cuarto). El 3/4 diagonal + la luz desde arriba-izquierda + la sombra de contacto son las tres cosas
+  que la **plantan** en la habitación. Elige **una sola dirección de diagonal** (p. ej. frente-derecha)
+  y mantenla en las 11 imágenes por coherencia.
 - **Luz:** desde **arriba-izquierda** (igual que los muebles Bongseng). Sombra propia de la criatura
   hacia abajo-derecha, sutil, integrada en el sprite (NO la sombra de contacto en el piso, esa la
   pone el código).
@@ -267,7 +273,7 @@ visual de Maestro por stat.
 - [ ] Lienzo cuadrado; **recomendado 330×330** (mínimo 256) para nitidez con nearest.
 - [ ] **Pies pegados al borde inferior, centrados horizontalmente.** Cero aire abajo.
 - [ ] **Sin sombra ni piso** dibujados (los pone el código).
-- [ ] Iso 2:1, luz arriba-izquierda, mira al frente.
+- [ ] Iso 2:1, luz arriba-izquierda, **mira en 3/4 diagonal (NO de frente plano)** — misma diagonal en las 11.
 - [ ] Silueta legible aunque un mueble le tape los pies (outline oscuro suave).
 - [ ] Un frame estático (nada de animación bakeada).
 - [ ] Nombre exacto en minúsculas (`pet_ember_master.png`, etc.).
