@@ -34,7 +34,7 @@
             </Border>
 
             <Border Grid.Column="2" Style="{StaticResource Chip}">
-                <Label Text="{Binding LevelLabel}" TextColor="{StaticResource Ink2}" FontAttributes="Bold" FontSize="14" VerticalOptions="Center"/>
+                <Label Text="{Binding StageChipLabel}" TextColor="{StaticResource Ink2}" FontAttributes="Bold" FontSize="14" VerticalOptions="Center"/>
             </Border>
 
             <!-- T1: racha diaria; punto naranja = "aún nada hoy". T27-L2 (#18): tap = explicación. -->

@@ -16,7 +16,7 @@ public partial class DashboardViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(BabySprite))]
     [NotifyPropertyChangedFor(nameof(AdultSprite))]
     [NotifyPropertyChangedFor(nameof(MasterSprite))]
-    [NotifyPropertyChangedFor(nameof(LevelLabel))]
+    [NotifyPropertyChangedFor(nameof(StageChipLabel))]
     [NotifyPropertyChangedFor(nameof(PetSubtitle))]
     [NotifyPropertyChangedFor(nameof(CuerpoXp))]
     [NotifyPropertyChangedFor(nameof(MenteXp))]
@@ -67,8 +67,11 @@ public partial class DashboardViewModel : ObservableObject
     public string MasterSprite => PetVisuals.SpriteFor(CurrentPet?.Species ?? PetSpecies.Sprout, EvolutionStage.Master);
 
     // Datos reales para la cabecera y los anillos (antes placeholders).
-    public string LevelLabel => CurrentPet == null ? "Nv 1" : $"Nv {(int)(CurrentPet.TotalXp / 1000) + 1}";
-    public string PetSubtitle => CurrentPet == null ? "" : $"{SpeciesName(CurrentPet.Species)} · {StageName(CurrentPet.EvolutionStage)}";
+    // El chip mostraba "Nv {TotalXp/1000+1}" — un nivel inventado y desconectado de la etapa real
+    // (Huevo/Cría/Adulto/Maestro) que el subtítulo de abajo muestra en la MISMA pantalla: un Maestro
+    // podía leer "Nv 3" arriba y "Maestro" abajo. Ahora ambos usan la misma etapa (ver PetVisuals).
+    public string StageChipLabel => CurrentPet == null ? "" : PetVisuals.StageName(CurrentPet.EvolutionStage);
+    public string PetSubtitle => CurrentPet == null ? "" : $"{SpeciesName(CurrentPet.Species)} · {PetVisuals.StageName(CurrentPet.EvolutionStage)}";
     public string CuerpoXp => $"{CurrentPet?.GetStatValue("Cuerpo") ?? 0:0}";
     public string MenteXp => $"{CurrentPet?.GetStatValue("Mente") ?? 0:0}";
     public string HogarXp => $"{CurrentPet?.GetStatValue("Hogar") ?? 0:0}";
@@ -81,15 +84,6 @@ public partial class DashboardViewModel : ObservableObject
         PetSpecies.Aqua => "Aqua",
         _ => s.ToString()
     };
-    private static string StageName(EvolutionStage st) => st switch
-    {
-        EvolutionStage.Egg => L.T("Huevo"),
-        EvolutionStage.Baby => L.T("Cría"),
-        EvolutionStage.Adult => L.T("Adulto"),
-        EvolutionStage.Master => L.T("Maestro"),
-        _ => ""
-    };
-
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsCrystallized))]
     [NotifyPropertyChangedFor(nameof(PetOpacity))]
@@ -459,7 +453,7 @@ public partial class DashboardViewModel : ObservableObject
         if (current <= lastCelebrated) return;
 
         Preferences.Set(LastCelebratedStageKey, current);
-        EvolutionText = L.F("¡{0} evolucionó a {1}!", CurrentPet.Name, StageName(CurrentPet.EvolutionStage));
+        EvolutionText = L.F("¡{0} evolucionó a {1}!", CurrentPet.Name, PetVisuals.StageName(CurrentPet.EvolutionStage));
         ShowEvolution = true;
     }
 

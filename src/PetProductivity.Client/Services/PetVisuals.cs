@@ -57,4 +57,28 @@ public static class PetVisuals
         EvolutionStage.Adult => "adult",
         _ => "baby"   // Cría (y cualquier estado post-huevo)
     };
+
+    // Nombre localizado de la etapa — única fuente para Dashboard y Stats (antes StatsPage tenía su
+    // propio "Nivel" (TotalXp/1000) desconectado de esta etapa real; ver tareas/30).
+    public static string StageName(EvolutionStage stage) => stage switch
+    {
+        EvolutionStage.Egg => L.T("Huevo"),
+        EvolutionStage.Baby => L.T("Cría"),
+        EvolutionStage.Adult => L.T("Adulto"),
+        EvolutionStage.Master => L.T("Maestro"),
+        _ => ""
+    };
+
+    // Progreso (0-1) dentro de la etapa actual, usando los mismos umbrales que EvolutionStage.
+    public static double StageProgress(EvolutionStage stage, double totalXp)
+    {
+        var (lo, hi) = stage switch
+        {
+            EvolutionStage.Egg => (0.0, PetEvolution.EggTobabyThreshold),
+            EvolutionStage.Baby => (PetEvolution.EggTobabyThreshold, PetEvolution.BabyToAdultThreshold),
+            EvolutionStage.Adult => (PetEvolution.BabyToAdultThreshold, PetEvolution.AdultToMasterThreshold),
+            _ => (0.0, 0.0) // Master: ya en el tope, sin techo real
+        };
+        return hi > lo ? Math.Clamp((totalXp - lo) / (hi - lo), 0, 1) : 1;
+    }
 }

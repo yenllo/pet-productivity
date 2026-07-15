@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using PetProductivity.Shared.Models;
 using System.Collections.ObjectModel;
 
 namespace PetProductivity.Client.ViewModels
@@ -6,15 +7,14 @@ namespace PetProductivity.Client.ViewModels
     public partial class StatsViewModel : ObservableObject
     {
         private readonly Services.GameDataService _gameDataService;
-        
+
+        // Antes esta pantalla mostraba un "Nivel" (TotalXp/1000+1) inventado y desconectado de la
+        // etapa real de la mascota (Huevo/Cría/Adulto/Maestro) que se ve en Mascota — ver PetVisuals.
         [ObservableProperty]
-        private int currentLevel;
+        private string stageLabel = string.Empty;
 
         [ObservableProperty]
-        private int currentXp;
-
-        [ObservableProperty]
-        private int xpToNextLevel = 1000;
+        private int totalXp;
 
         [ObservableProperty]
         private int tasksCompleted;
@@ -23,8 +23,8 @@ namespace PetProductivity.Client.ViewModels
         private int currentStreak;
 
         [ObservableProperty]
-        private double levelProgress;
-        
+        private double stageProgress;
+
         [ObservableProperty]
         private ObservableCollection<StatDisplay> petStats = new();
 
@@ -42,15 +42,14 @@ namespace PetProductivity.Client.ViewModels
             {
                  CurrentStreak = user.CurrentStreak;
                  TasksCompleted = user.TotalTasksCompleted;
-                 
+
                  // Pet Stats
                  if (user.UserPet != null)
                  {
-                     CurrentXp = (int)user.UserPet.TotalXp;
-                     CurrentLevel = (int)(user.UserPet.TotalXp / 1000) + 1;
-                     CurrentXp = (int)(user.UserPet.TotalXp % 1000);
-                     LevelProgress = CurrentXp / 1000.0;
-                     
+                     TotalXp = (int)user.UserPet.TotalXp;
+                     StageLabel = Services.PetVisuals.StageName(user.UserPet.EvolutionStage);
+                     StageProgress = Services.PetVisuals.StageProgress(user.UserPet.EvolutionStage, user.UserPet.TotalXp);
+
                      PetStats.Clear();
                      foreach (var kvp in user.UserPet.Stats.OrderByDescending(x => x.Value))
                      {

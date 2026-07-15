@@ -14,13 +14,13 @@
 
             <Label Text="{loc:T 'Rendimiento global'}" Style="{StaticResource DisplayTitle}"/>
 
-            <!-- Nivel -->
+            <!-- Etapa (misma etapa que se ve en Mascota: Huevo/Cría/Adulto/Maestro) -->
             <Border Style="{StaticResource Card}" Padding="20">
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="{loc:T 'Nivel actual'}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
-                    <Label Text="{Binding CurrentLevel}" Style="{StaticResource DisplayXL}" FontSize="48" TextColor="{StaticResource AccentPink}" HorizontalOptions="Center"/>
-                    <ctrl:RoundedBar Progress="{Binding LevelProgress}" Fill="{StaticResource AccentPink}" Track="{StaticResource Glass2}" BarHeight="10"/>
-                    <Label Text="{Binding CurrentXp, StringFormat='{0} / 1000 XP'}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+                    <Label Text="{loc:T 'Etapa actual'}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+                    <Label Text="{Binding StageLabel}" Style="{StaticResource DisplayXL}" FontSize="48" TextColor="{StaticResource AccentPink}" HorizontalOptions="Center"/>
+                    <ctrl:RoundedBar Progress="{Binding StageProgress}" Fill="{StaticResource AccentPink}" Track="{StaticResource Glass2}" BarHeight="10"/>
+                    <Label Text="{Binding TotalXp, Converter={StaticResource LocFmt}, ConverterParameter='{0} XP totales'}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
                 </VerticalStackLayout>
             </Border>
 
