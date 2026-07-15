@@ -96,10 +96,10 @@ public partial class FocusViewModel : ObservableObject
             var active = await _game.GetActiveGroupFocusAsync(gid);
             if (active is not { Active: true }) { StatusMessage = L.T("El foco grupal ya terminó."); return; }
             var info = await _game.JoinGroupFocusAsync(active.GroupFocusId);
-            if (info == null) { StatusMessage = "No se pudo unir al foco grupal."; return; }
+            if (info == null) { StatusMessage = L.T("No se pudo unir al foco grupal."); return; }
             StartFromInfo(info);
         }
-        catch (Exception ex) { StatusMessage = $"No se pudo unir al foco grupal: {ex.Message}"; }
+        catch (Exception ex) { StatusMessage = L.F("No se pudo unir al foco grupal: {0}", ex.Message); }
     }
 
     // Arranca la sesión local desde una sesión ya creada en el server (start/join grupal).
@@ -107,16 +107,16 @@ public partial class FocusViewModel : ObservableObject
     {
         var allowed = (Preferences.Get(FocusSessionService.AllowedAppsKey, "") ?? "")
             .Split(',', StringSplitOptions.RemoveEmptyEntries);
-        var topic = string.IsNullOrWhiteSpace(info.Topic) ? "Foco grupal" : info.Topic;
+        var topic = string.IsNullOrWhiteSpace(info.Topic) ? L.T("Foco grupal") : info.Topic;
         if (!_focus.StartExisting(info.FocusSessionId, info.PetId, topic, info.StartedAt, info.TargetMinutes, allowed))
         {
-            StatusMessage = "Ya hay un foco activo.";
+            StatusMessage = L.T("Ya hay un foco activo.");
             return;
         }
         Description = _focus.Description;
         IsFocusMode = true;
         UpdateRemaining();
-        StatusMessage = "Foco grupal en marcha.";
+        StatusMessage = L.T("Foco grupal en marcha.");
     }
 
     public void DetachFocus()
@@ -219,7 +219,7 @@ public partial class FocusViewModel : ObservableObject
     {
         var goal = FocusSessionService.DailyGoal();
         var today = FocusSessionService.TodayMinutes();
-        DailyGoalLabel = $"Meta de hoy: {today} / {goal} min";
+        DailyGoalLabel = L.F("Meta de hoy: {0} / {1} min", today, goal);
         DailyGoalProgress = goal > 0 ? Math.Clamp((double)today / goal, 0, 1) : 0;
     }
 
@@ -254,7 +254,7 @@ public partial class FocusViewModel : ObservableObject
     {
         IsFocusMode = false;
         FocusProgress = 0;
-        StatusMessage = "Foco cancelado. Sin recompensa.";
+        StatusMessage = L.T("Foco cancelado. Sin recompensa.");
     }
 
     [RelayCommand]
@@ -262,7 +262,7 @@ public partial class FocusViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(Description))
         {
-            StatusMessage = "No hay una tarea para enfocar.";
+            StatusMessage = L.T("No hay una tarea para enfocar.");
             return;
         }
 
@@ -273,13 +273,13 @@ public partial class FocusViewModel : ObservableObject
             // ("necesitas conceder acceso de uso Y mostrar sobre otras apps") sonaba a que no se había
             // guardado nada, aunque uno de los dos ya estuviera listo.
             var falta = new List<string>();
-            if (!guard.HasUsageAccess) falta.Add("'Acceso de uso'");
-            if (!guard.HasOverlay) falta.Add("'Mostrar sobre otras apps'");
+            if (!guard.HasUsageAccess) falta.Add($"'{L.T("Acceso de uso")}'");
+            if (!guard.HasOverlay) falta.Add($"'{L.T("Mostrar sobre otras apps")}'");
 
             bool go = await Shell.Current.DisplayAlert(
-                "Permisos del modo foco",
-                $"Para bloquear otras apps falta conceder {string.Join(" y ", falta)}. Lo haces en Ajustes → Modo foco.",
-                "Ir a Ajustes", "Ahora no");
+                L.T("Permisos del modo foco"),
+                L.F("Para bloquear otras apps falta conceder {0}. Lo haces en Ajustes → Modo foco.", string.Join(L.T(" y "), falta)),
+                L.T("Ir a Ajustes"), L.T("Ahora no"));
             if (go) await Shell.Current.GoToAsync("//App/SettingsPage");
             return;
         }
@@ -288,7 +288,7 @@ public partial class FocusViewModel : ObservableObject
         if (Guid.TryParse(GroupId, out var grp))
         {
             var info = await _game.StartGroupFocusAsync(grp, (int)FocusMinutes, Description);
-            if (info == null) { StatusMessage = "No se pudo iniciar el foco grupal."; return; }
+            if (info == null) { StatusMessage = L.T("No se pudo iniciar el foco grupal."); return; }
             StartFromInfo(info);
             return;
         }
@@ -298,7 +298,7 @@ public partial class FocusViewModel : ObservableObject
         var targetPet = Guid.TryParse(PetId, out var g) ? g : Guid.Empty;
 
         var ok = await _focus.StartAsync(targetPet, Description, (int)FocusMinutes, allowed);
-        if (!ok) { StatusMessage = "No se pudo iniciar el foco."; return; }
+        if (!ok) { StatusMessage = L.T("No se pudo iniciar el foco."); return; }
 
         IsFocusMode = true;
         UpdateRemaining();

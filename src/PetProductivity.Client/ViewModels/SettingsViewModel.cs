@@ -54,7 +54,7 @@ namespace PetProductivity.Client.ViewModels
         private string serverUrl = string.Empty;
 
         [ObservableProperty]
-        private string connectionStatus = "Sin probar";
+        private string connectionStatus = L.T("Sin probar");
 
         [ObservableProperty]
         private Color connectionStatusColor = Colors.Gray;
@@ -184,7 +184,7 @@ namespace PetProductivity.Client.ViewModels
                 }
                 else
                 {
-                     ConnectionStatus = $"Error: {response.StatusCode}";
+                     ConnectionStatus = L.F("Error: {0}", response.StatusCode);
                      ConnectionStatusColor = Colors.Red;
                 }
             }

@@ -189,6 +189,12 @@ public static class L
         ["Estas apps podrás abrir durante el foco (máx 3). El resto queda bloqueado."] =
             "You can open these apps during focus (max 3). Everything else is blocked.",
         ["No hay apps disponibles."] = "No apps available.",
+        ["Meta de hoy: {0} / {1} min"] = "Today's goal: {0} / {1} min",
+        ["Permisos del modo foco"] = "Focus mode permissions",
+        ["Para bloquear otras apps falta conceder {0}. Lo haces en Ajustes → Modo foco."] =
+            "To block other apps you still need to grant {0}. Do it in Settings → Focus mode.",
+        ["Ir a Ajustes"] = "Go to Settings",
+        [" y "] = " and ",
 
         // ---- Familias / grupos ----
         ["Comunidad"] = "Community",

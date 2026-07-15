@@ -30,7 +30,7 @@ namespace PetProductivity.Client.ViewModels
         [ObservableProperty] private string xpLabel = string.Empty;
         [ObservableProperty] private int streak;
         [ObservableProperty] private int tasksCount;
-        [ObservableProperty] private string focusStatsLabel = "🎯 0 días de foco · 0 min";
+        [ObservableProperty] private string focusStatsLabel = string.Empty;
 
         // Atributos (4 dimensiones de la mascota personal)
         [ObservableProperty] private string cuerpoXp = "0 XP";
