@@ -38,7 +38,9 @@ Lo que antes eran bloqueadores 🔴 ya está resuelto:
 
 Pendientes / mejoras menores (no bloqueantes):
 - 🟡 **Push en Xiaomi/MIUI:** llega bien con la app en segundo plano y batería sin restricción; si el usuario fuerza el cierre, el SO bloquea FCM (no es la app). El código ya manda prioridad alta.
-- 🟡 **Verificación humana pendiente** (el dueño está en exámenes, julio 2026): revisión visual de diorama/tienda en su dispositivo; **foco grupal end-to-end con 2 personas** (familia de prueba: el código está en las notas del dueño, no en el repo — es público); ver en vivo el nombre del solicitante en "Solicitudes pendientes" (arreglado en código el 2026-06-25, requiere redeploy del cliente).
+- ✅ **Revisión visual del dueño: HECHA ×2** (confirmado 2026-07-15; exámenes terminados). Diorama/tienda/foco revisados en su dispositivo. El nombre del solicitante en "Solicitudes pendientes" también quedó verificado (el cliente se reconstruyó muchas veces desde el fix de código 2026-06-25).
+- ✅ **Sentry + UptimeRobot: CONFIGURADOS por el dueño** (confirmado 2026-07-15).
+- 🟡 **Foco grupal end-to-end con 2 personas: por confirmar** (familia de prueba `87se5q`; el dueño no confirmó si ya se probó). Es la única verificación humana del núcleo social que puede seguir pendiente.
 
 (Ya NO son pendientes, no re-agregar: "tareas no persistidas" — `PetService.ApplyRewardAsync` SÍ inserta `TaskItem`; "solicitud sin nombre" — arreglado en código.)
 
@@ -49,7 +51,7 @@ Pendientes / mejoras menores (no bloqueantes):
 - **Seguridad (T22):** auditoría completa + remediación server-side (rate-limit login/register, IDORs de grupos, `/proof` y juez IA endurecidos, secreto JWT con piso de entropía y **rotado** el 2026-07-02). Informe: `tareas/22-seguridad-INFORME.md`. Para publicar falta **T14-C0** (token corto+refresh+revocación, A1/M4/M5).
 - **Backlog de mejora:** `tareas/00-indice.md` (28 planes T1–T28 con orden global; se ejecutan 1 a 1).
 
-Verificación: diorama/tienda/foco **verificados en emulador por el agente** (2026-06-30/07-01); la **revisión visual del dueño** sigue pendiente (post-exámenes).
+Verificación: diorama/tienda/foco **verificados en emulador por el agente** (2026-06-30/07-01) y **revisados visualmente por el dueño ×2** (confirmado 2026-07-15).
 
 ## Estado: qué SÍ funciona (verificado en emulador y teléfono real)
 Bucle completo tarea→IA real→recompensa→evolución (todo **autenticado por JWT**); ceremonia de nacimiento (egg crack → flash → criatura por especie → nombrar → invitado **con token**); tienda contra catálogo con compra persistida; decadencia automática; ritual tres-en-raya (×1.2); **semáforo/Frenesí por grupo en vivo (SignalR sobre JWT)** con ×2 dinámico; **login con Google** (OAuth mediado por servidor, WebAuthenticator); **push FCM de Frenesí** (app en segundo plano). Cliente: Ceremonia → **5 pestañas (Mascota · Familias · Tienda · Perfil · Ajustes)** — la mascota personal es su propia pestaña (con banner de invitado), Familias es el grid de grupos, Ajustes es pestaña propia; detalle por mascota de grupo (tarea/miembros/semáforo/código dentro). Perfil de invitado muestra "Iniciar Sesión / Registrarse".
