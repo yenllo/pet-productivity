@@ -14,7 +14,6 @@ namespace PetProductivity.Client.ViewModels
 
         [ObservableProperty] private string userName = string.Empty;
         [ObservableProperty] private string handle = string.Empty;
-        [ObservableProperty] private string userLevel = "Nivel 1";
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsRegistered))]
@@ -23,10 +22,12 @@ namespace PetProductivity.Client.ViewModels
 
         [ObservableProperty] private string petName = string.Empty;
 
-        // Resumen real (antes placeholders)
-        [ObservableProperty] private int levelNumber = 1;
+        // Resumen real (antes placeholders). Antes mostraba un "Nivel" (TotalXp/1000+1) inventado y
+        // desconectado de la etapa real (Huevo/Cría/Adulto/Maestro) que Mascota/Stats ya muestran
+        // — mismo bug de la iteración 13, en un tercer lugar que no se había tocado. Ver PetVisuals.
+        [ObservableProperty] private string stageLabel = string.Empty;
         [ObservableProperty] private double xpProgress;
-        [ObservableProperty] private string xpLabel = "0 / 1000 XP";
+        [ObservableProperty] private string xpLabel = string.Empty;
         [ObservableProperty] private int streak;
         [ObservableProperty] private int tasksCount;
         [ObservableProperty] private string focusStatsLabel = "🎯 0 días de foco · 0 min";
@@ -64,11 +65,9 @@ namespace PetProductivity.Client.ViewModels
             if (pet != null)
             {
                 PetName = pet.Name;
-                LevelNumber = (int)(pet.TotalXp / 1000) + 1;
-                UserLevel = L.F("Nivel {0}", LevelNumber);
-                double inLevel = pet.TotalXp % 1000;
-                XpProgress = inLevel / 1000.0;
-                XpLabel = $"{inLevel:0} / 1000 XP";
+                StageLabel = Services.PetVisuals.StageName(pet.EvolutionStage);
+                XpProgress = Services.PetVisuals.StageProgress(pet.EvolutionStage, pet.TotalXp);
+                XpLabel = L.F("{0} XP totales", (int)pet.TotalXp);
 
                 CuerpoXp = $"{pet.GetStatValue("Cuerpo"):0} XP";
                 MenteXp = $"{pet.GetStatValue("Mente"):0} XP";

@@ -40,8 +40,8 @@
             <Border Style="{StaticResource Card}" Margin="0,14,0,0" Padding="16">
                 <VerticalStackLayout Spacing="9">
                     <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="{loc:T 'Nivel'}" Style="{StaticResource DisplayTitle}" FontSize="18" />
-                        <Label Grid.Column="1" Text="{Binding LevelNumber}" Style="{StaticResource DisplayTitle}" FontSize="18"
+                        <Label Text="{loc:T 'Etapa'}" Style="{StaticResource DisplayTitle}" FontSize="18" />
+                        <Label Grid.Column="1" Text="{Binding StageLabel}" Style="{StaticResource DisplayTitle}" FontSize="18"
                                TextColor="{StaticResource AccentPink}" />
                     </Grid>
                     <ctrl:RoundedBar Progress="{Binding XpProgress}" Fill="{StaticResource AccentPink}" Track="{StaticResource Glass2}" BarHeight="8" />
