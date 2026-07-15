@@ -185,6 +185,23 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> DeleteMe([FromServices] AccountService account) =>
         await account.DeleteAsync(User.GetUserId()) ? NoContent() : NotFound();
 
+    // T4-A: retirar al Maestro → nace una cría Gen+1 y el ancestro pasa al legado. Devuelve el usuario
+    // ya re-hidratado (el cliente lo usa directo, sin token nuevo: la identidad no cambia).
+    [HttpPost("me/retire")]
+    public async Task<ActionResult<User>> Retire([FromBody] RetireRequest request,
+        [FromServices] AccountService account)
+    {
+        var (outcome, user) = await account.RetireAsync(User.GetUserId(), request.NewName ?? "");
+        return outcome switch
+        {
+            AccountService.RetireOutcome.NotFound => NotFound(),
+            AccountService.RetireOutcome.NotMaster => BadRequest("La mascota debe llegar a Maestro para retirarse."),
+            _ => Ok(user),
+        };
+    }
+
+    public record RetireRequest(string NewName);
+
     [HttpPost("{id}/ritual/{index}")]
     public async Task<ActionResult<string>> ToggleRitual(Guid id, int index)
     {

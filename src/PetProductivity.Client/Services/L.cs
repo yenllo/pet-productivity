@@ -281,6 +281,19 @@ public static class L
         ["📷 Ver historial de tareas"] = "📷 View task history",
         ["Estadísticas"] = "Statistics",
         ["Rendimiento global"] = "Overall performance",
+        // T4-A: generaciones / legado
+        ["Generación {0}"] = "Generation {0}",
+        ["Legado"] = "Legacy",
+        ["🏆 Gen {0}: {1} — Maestro {2} · {3} XP"] = "🏆 Gen {0}: {1} — Master {2} · {3} XP",
+        ["Retirar al Maestro"] = "Retire the Master",
+        ["¿Retirar a {0}?"] = "Retire {0}?",
+        ["Se volverá parte de tu legado y nacerá una nueva cría desde el huevo. Conservas tu oro y tus objetos. No se puede deshacer."] =
+            "It will become part of your legacy and a new pet is born from the egg. You keep your gold and items. This can't be undone.",
+        ["Retirar"] = "Retire",
+        ["¿Cómo se llamará la nueva cría?"] = "What will the new pet be called?",
+        ["¡Nueva generación!"] = "New generation!",
+        ["🎉 {0} descansa en tu legado. ¡Bienvenida la nueva cría!"] =
+            "🎉 {0} rests in your legacy. Welcome the new pet!",
 
         // ---- Ajustes ----
         ["Preferencias"] = "Preferences",

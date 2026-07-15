@@ -55,6 +55,10 @@ public class Pet
     
     // Total XP for evolution stage calculation
     public double TotalXp { get; set; } = 0;
+
+    // T4-A: nº de generación (prestigio). 1 = la primera mascota; sube al retirar un Maestro y nacer
+    // una cría nueva. Los ancestros retirados viven en User.RetiredPets.
+    public int Generation { get; set; } = 1;
     
     // Evolution stage (calculated from TotalXp)
     public EvolutionStage EvolutionStage => PetEvolution.CalculateEvolutionStage(TotalXp);

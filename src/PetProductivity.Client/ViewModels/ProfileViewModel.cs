@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 
 using PetProductivity.Client.Services;
+using PetProductivity.Shared.Models;
 
 namespace PetProductivity.Client.ViewModels
 {
@@ -37,6 +38,15 @@ namespace PetProductivity.Client.ViewModels
         [ObservableProperty] private string menteXp = "0 XP";
         [ObservableProperty] private string hogarXp = "0 XP";
         [ObservableProperty] private string bienestarXp = "0 XP";
+
+        // T4-A: generaciones / legado.
+        [ObservableProperty] private bool showGeneration;              // insignia solo si ya reencarnó (Gen>1)
+        [ObservableProperty] private string generationLabel = string.Empty;
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(RetireCommand))]
+        private bool canRetire;                                        // botón visible solo en Maestro
+        [ObservableProperty] private bool hasLegacy;
+        [ObservableProperty] private List<string> legacy = new();
 
         public ProfileViewModel(Services.GameDataService gameDataService, Services.AuthService authService, IServiceProvider serviceProvider)
         {
@@ -73,7 +83,52 @@ namespace PetProductivity.Client.ViewModels
                 MenteXp = $"{pet.GetStatValue("Mente"):0} XP";
                 HogarXp = $"{pet.GetStatValue("Hogar"):0} XP";
                 BienestarXp = $"{pet.GetStatValue("Bienestar"):0} XP";
+
+                CanRetire = pet.EvolutionStage == EvolutionStage.Master;
+                ShowGeneration = pet.Generation > 1;
+                GenerationLabel = L.F("Generación {0}", pet.Generation);
             }
+
+            Legacy = user.RetiredPets
+                .OrderByDescending(a => a.Generation)
+                .Select(a => L.F("🏆 Gen {0}: {1} — Maestro {2} · {3} XP",
+                    a.Generation, a.Name, a.Species, (int)a.FinalTotalXp))
+                .ToList();
+            HasLegacy = Legacy.Count > 0;
+        }
+
+        // T4-A: retirar al Maestro. El usuario decide (no se le quita nada): el Maestro pasa al legado
+        // y nace una cría Gen+1. Conserva oro/objetos. Nombre por prompt (no hay pantalla de rename).
+        [RelayCommand(CanExecute = nameof(CanRetire))]
+        private async Task Retire()
+        {
+            var pet = _gameDataService.CurrentUser?.UserPet;
+            if (pet == null) return;
+
+            bool go = await Shell.Current.DisplayAlert(
+                L.F("¿Retirar a {0}?", pet.Name),
+                L.T("Se volverá parte de tu legado y nacerá una nueva cría desde el huevo. Conservas tu oro y tus objetos. No se puede deshacer."),
+                L.T("Retirar"), L.T("Cancelar"));
+            if (!go) return;
+
+            var name = await Shell.Current.DisplayPromptAsync(
+                L.T("¿Cómo se llamará la nueva cría?"),
+                null, L.T("Comenzar"), L.T("Cancelar"),
+                L.T("Nombre de la mascota"), maxLength: 24);
+            if (name == null) return; // canceló el prompt
+
+            var (ok, error) = await _gameDataService.RetireAsync(name.Trim());
+            if (!ok)
+            {
+                await Shell.Current.DisplayAlert(L.T("Error"),
+                    error ?? L.T("Error de conexión. Inténtalo de nuevo."), "OK");
+                return;
+            }
+
+            var retiredName = pet.Name;
+            await InitializeAsync();
+            await Shell.Current.DisplayAlert(L.T("¡Nueva generación!"),
+                L.F("🎉 {0} descansa en tu legado. ¡Bienvenida la nueva cría!", retiredName), "OK");
         }
 
         [RelayCommand]

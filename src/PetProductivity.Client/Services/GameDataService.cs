@@ -214,6 +214,15 @@ public class GameDataService
             CurrentUser = await GetAsync<User>($"/api/users/{_authService.CurrentUser.Id}") ?? _authService.CurrentUser;
     }
 
+    // T4-A: retirar al Maestro → nace una cría Gen+1. El server devuelve el usuario ya re-hidratado.
+    public async Task<(bool Ok, string? Error)> RetireAsync(string newName)
+    {
+        var (user, error) = await PostAsync<User>("/api/users/me/retire", new { NewName = newName });
+        if (user == null) return (false, error);
+        SetUser(user);
+        return (true, null);
+    }
+
     // ── Tareas ─────────────────────────────────────────────────────────────────
 
     // petId vacío = mascota personal. confirmed=true registra una tarea fuera de contexto (recompensa reducida).

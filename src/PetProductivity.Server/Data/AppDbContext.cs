@@ -40,6 +40,10 @@ public class AppDbContext : DbContext
             .HasConversion(v => Json(v), v => FromJson<List<PlacedFurniture>>(v))
             .Metadata.SetValueComparer(JsonCmp<List<PlacedFurniture>>());
 
+        modelBuilder.Entity<User>().Property(u => u.RetiredPets)  // T4-A: legado de generaciones
+            .HasConversion(v => Json(v), v => FromJson<List<RetiredPet>>(v))
+            .Metadata.SetValueComparer(JsonCmp<List<RetiredPet>>());
+
         modelBuilder.Entity<User>().Property(u => u.LastNotifications)
             .HasConversion(v => Json(v), v => FromJson<Dictionary<string, DateTime>>(v))
             .Metadata.SetValueComparer(JsonCmp<Dictionary<string, DateTime>>());

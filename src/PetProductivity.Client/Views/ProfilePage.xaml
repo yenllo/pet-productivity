@@ -31,10 +31,17 @@
             </Border>
             <Label Text="{Binding UserName}" Style="{StaticResource DisplayTitle}" FontSize="24" HorizontalOptions="Center" Margin="0,4,0,0" />
             <Label Text="{Binding Handle}" Style="{StaticResource Caption}" HorizontalOptions="Center" IsVisible="{Binding IsRegistered}" />
-            <Border Style="{StaticResource Chip}" BackgroundColor="#1FFF5F8F" Stroke="#40FF5F8F"
-                    HorizontalOptions="Center" Padding="13,6" HeightRequest="-1">
-                <Label Text="{loc:T 'Cuidador'}" TextColor="{StaticResource AccentPink}" FontSize="12" />
-            </Border>
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
+                <Border Style="{StaticResource Chip}" BackgroundColor="#1FFF5F8F" Stroke="#40FF5F8F"
+                        Padding="13,6" HeightRequest="-1">
+                    <Label Text="{loc:T 'Cuidador'}" TextColor="{StaticResource AccentPink}" FontSize="12" />
+                </Border>
+                <!-- T4-A: insignia de generación (solo tras reencarnar) -->
+                <Border Style="{StaticResource Chip}" BackgroundColor="#1FFFC24B" Stroke="#40FFC24B"
+                        Padding="13,6" HeightRequest="-1" IsVisible="{Binding ShowGeneration}">
+                    <Label Text="{Binding GenerationLabel}" TextColor="#FFFFC24B" FontSize="12" />
+                </Border>
+            </HorizontalStackLayout>
 
             <!-- Resumen de nivel (XP/racha/tareas: placeholder, pendiente de wiring) -->
             <Border Style="{StaticResource Card}" Margin="0,14,0,0" Padding="16">
@@ -82,6 +89,22 @@
                     </VerticalStackLayout>
                 </Border>
             </Grid>
+
+            <!-- T4-A: legado de generaciones (mascotas retiradas) -->
+            <Label Text="{loc:T 'Legado'}" Style="{StaticResource SectionLabel}" Margin="2,16,0,8" IsVisible="{Binding HasLegacy}" />
+            <Border Style="{StaticResource Card}" IsVisible="{Binding HasLegacy}">
+                <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Legacy}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate>
+                            <Label Text="{Binding .}" Style="{StaticResource Caption}" TextColor="{StaticResource Ink2}" />
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- T4-A: retirar al Maestro (solo visible en etapa Maestro) -->
+            <Button Text="{loc:T 'Retirar al Maestro'}" Command="{Binding RetireCommand}" IsVisible="{Binding CanRetire}"
+                    Style="{StaticResource BtnGhost}" TextColor="#FFFFC24B" Margin="0,16,0,0" />
 
             <!-- Historial -->
             <Button Text="{loc:T '📷 Ver historial de tareas'}" Command="{Binding OpenHistoryCommand}" Style="{StaticResource BtnGhost}" Margin="0,16,0,0" />

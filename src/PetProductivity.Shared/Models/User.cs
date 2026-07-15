@@ -62,6 +62,10 @@ public class User
     // (cada Name debe estar en Inventory); la grilla/colisión es UX del cliente. Vacío = seed por defecto.
     public List<PlacedFurniture> PlacedFurniture { get; set; } = new();
 
+    // T4-A: legado de mascotas retiradas al llegar a Maestro (columna JSON, como PlacedFurniture).
+    // Cada entrada es un capítulo de la vida productiva del usuario; nadie borra eso.
+    public List<RetiredPet> RetiredPets { get; set; } = new();
+
     // Token FCM del dispositivo (para push con app cerrada). Null = sin dispositivo registrado.
     public string? DeviceToken { get; set; }
 }
