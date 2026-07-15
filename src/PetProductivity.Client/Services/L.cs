@@ -67,6 +67,8 @@ public static class L
         ["No se pudo iniciar sesión con Google."] = "Couldn't sign in with Google.",
         ["Sesión inválida."] = "Invalid session.",
         ["Error"] = "Error",
+        ["Error de navegación"] = "Navigation error",
+        ["No se pudo navegar: {0}"] = "Couldn't navigate: {0}",
 
         // ---- Dashboard / mascota ----
         ["Registrar progreso"] = "Log progress",

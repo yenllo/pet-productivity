@@ -77,7 +77,7 @@ namespace PetProductivity.Client.ViewModels
             catch (Exception ex)
             {
                  // Fallback if route fails
-                 await Application.Current.MainPage.DisplayAlert("Nav Error", $"Ruta fallida: {ex.Message}. Intentando //App/MascotaPage", "OK");
+                 await Application.Current.MainPage.DisplayAlert(L.T("Error de navegación"), L.F("No se pudo navegar: {0}", ex.Message), "OK");
                  await Shell.Current.GoToAsync("//App/MascotaPage");
             }
         }
