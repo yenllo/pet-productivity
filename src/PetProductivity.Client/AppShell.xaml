@@ -30,11 +30,6 @@
 
     <!-- Linear Navigation (Auth Flow) -->
     <ShellContent
-        Title="Intro"
-        ContentTemplate="{DataTemplate views:IntroPage}"
-        Route="IntroPage" />
-
-    <ShellContent
         Title="Login"
         ContentTemplate="{DataTemplate views:LoginPage}"
         Route="LoginPage" />

@@ -33,13 +33,10 @@ public static class L
         ["Ajustes"] = "Settings",
 
         // ---- Onboarding / auth ----
-        ["Gamifica tu productividad"] = "Gamify your productivity",
-        ["Potenciado por IA en la nube"] = "Powered by cloud AI",
         ["Toca para continuar"] = "Tap to continue",
         ["¿Cómo se llamará tu mascota?"] = "What will your pet be called?",
         ["Nombre de la mascota"] = "Pet name",
         ["Comenzar"] = "Start",
-        ["Comenzar aventura"] = "Start adventure",
         ["¿Ya tienes cuenta? Inicia Sesión"] = "Already have an account? Log in",
         // Nombre por defecto de la mascota al registrarse directo (sin pasar por la ceremonia).
         ["Mascota de {0}"] = "{0}'s Pet",

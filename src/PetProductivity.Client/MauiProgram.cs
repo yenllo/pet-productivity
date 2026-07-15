@@ -75,7 +75,6 @@ public static class MauiProgram
 
         // Registrar ViewModels
         builder.Services.AddTransient<PetProductivity.Client.ViewModels.BirthCeremonyViewModel>();
-        builder.Services.AddTransient<PetProductivity.Client.ViewModels.IntroViewModel>();
         builder.Services.AddTransient<PetProductivity.Client.ViewModels.LoginViewModel>();
         builder.Services.AddTransient<PetProductivity.Client.ViewModels.RegisterViewModel>();
         builder.Services.AddTransient<PetProductivity.Client.ViewModels.DashboardViewModel>();
@@ -93,7 +92,6 @@ public static class MauiProgram
 
         // Registrar Pages
         builder.Services.AddTransient<PetProductivity.Client.Views.BirthCeremonyPage>();
-        builder.Services.AddTransient<PetProductivity.Client.Views.IntroPage>();
         builder.Services.AddTransient<PetProductivity.Client.Views.DashboardPage>();
         builder.Services.AddTransient<PetProductivity.Client.Views.TaskPage>();
         builder.Services.AddTransient<PetProductivity.Client.Views.ShopPage>();
