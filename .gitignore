@@ -189,3 +189,11 @@ archivos originales sprites/
 !src/PetProductivity.Client/Resources/Raw/room_bg_galaxy.png
 !src/PetProductivity.Client/Resources/Raw/room_bg_kitchen.png
 !src/PetProductivity.Client/Resources/Raw/room_bg_loft.png
+
+# T4-A: estatuas de legado (arte propio, generado para el proyecto — sí redistribuible).
+!Catalog/Decoración/Estatua_Ember/obj_statue_ember_l.png
+!Catalog/Decoración/Estatua_Ember/obj_statue_ember_r.png
+!Catalog/Decoración/Estatua_Sprout/obj_statue_sprout_l.png
+!Catalog/Decoración/Estatua_Sprout/obj_statue_sprout_r.png
+!Catalog/Decoración/Estatua_Aqua/obj_statue_aqua_l.png
+!Catalog/Decoración/Estatua_Aqua/obj_statue_aqua_r.png
