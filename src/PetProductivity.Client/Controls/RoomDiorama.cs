@@ -159,17 +159,25 @@ public class RoomDiorama : SKCanvasView
         _ = RoomSprites.EnsureNamedAsync(keys, () => MainThread.BeginInvokeOnMainThread(InvalidateSurface));
     }
 
+    // Perilla global del tamaño de TODOS los muebles. El dueño reportó "los muebles se ven muy grandes
+    // para la habitación" y en el emulador se confirmó (la cama se comía media pieza). En vez de tocar
+    // 20 números a mano, un solo factor los baja en bloque: sube/baja SOLO esto para recalibrar.
+    const float FURN_SCALE = 0.85f;
+
     // Escala por objeto (compensa el tamaño intrínseco del sprite Bongseng). Clave = base sin vista.
     static float ModFor(string spriteKey)
     {
         var b = spriteKey;
         foreach (var suf in new[] { "_tl", "_tr", "_l", "_r" })
             if (b.EndsWith(suf)) { b = b[..^suf.Length]; break; }
-        return b switch
+        return FURN_SCALE * b switch
         {
             "obj_bed" => 1.6f, "obj_closet" => 1.5f, "obj_tv" => 1.4f, "obj_shelf" => 1.4f,
             "obj_table" => 1.35f, "obj_cat_tower" => 1.3f, "obj_plant" => 1.25f, "obj_mirror" => 1.2f,
-            "obj_sliding_door" => 1.4f, "obj_window" => 1.3f, "obj_cat" => 1.05f, "obj_lamp" => 0.8f,
+            "obj_sliding_door" => 1.4f, "obj_window" => 1.3f, "obj_lamp" => 0.8f,
+            // El gato quedaba casi tan alto como la mascota (era 1.05 = mismo orden que un mueble
+            // grande). Es una mascota de adorno, no un ropero: debe leerse claramente más chico.
+            "obj_cat" => 0.6f,
             "obj_carpet" => 1.5f, "obj_roomba" => 1.0f, "obj_laptop" => 0.9f, "obj_coffee_cup" => 0.55f,
             "obj_teddybear" => 0.7f, "obj_cushion" => 0.9f, "obj_books" => 0.8f, "obj_box" => 0.9f,
             "obj_bedside_table" => 0.95f, "obj_chair" => 1.0f,
@@ -567,7 +575,12 @@ public class RoomDiorama : SKCanvasView
         }
 
         // 4) Tinte día/noche. (Paint reutilizado: se pintaba 25 veces por segundo creando uno nuevo cada vez.)
-        byte tintA = (byte)(150 * (1 - sky.Light));
+        // Los alphas eran 150/60: al atardecer (warm≈1 justo a las 18:00) eso pintaba ~126 de naranja
+        // + 60 encima = la sala quedaba AHOGADA en sepia y el arte no se leía (paredes crema→tan,
+        // gato negro→marrón). Verificado en emulador comparando 17:49 vs 12:52 con el mismo arte.
+        // Ambiente sí, repintar el arte no: bajados a 70/26. Sube TINT_MAX si quieres más drama nocturno.
+        const float TINT_MAX = 70f, WARM_MAX = 26f;
+        byte tintA = (byte)(TINT_MAX * (1 - sky.Light));
         if (tintA > 0)
         {
             FlatPaint.Color = sky.Top.WithAlpha(tintA);
@@ -575,7 +588,7 @@ public class RoomDiorama : SKCanvasView
         }
         if (sky.Warm > 0.05f)
         {
-            FlatPaint.Color = new SKColor(255, 170, 90, (byte)(60 * sky.Warm));
+            FlatPaint.Color = new SKColor(255, 170, 90, (byte)(WARM_MAX * sky.Warm));
             canvas.DrawRect(0, 0, W, H, FlatPaint);
         }
 
