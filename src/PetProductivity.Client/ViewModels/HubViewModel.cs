@@ -17,6 +17,18 @@ public partial class HubViewModel : ObservableObject
     [ObservableProperty] private bool isBusy;
     [ObservableProperty] private bool showEmpty;
 
+    // T31-2: tarjeta de primera visita (qué son las familias).
+    [ObservableProperty] private bool showInfo;
+    [ObservableProperty] private string infoTitle = string.Empty;
+    [ObservableProperty] private string infoBody = string.Empty;
+
+    public void ShowOnboardCard()
+    {
+        InfoTitle = L.T("Mascotas compartidas");
+        InfoBody = L.T("Crea una familia (2-6 personas) o únete con un código: comparten UNA mascota que crece con el esfuerzo de todos. Verás quién está disponible, y si varios trabajan a la vez se enciende el Frenesí: ×2 XP.");
+        ShowInfo = true;
+    }
+
     public HubViewModel(GameDataService game, GroupService groups, RealtimeService realtime, PushRegistration push)
     {
         _game = game;

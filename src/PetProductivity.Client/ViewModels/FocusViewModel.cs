@@ -51,6 +51,18 @@ public partial class FocusViewModel : ObservableObject
     // La página lo escucha para animar la mascota al completar (celebración).
     public event Action? Celebrate;
 
+    // T31-2: tarjeta de primera visita (qué es el modo foco).
+    [ObservableProperty] private bool showInfo;
+    [ObservableProperty] private string infoTitle = string.Empty;
+    [ObservableProperty] private string infoBody = string.Empty;
+
+    public void ShowOnboardCard()
+    {
+        InfoTitle = L.T("Tu primer foco");
+        InfoBody = L.T("Elige cuánto tiempo vas a concentrarte: durante la sesión solo podrás usar esta app y tus apps permitidas. Aguanta hasta el final y la recompensa es mayor — con foto de prueba a mitad, ×2.");
+        ShowInfo = true;
+    }
+
     private readonly GameDataService _game;
     private readonly FocusSessionService _focus;
 

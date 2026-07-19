@@ -24,6 +24,10 @@ public partial class FocusPage : ContentPage
         RingCanvas.InvalidateSurface();
         ApplyFocusLock();
         StartAnim();
+
+        // T31-2: primera visita — qué es el foco. Se marca vista aunque entre en plena sesión
+        // (la tarjeta se cierra con un tap y no bloquea el temporizador).
+        if (Services.Onboarding.Pending("Focus")) { _vm.ShowOnboardCard(); Services.Onboarding.MarkSeen("Focus"); }
     }
 
     protected override void OnDisappearing()

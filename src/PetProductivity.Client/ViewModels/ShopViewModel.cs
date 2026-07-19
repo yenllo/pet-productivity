@@ -25,6 +25,28 @@ namespace PetProductivity.Client.ViewModels
         [ObservableProperty]
         private int userGold;
 
+        // T31: overlay explicativo — tap en el chip de oro (oro solo cosmético + amarillo = alcanza).
+        [ObservableProperty] private bool showInfo;
+        [ObservableProperty] private string infoTitle = string.Empty;
+        [ObservableProperty] private string infoBody = string.Empty;
+
+        [RelayCommand]
+        private void Explain(string key)
+        {
+            if (key != "oro") return;
+            InfoTitle = L.T("Tu oro");
+            InfoBody = L.T("Ganas oro con cada tarea y solo sirve para esto: decorar. Las tarjetas en amarillo son las que ya puedes comprar con tu oro actual.");
+            ShowInfo = true;
+        }
+
+        // T31-2: tarjeta de primera visita a la Tienda.
+        public void ShowOnboardCard()
+        {
+            InfoTitle = L.T("El mercader");
+            InfoBody = L.T("Todo se paga con el oro de tus tareas. Amarillo = ya te alcanza. Los muebles se colocan solos en el cuarto; muévelos cuando quieras con el ✏️ del diorama.");
+            ShowInfo = true;
+        }
+
         [ObservableProperty]
         private bool isLoading;
 
@@ -255,10 +277,14 @@ namespace PetProductivity.Client.ViewModels
 
         private void RefreshAll()
         {
-            UserGold = _gameDataService.GetGold();
+            // T31-8: los ítems se refrescan con el valor FINAL (sin affordability intermedia),
+            // pero el chip de oro cuenta animado hacia él en vez de cambiar en seco.
+            int target = _gameDataService.GetGold();
             var inv = _gameDataService.CurrentUser?.Inventory ?? new();
             var active = _gameDataService.GetActiveStyle();
-            foreach (var i in Items) i.Refresh(inv.ContainsKey(i.Item.Name), UserGold, active);
+            foreach (var i in Items) i.Refresh(inv.ContainsKey(i.Item.Name), target, active);
+            if (target != UserGold) _ = Anim.CountAsync(UserGold, target, v => UserGold = v);
+            else UserGold = target;
         }
     }
 

@@ -42,6 +42,20 @@ public partial class PetDetailViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<PendingTaskDto> pendingTasks = new();
     [ObservableProperty] private bool hasPendingTasks;
 
+    // T31: overlay explicativo — la fila de miembro (semáforo/humor/afecto) no se entendía sola.
+    [ObservableProperty] private bool showInfo;
+    [ObservableProperty] private string infoTitle = string.Empty;
+    [ObservableProperty] private string infoBody = string.Empty;
+
+    [RelayCommand]
+    private void Explain(string key)
+    {
+        if (key != "miembro") return;
+        InfoTitle = L.T("La fila de cada miembro");
+        InfoBody = L.T("El punto de color es su estado (verde disponible, naranja trabajando, rojo ocupado). El emoji es el humor de la mascota con esa persona. El % es su Afecto: sube cuidándola y baja con los días sin aportar — ¡nada de polizones!");
+        ShowInfo = true;
+    }
+
     // Nacimiento de grupo (huevo → bebé)
     [ObservableProperty] private bool isHatched = true;
     [ObservableProperty] private bool isEgg;

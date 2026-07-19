@@ -125,6 +125,10 @@ public static class L
         ["No se pudo conectar. Espera unos segundos y vuelve a intentar."] =
             "Couldn't connect. Wait a few seconds and try again.",
         ["No hay espacio: mueve o quita algo primero."] = "No space: move or store something first.",
+        ["Ahí ya hay otro objeto colgado."] = "There's already another hanging object there.",
+        ["Los objetos de pared van en las paredes del fondo."] = "Wall objects go on the back walls.",
+        ["Las paredes están llenas: quita algún cuadro primero."] = "The walls are full: take down a picture first.",
+        ["No cabe girado ahí: muévelo primero."] = "It doesn't fit rotated there: move it first.",
         ["✓ {0} colocado en tu cuarto"] = "✓ {0} placed in your room",
         ["✓ Comprado. Cuarto lleno: {0} quedó en Guardados (lápiz ✏️ del cuarto)"] =
             "✓ Purchased. Room full: {0} went to Stored (room pencil ✏️)",
@@ -416,5 +420,48 @@ public static class L
         ["Consumibles"] = "Consumables",
         ["Cosmético"] = "Cosmetics",
         ["Eventos"] = "Events",
+
+        // ---- T31: explicaciones tap, onboarding y aviso de cristalización ----
+        ["Las 4 dimensiones"] = "The 4 dimensions",
+        ["Cada tarea que registras, la IA la clasifica en Cuerpo, Mente, Hogar o Bienestar y suma XP a ese círculo. Así crece tu mascota: con tu vida real, en sus 4 frentes."] =
+            "Every task you log gets classified by the AI into Body, Mind, Home or Wellbeing, adding XP to that circle. That's how your pet grows: through your real life, on all 4 fronts.",
+        ["Hambre y Salud"] = "Hunger & Health",
+        ["Bajan solas con el tiempo: tu mascota te necesita a diario. Registrar tareas y focos la alimenta y la cura. Si la Salud llega a 0, se cristaliza… pero siempre puede volver."] =
+            "They drop on their own over time: your pet needs you daily. Logging tasks and focus sessions feeds and heals it. If Health hits 0, it crystallizes… but it can always come back.",
+        ["¡Línea completa!"] = "Line complete!",
+        ["Completaste una línea del ritual: hoy todo tu XP se multiplica ×1.2. El tablero se reinicia cada día — vuelve mañana por otra línea."] =
+            "You completed a ritual line: all your XP today is multiplied ×1.2. The board resets daily — come back tomorrow for another line.",
+        ["Racha diaria"] = "Daily streak",
+        ["El cristal Fénix"] = "The Phoenix crystal",
+        ["Si la Salud llega a 0, tu mascota se cristaliza: no muere, se congela. Sale del cristal con esfuerzo real durante 3 días distintos o con una hazaña épica (dificultad 9+). Mejor evitarlo: registra una tarea o un foco hoy y su salud subirá. Tras revivir tiene 24 h de escudo."] =
+            "If Health hits 0, your pet crystallizes: it doesn't die, it freezes. It breaks free with real effort on 3 different days, or with an epic feat (difficulty 9+). Better to avoid it: log a task or a focus today and its health will rise. After reviving it gets a 24 h shield.",
+        ["💠 ¡Tu mascota está en peligro!"] = "💠 Your pet is in danger!",
+        ["Sálvala ›"] = "Save it ›",
+        ["La fila de cada miembro"] = "Each member's row",
+        ["El punto de color es su estado (verde disponible, naranja trabajando, rojo ocupado). El emoji es el humor de la mascota con esa persona. El % es su Afecto: sube cuidándola y baja con los días sin aportar — ¡nada de polizones!"] =
+            "The colored dot is their status (green available, orange working, red busy). The emoji is the pet's mood toward that person. The % is their Affection: it rises by caring and drops after days without contributing — no free riders!",
+        ["Tu oro"] = "Your gold",
+        ["Ganas oro con cada tarea y solo sirve para esto: decorar. Las tarjetas en amarillo son las que ya puedes comprar con tu oro actual."] =
+            "You earn gold with every task and it's only for one thing: decorating. Yellow cards are the ones you can already afford.",
+        ["Así se juega"] = "How it works",
+        ["Cuéntale a la app lo que hiciste hoy, con tus palabras. Una IA lo juzgará: le pondrá dificultad y te dará XP (crece tu mascota) y Oro (decoras su cuarto)."] =
+            "Tell the app what you did today, in your own words. An AI will judge it: rate its difficulty and give you XP (your pet grows) and Gold (you decorate its room).",
+        ["Cuídala a diario"] = "Care for it daily",
+        ["El Hambre y la Salud bajan solos cada día. Registrar tareas y focos la alimenta y la cura. Si la descuidas mucho, se cristaliza… y rescatarla cuesta esfuerzo de verdad."] =
+            "Hunger and Health drop on their own every day. Logging tasks and focus sessions feeds and heals it. Neglect it too long and it crystallizes… and rescuing it takes real effort.",
+        ["El ritual diario"] = "The daily ritual",
+        ["El tablero 3×3 es un tres-en-raya de mini-hábitos: marca 3 en línea y TODO tu XP de hoy vale ×1.2. Puedes renombrar cada celda con el ✏️ para poner tus hábitos reales."] =
+            "The 3×3 board is a tic-tac-toe of mini-habits: check 3 in a row and ALL your XP today is worth ×1.2. Rename any cell with the ✏️ to match your real habits.",
+        ["¡A jugar!"] = "Let's play!",
+        ["Mascotas compartidas"] = "Shared pets",
+        ["Crea una familia (2-6 personas) o únete con un código: comparten UNA mascota que crece con el esfuerzo de todos. Verás quién está disponible, y si varios trabajan a la vez se enciende el Frenesí: ×2 XP."] =
+            "Create a family (2-6 people) or join with a code: you share ONE pet that grows with everyone's effort. You'll see who's available, and if several work at once, Frenzy kicks in: ×2 XP.",
+        ["El mercader"] = "The merchant",
+        ["Todo se paga con el oro de tus tareas. Amarillo = ya te alcanza. Los muebles se colocan solos en el cuarto; muévelos cuando quieras con el ✏️ del diorama."] =
+            "Everything is paid with the gold from your tasks. Yellow = you can afford it. Furniture places itself in the room; move it anytime with the diorama's ✏️.",
+        ["Tu primer foco"] = "Your first focus",
+        ["Elige cuánto tiempo vas a concentrarte: durante la sesión solo podrás usar esta app y tus apps permitidas. Aguanta hasta el final y la recompensa es mayor — con foto de prueba a mitad, ×2."] =
+            "Choose how long you'll concentrate: during the session you can only use this app and your allowed apps. Hold out to the end for a bigger reward — with a mid-session proof photo, ×2.",
+        ["¿Cómo se juega?"] = "How to play?",
     };
 }

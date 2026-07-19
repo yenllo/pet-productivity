@@ -4,6 +4,7 @@
              xmlns:loc="clr-namespace:PetProductivity.Client.Services"
              xmlns:vm="clr-namespace:PetProductivity.Client.ViewModels"
              xmlns:views="clr-namespace:PetProductivity.Client.Views"
+             xmlns:ctrl="clr-namespace:PetProductivity.Client.Controls"
              x:Class="PetProductivity.Client.Views.ShopPage"
              Shell.NavBarIsVisible="False"
              Title="{loc:T 'Tienda'}"
@@ -21,6 +22,10 @@
             </VerticalStackLayout>
             <Border Grid.Column="1" Style="{StaticResource Chip}" BackgroundColor="{StaticResource GoldSoft}"
                     Stroke="{StaticResource Gold}" VerticalOptions="Center">
+                <!-- T31: tap = para qué sirve el oro y qué significa el amarillo -->
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ExplainCommand}" CommandParameter="oro"/>
+                </Border.GestureRecognizers>
                 <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                     <Image Source="spr_coin.png" HeightRequest="16" WidthRequest="16" VerticalOptions="Center" />
                     <Label Text="{Binding UserGold}" TextColor="{StaticResource Gold}" FontAttributes="Bold"
@@ -190,5 +195,9 @@
                     Style="{StaticResource BtnGhost}" HeightRequest="40" FontSize="13" />
         </Grid>
     </Grid>
+
+    <!-- T31: overlay explicativo (tap en el chip de oro; también 1ª visita, Lote 3) -->
+    <ctrl:InfoOverlay ZIndex="113" IsOpen="{Binding ShowInfo}"
+                      HeaderText="{Binding InfoTitle}" Body="{Binding InfoBody}"/>
     </Grid>
 </ContentPage>

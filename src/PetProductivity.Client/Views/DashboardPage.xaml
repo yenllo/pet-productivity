@@ -20,7 +20,8 @@
             <Border Style="{StaticResource Chip}" BackgroundColor="{StaticResource GoldSoft}" Stroke="{StaticResource Gold}">
                 <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                     <Image Source="spr_coin.png" HeightRequest="16" WidthRequest="16" VerticalOptions="Center"/>
-                    <Label Text="{Binding CurrentPet.GoldCoins}" TextColor="{StaticResource Gold}" FontAttributes="Bold" FontSize="14" VerticalOptions="Center"/>
+                    <!-- T31-4: GoldDisplay = contador animado (no el valor en seco de CurrentPet) -->
+                    <Label Text="{Binding GoldDisplay}" TextColor="{StaticResource Gold}" FontAttributes="Bold" FontSize="14" VerticalOptions="Center"/>
                 </HorizontalStackLayout>
             </Border>
 
@@ -69,6 +70,18 @@
             <!-- T27-L2 (#11): Spacing 12→18 — con 12 la sombra/borde de una tarjeta translúcida se veía
                  a través de la siguiente y leía como sobreposición (Evolución bajo Hambre/Salud). -->
             <VerticalStackLayout x:Name="ContentStack" Spacing="18" Padding="0,0,0,26">
+
+                <!-- T31-9: aviso previo de cristalización — la mecánica Fénix se explica ANTES del golpe -->
+                <Border IsVisible="{Binding ShowDangerBanner}" Padding="12,10"
+                        StrokeThickness="1" Stroke="#59E05B5B" BackgroundColor="#1AE05B5B" StrokeShape="RoundRectangle 12">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ExplainCommand}" CommandParameter="fenix"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <Label Text="{loc:T '💠 ¡Tu mascota está en peligro!'}" TextColor="{StaticResource Ink}" FontAttributes="Bold" FontSize="13" VerticalOptions="Center"/>
+                        <Label Grid.Column="1" Text="{loc:T 'Sálvala ›'}" TextColor="#FF9B9B" FontAttributes="Bold" FontSize="13" VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
 
                 <!-- T27-L1 (#2): volver a un foco activo (sin esto no había regreso mid-sesión) -->
                 <Border IsVisible="{Binding IsFocusActive}" Padding="12,10"
@@ -141,6 +154,10 @@
                      de un Grid; esa estructura distinta a Evolución/Crecimiento/Ritual daba espaciado y
                      sombra inconsistentes: apretado arriba, hueco de más abajo). -->
                 <Border Style="{StaticResource Card}">
+                    <!-- T31: tap = qué son Hambre/Salud y por qué bajan solas -->
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ExplainCommand}" CommandParameter="vitales"/>
+                    </Border.GestureRecognizers>
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="22">
                         <VerticalStackLayout Grid.Column="0" Spacing="8">
                             <Grid ColumnDefinitions="*,Auto">
@@ -168,6 +185,10 @@
 
                 <!-- Crecimiento -->
                 <Border Style="{StaticResource Card}">
+                    <!-- T31: tap = qué son las 4 dimensiones y cómo suben -->
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ExplainCommand}" CommandParameter="crecimiento"/>
+                    </Border.GestureRecognizers>
                     <VerticalStackLayout Spacing="11">
                         <Label Text="{loc:T 'Crecimiento'}" TextColor="{StaticResource Ink2}" FontSize="13" FontAttributes="Bold"/>
                         <Grid ColumnDefinitions="*,*,*,*">
@@ -215,8 +236,11 @@
                             <!-- T7-A: renombrar celdas (tus 9 hábitos reales) -->
                             <Button Grid.Column="2" Text="{Binding RitualEditText}" Command="{Binding ToggleRitualRenameCommand}"
                                     Style="{StaticResource BtnGhost}" HeightRequest="30" FontSize="12" Padding="10,0"/>
-                            <Border Grid.Column="1" IsVisible="{Binding IsXpBuffActive}" BackgroundColor="{StaticResource StWorkSoft}"
+                            <Border Grid.Column="1" x:Name="XpChip" IsVisible="{Binding IsXpBuffActive}" BackgroundColor="{StaticResource StWorkSoft}"
                                     Stroke="#4DFFAC4D" StrokeThickness="1" StrokeShape="RoundRectangle 10" Padding="8,2">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ExplainCommand}" CommandParameter="buff"/>
+                                </Border.GestureRecognizers>
                                 <HorizontalStackLayout Spacing="5">
                                     <Image Source="ic_fire.png" HeightRequest="13" WidthRequest="13" VerticalOptions="Center"/>
                                     <Label Text="XP x1.2" TextColor="{StaticResource StWork}" FontAttributes="Bold" FontSize="11" VerticalOptions="Center"/>
@@ -224,7 +248,7 @@
                             </Border>
                         </Grid>
                         <!-- 3x3 sin scroll interno (FlexLayout): así el ScrollView de la página baja completo. -->
-                        <FlexLayout BindableLayout.ItemsSource="{Binding RitualCells}"
+                        <FlexLayout x:Name="RitualGrid" BindableLayout.ItemsSource="{Binding RitualCells}"
                                     Wrap="Wrap" Direction="Row" JustifyContent="SpaceBetween" AlignItems="Stretch">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate>
@@ -318,15 +342,7 @@
                                IsVisible="{Binding SandboxHintVisible}" Style="{StaticResource Caption}"
                                HorizontalOptions="Center" LineBreakMode="WordWrap" HorizontalTextAlignment="Center"/>
 
-                        <!-- Objeto seleccionado: guardar en inventario / mover -->
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8" IsVisible="{Binding SelectionActionsVisible}">
-                            <Button Grid.Column="0" Text="{loc:T '🗄️ Guardar en inventario'}" Command="{Binding RemoveSelectedCommand}"
-                                    Style="{StaticResource BtnGhost}" HeightRequest="44" FontSize="12.5"/>
-                            <Button Grid.Column="1" Text="{loc:T '✥ Mover'}" Command="{Binding StartMoveCommand}"
-                                    Style="{StaticResource BtnAccent}" HeightRequest="44" FontSize="12.5"/>
-                        </Grid>
-
-                        <!-- Pad tipo Gameboy (modo mover) -->
+                        <!-- Pad tipo Gameboy: aparece con la selección (seleccionar = mover) -->
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16" IsVisible="{Binding PadVisible}">
                             <Grid Grid.Column="0" RowDefinitions="52,52,52" ColumnDefinitions="52,52,52" RowSpacing="4" ColumnSpacing="4">
                                 <Button Grid.Row="0" Grid.Column="1" Text="▲" Command="{Binding MoveStepCommand}" CommandParameter="up"
@@ -341,7 +357,7 @@
                             <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
                                 <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
                                     <VerticalStackLayout Spacing="2">
-                                        <Button Text="🗄️" Command="{Binding StoreMoveCommand}"
+                                        <Button Text="🗄️" Command="{Binding RemoveSelectedCommand}"
                                                 HeightRequest="52" WidthRequest="52" CornerRadius="26" Padding="0" FontSize="18"
                                                 BackgroundColor="{StaticResource Glass2}" TextColor="{StaticResource Ink}"/>
                                         <Label Text="B" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
@@ -422,8 +438,8 @@
             </Grid>
         </Grid>
 
-        <!-- T4-E: ceremonia de evolución (hito hoy silencioso). Tap para cerrar. -->
-        <Grid Grid.RowSpan="4" BackgroundColor="#E6120A20" IsVisible="{Binding ShowEvolution}" ZIndex="100">
+        <!-- T4-E: ceremonia de evolución. Tap para cerrar. T31-6: entrada con flash + spring (antes estática). -->
+        <Grid x:Name="EvolutionOverlay" Grid.RowSpan="4" BackgroundColor="#E6120A20" IsVisible="{Binding ShowEvolution}" ZIndex="100">
             <Grid.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding DismissEvolutionCommand}"/>
             </Grid.GestureRecognizers>
@@ -432,9 +448,11 @@
                 <Label Text="{loc:T '¡Evolución!'}" Style="{StaticResource DisplayTitle}" FontSize="26" HorizontalOptions="Center"/>
                 <Label Text="{Binding EvolutionText}" TextColor="{StaticResource Ink}" FontSize="16"
                        HorizontalTextAlignment="Center" WidthRequest="280"/>
-                <Image Source="{Binding PetImageSource}" HeightRequest="110" WidthRequest="110" Aspect="AspectFit" HorizontalOptions="Center"/>
+                <Image x:Name="EvolutionPet" Source="{Binding PetImageSource}" HeightRequest="110" WidthRequest="110" Aspect="AspectFit" HorizontalOptions="Center"/>
                 <Label Text="{loc:T 'Toca para continuar'}" Style="{StaticResource Caption}" HorizontalOptions="Center"/>
             </VerticalStackLayout>
+            <!-- Flash blanco al revelar (mismo truco que la ceremonia de nacimiento) -->
+            <BoxView x:Name="EvolutionFlash" Color="White" Opacity="0" InputTransparent="True"/>
         </Grid>
 
         <!-- Overlay cristalizado -->
@@ -457,7 +475,7 @@
             <BoxView Color="#CC0A0616">
                 <BoxView.GestureRecognizers><TapGestureRecognizer Command="{Binding CloseStatusPickerCommand}"/></BoxView.GestureRecognizers>
             </BoxView>
-            <Border Style="{StaticResource Card}" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
+            <Border x:Name="StatusCard" Style="{StaticResource Card}" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
                 <VerticalStackLayout Spacing="8">
                     <Label Text="{loc:T 'Tu estado'}" Style="{StaticResource DisplayTitle}" FontSize="18" HorizontalOptions="Center" Margin="0,0,0,4"/>
                     <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Padding="14,13">
@@ -485,7 +503,7 @@
             <BoxView Color="#CC0A0616">
                 <BoxView.GestureRecognizers><TapGestureRecognizer Command="{Binding CancelRitualPromptCommand}"/></BoxView.GestureRecognizers>
             </BoxView>
-            <Border Style="{StaticResource Card}" Stroke="#59FF5F8F" StrokeThickness="2" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
+            <Border x:Name="RitualPromptCard" Style="{StaticResource Card}" Stroke="#59FF5F8F" StrokeThickness="2" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
                 <VerticalStackLayout Spacing="14">
                     <Label Text="{loc:T 'Nombra este hábito'}" Style="{StaticResource DisplayTitle}" FontSize="18" HorizontalOptions="Center"/>
                     <Border StrokeThickness="1" Stroke="{StaticResource StrokeSoft}" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Padding="12,2">
@@ -496,6 +514,28 @@
                         <Button Grid.Column="0" Text="{loc:T 'Cancelar'}" Command="{Binding CancelRitualPromptCommand}" Style="{StaticResource BtnGhost}" HeightRequest="46"/>
                         <Button Grid.Column="1" Text="{loc:T 'Guardar'}" Command="{Binding ConfirmRitualRenameCommand}" Style="{StaticResource BtnAccent}" HeightRequest="46"/>
                     </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- T31: overlay explicativo (tap en Crecimiento / vitales / racha / ×1.2 / banner de peligro) -->
+        <ctrl:InfoOverlay Grid.RowSpan="4" ZIndex="113" IsOpen="{Binding ShowInfo}"
+                          HeaderText="{Binding InfoTitle}" Body="{Binding InfoBody}"/>
+
+        <!-- T31-2: onboarding de primera vez (3 tarjetas). Fondo SIN tap-cierra: se avanza con el botón. -->
+        <Grid Grid.RowSpan="4" IsVisible="{Binding ShowOnboarding}" ZIndex="115">
+            <BoxView Color="#CC0A0616"/>
+            <Border x:Name="OnboardCard" Style="{StaticResource Card}" Stroke="#59FF5F8F" StrokeThickness="2"
+                    VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="20">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="{Binding OnboardingTitle}" Style="{StaticResource DisplayTitle}" FontSize="19"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                    <Label Text="{Binding OnboardingBody}" TextColor="{DynamicResource Ink2}" FontSize="14"
+                           LineBreakMode="WordWrap" HorizontalTextAlignment="Center"/>
+                    <Label Text="{Binding OnboardingDots}" TextColor="{StaticResource AccentPink}" FontSize="12"
+                           HorizontalOptions="Center" CharacterSpacing="4"/>
+                    <Button Text="{Binding OnboardingButton}" Command="{Binding NextOnboardingCommand}"
+                            Style="{StaticResource BtnAccent}" HeightRequest="46" Margin="0,4,0,0"/>
                 </VerticalStackLayout>
             </Border>
         </Grid>

@@ -16,7 +16,7 @@
             <controls:BackButton />
 
             <!-- Banner Frenesí -->
-            <Border IsVisible="{Binding IsFrenzyActive}" StrokeThickness="1" Stroke="#59FFAC4D" StrokeShape="RoundRectangle 14" Padding="12"
+            <Border x:Name="FrenzyBanner" IsVisible="{Binding IsFrenzyActive}" StrokeThickness="1" Stroke="#59FFAC4D" StrokeShape="RoundRectangle 14" Padding="12"
                     BackgroundColor="{StaticResource StWorkSoft}">
                 <Label Text="{loc:T '🔥 ¡FRENESÍ! ×2 XP — ¡varios trabajando!'}" HorizontalOptions="Center" FontAttributes="Bold" TextColor="#FFD9A8"/>
             </Border>
@@ -73,6 +73,12 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:MemberRow">
                         <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,8">
+                            <!-- T31: tap = qué significan el semáforo, el humor y el % de afecto -->
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PetDetailViewModel}}, Path=ExplainCommand}"
+                                    CommandParameter="miembro"/>
+                            </Border.GestureRecognizers>
                             <Grid ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="11">
                                 <Ellipse Grid.Column="0" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Fill="{Binding StatusColor}"/>
                                 <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
@@ -139,5 +145,8 @@
     <!-- T27: spinner de primera carga (cold start de Render) -->
     <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}"
                        Color="{StaticResource AccentPink}" HorizontalOptions="Center" VerticalOptions="Center"/>
+    <!-- T31: overlay explicativo (tap en la fila de un miembro) -->
+    <controls:InfoOverlay ZIndex="113" IsOpen="{Binding ShowInfo}"
+                          HeaderText="{Binding InfoTitle}" Body="{Binding InfoBody}"/>
     </Grid>
 </ContentPage>

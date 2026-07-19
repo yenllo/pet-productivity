@@ -25,10 +25,37 @@ public partial class DashboardViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(MoodEmoji))]
     [NotifyPropertyChangedFor(nameof(ShowMood))]
     [NotifyPropertyChangedFor(nameof(HasPet))]
+    [NotifyPropertyChangedFor(nameof(ShowDangerBanner))]
     private Pet currentPet;
 
     // T27-L2: la sección del nombre se colapsa hasta que haya mascota (evita el hueco vacío al cargar).
     public bool HasPet => CurrentPet != null;
+
+    // T31-9: aviso ANTES del golpe — la mecánica Fénix hoy solo se explica cuando ya te pasó.
+    public bool ShowDangerBanner => HasPet && !IsCrystallized && (CurrentPet?.Health ?? 100) < 30;
+
+    // T31: overlay explicativo ("tap = explicación") — reemplaza los toasts efímeros.
+    [ObservableProperty] private bool showInfo;
+    [ObservableProperty] private string infoTitle = string.Empty;
+    [ObservableProperty] private string infoBody = string.Empty;
+
+    [RelayCommand]
+    private void Explain(string key)
+    {
+        (InfoTitle, InfoBody) = key switch
+        {
+            "crecimiento" => (L.T("Las 4 dimensiones"),
+                L.T("Cada tarea que registras, la IA la clasifica en Cuerpo, Mente, Hogar o Bienestar y suma XP a ese círculo. Así crece tu mascota: con tu vida real, en sus 4 frentes.")),
+            "vitales" => (L.T("Hambre y Salud"),
+                L.T("Bajan solas con el tiempo: tu mascota te necesita a diario. Registrar tareas y focos la alimenta y la cura. Si la Salud llega a 0, se cristaliza… pero siempre puede volver.")),
+            "buff" => (L.T("¡Línea completa!"),
+                L.T("Completaste una línea del ritual: hoy todo tu XP se multiplica ×1.2. El tablero se reinicia cada día — vuelve mañana por otra línea.")),
+            "fenix" => (L.T("El cristal Fénix"),
+                L.T("Si la Salud llega a 0, tu mascota se cristaliza: no muere, se congela. Sale del cristal con esfuerzo real durante 3 días distintos o con una hazaña épica (dificultad 9+). Mejor evitarlo: registra una tarea o un foco hoy y su salud subirá. Tras revivir tiene 24 h de escudo.")),
+            _ => (string.Empty, string.Empty)
+        };
+        ShowInfo = InfoTitle.Length > 0;
+    }
 
     // T5: la cara del estado real (Pet.Condition, derivado de Hunger/Health). Sin burbuja en Normal.
     public string MoodEmoji => PetVisuals.MoodEmoji(CurrentPet);
@@ -38,6 +65,11 @@ public partial class DashboardViewModel : ObservableObject
     // desde la última vez que se vio la mascota (estático: sobrevive a VMs transient).
     public event Action? CelebrateXp;
     private static double _lastSeenXp = -1;
+
+    // T31-4: el chip de oro cuenta hacia su valor nuevo en vez de cambiar en seco
+    // (mismo patrón estático que _lastSeenXp: sobrevive a VMs transient).
+    [ObservableProperty] private int goldDisplay;
+    private static int _lastSeenGold = -1;
 
     // T4-E: ceremonia de evolución (hoy Baby→Adult→Master ocurre en silencio). La etapa ya celebrada
     // se persiste en Preferences → sobrevive a que maten la app en medio (criterio 1): si al reabrir la
@@ -50,15 +82,59 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty] private string streakLabel = "🔥 0";
     [ObservableProperty] private bool streakAtRisk;
 
-    // T27-L2 (#18): el chip 🔥 no se entendía y el punto naranja parecía notificación → tap = explicación.
+    // T31-2: onboarding de primera vez — 3 tarjetas que enseñan las reglas del juego
+    // (hasta hoy la app no las explicaba en ningún lado). Se avanza solo con el botón.
+    [ObservableProperty] private bool showOnboarding;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OnboardingTitle))]
+    [NotifyPropertyChangedFor(nameof(OnboardingBody))]
+    [NotifyPropertyChangedFor(nameof(OnboardingDots))]
+    [NotifyPropertyChangedFor(nameof(OnboardingButton))]
+    private int onboardingStep;
+
+    public string OnboardingTitle => OnboardingStep switch
+    {
+        0 => L.T("Así se juega"),
+        1 => L.T("Cuídala a diario"),
+        _ => L.T("El ritual diario")
+    };
+
+    public string OnboardingBody => OnboardingStep switch
+    {
+        0 => L.T("Cuéntale a la app lo que hiciste hoy, con tus palabras. Una IA lo juzgará: le pondrá dificultad y te dará XP (crece tu mascota) y Oro (decoras su cuarto)."),
+        1 => L.T("El Hambre y la Salud bajan solos cada día. Registrar tareas y focos la alimenta y la cura. Si la descuidas mucho, se cristaliza… y rescatarla cuesta esfuerzo de verdad."),
+        _ => L.T("El tablero 3×3 es un tres-en-raya de mini-hábitos: marca 3 en línea y TODO tu XP de hoy vale ×1.2. Puedes renombrar cada celda con el ✏️ para poner tus hábitos reales.")
+    };
+
+    public string OnboardingDots => OnboardingStep switch { 0 => "● ○ ○", 1 => "○ ● ○", _ => "○ ○ ●" };
+    public string OnboardingButton => OnboardingStep < 2 ? L.T("Siguiente ›") : L.T("¡A jugar!");
+
+    public void StartOnboarding()
+    {
+        OnboardingStep = 0;
+        ShowOnboarding = true;
+    }
+
     [RelayCommand]
-    private async Task ExplainStreak()
+    private void NextOnboarding()
+    {
+        if (OnboardingStep < 2) { OnboardingStep++; return; }
+        ShowOnboarding = false;
+        Onboarding.MarkSeen("Dashboard");
+    }
+
+    // T27-L2 (#18): el chip 🔥 no se entendía y el punto naranja parecía notificación → tap = explicación.
+    // T31: migrado del toast (desaparecía rápido) al overlay explicativo.
+    [RelayCommand]
+    private void ExplainStreak()
     {
         var n = _gameDataService.CurrentUser?.CurrentStreak ?? 0;
-        var msg = StreakAtRisk
+        InfoTitle = L.T("Racha diaria");
+        InfoBody = StreakAtRisk
             ? L.F("Racha diaria: {0} día(s) seguidos haciendo algo. El punto naranja avisa que HOY aún no registras nada — ¡haz una tarea o un foco para mantenerla!", n)
             : L.F("Racha diaria: {0} día(s) seguidos haciendo algo. ¡Hoy ya está asegurada! ✔", n);
-        try { await Toast.Make(msg, CommunityToolkit.Maui.Core.ToastDuration.Long).Show(); } catch { }
+        ShowInfo = true;
     }
 
     // Sprites de cada etapa de la especie actual (previsualización de evolución).
@@ -89,6 +165,7 @@ public partial class DashboardViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(PetOpacity))]
     [NotifyPropertyChangedFor(nameof(PetImageSource))]
     [NotifyPropertyChangedFor(nameof(ShowMood))]
+    [NotifyPropertyChangedFor(nameof(ShowDangerBanner))]
     private PetStatus petStatus;
 
     public bool IsCrystallized => PetStatus == PetStatus.Crystallized;
@@ -154,30 +231,22 @@ public partial class DashboardViewModel : ObservableObject
 
     // Sandbox de edición (overlay pantalla completa). EditMode = overlay abierto.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectionActionsVisible))]
     [NotifyPropertyChangedFor(nameof(PadVisible))]
     [NotifyPropertyChangedFor(nameof(SandboxHintVisible))]
     private bool editMode;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectionActionsVisible))]
     [NotifyPropertyChangedFor(nameof(PadVisible))]
     [NotifyPropertyChangedFor(nameof(SandboxHintVisible))]
     private bool hasSelection;
 
-    // Modo mover (pad tipo Gameboy sobre el objeto seleccionado).
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectionActionsVisible))]
-    [NotifyPropertyChangedFor(nameof(PadVisible))]
-    [NotifyPropertyChangedFor(nameof(SandboxHintVisible))]
-    private bool moveMode;
-
-    public bool SelectionActionsVisible => EditMode && HasSelection && !MoveMode;
-    public bool PadVisible => EditMode && MoveMode;
-    public bool SandboxHintVisible => EditMode && !HasSelection && !MoveMode;
+    // Seleccionar = mover: el pad aparece con la selección, sin paso intermedio "Mover".
+    public bool PadVisible => EditMode && HasSelection;
+    public bool SandboxHintVisible => EditMode && !HasSelection;
 
     // Celda origen del mueble seleccionado (para resaltar en el diorama). null = ninguno.
-    public (int X, int Y)? SelectedCell { get; private set; }
+    // Wall = objeto colgado (puede compartir celda de borde con un mueble de piso).
+    public (int X, int Y, bool Wall)? SelectedCell { get; private set; }
 
     private List<PlacedFurniture> _editList = new();
     private int _selectedIndex = -1;
@@ -229,7 +298,7 @@ public partial class DashboardViewModel : ObservableObject
     }
 
     static PlacedFurniture Clone(PlacedFurniture p) =>
-        new() { Name = p.Name, Sprite = p.Sprite, GridX = p.GridX, GridY = p.GridY, GridW = p.GridW, GridD = p.GridD };
+        new() { Name = p.Name, Sprite = p.Sprite, GridX = p.GridX, GridY = p.GridY, GridW = p.GridW, GridD = p.GridD, OnWall = p.OnWall };
 
     // Lápiz ✏️ → abre el sandbox. Se edita sobre CLONES: los objetos canónicos del usuario no se
     // mutan, así "Cancelar" es simplemente descartar la lista de trabajo.
@@ -239,11 +308,41 @@ public partial class DashboardViewModel : ObservableObject
         var cur = _gameDataService.GetPlacements();
         _editList = cur is { Count: > 0 } ? cur.Select(Clone).ToList() : _gameDataService.SeedPlacements();
         Deselect();
-        MoveMode = false;
         Placements = new List<PlacedFurniture>(_editList);
         EditMode = true;
         _catalogCache ??= await _gameDataService.GetCatalogAsync();
+        MigrateWallLegacy();
         RefreshStored();
+    }
+
+    // ponytail: migración one-time — cuadros/ventanas comprados antes del slot "wall" quedaron en el
+    // piso; al abrir el editor se cuelgan en el hueco de pared más cercano (o caen a Guardados si no
+    // queda ninguno). Se persiste recién al Guardar.
+    private void MigrateWallLegacy()
+    {
+        var wallNames = _catalogCache?.Where(i => i.Slot == "wall").Select(i => i.Name).ToHashSet();
+        if (wallNames == null || wallNames.Count == 0) return;
+        bool changed = false;
+        foreach (var p in _editList.Where(p => !p.OnWall && wallNames.Contains(p.Name)).ToList())
+        {
+            p.OnWall = true; p.GridW = 1; p.GridD = 1;
+            changed = true;
+            if (!GameDataService.CanPlaceWall(_editList, p.GridX, p.GridY, ignore: p))
+            {
+                (int, int)? best = null; int bd = int.MaxValue;
+                for (int x = 0; x < 6; x++)
+                    for (int y = 0; y < 6; y++)
+                    {
+                        if (!GameDataService.CanPlaceWall(_editList, x, y, ignore: p)) continue;
+                        int dist = Math.Abs(x - p.GridX) + Math.Abs(y - p.GridY);
+                        if (dist < bd) { bd = dist; best = (x, y); }
+                    }
+                if (best == null) { _editList.Remove(p); continue; }
+                (p.GridX, p.GridY) = best.Value;
+            }
+            p.Sprite = GameDataService.WallView(p.Sprite, p.GridX, p.GridY);
+        }
+        if (changed) Placements = new List<PlacedFurniture>(_editList);
     }
 
     [RelayCommand]
@@ -265,7 +364,6 @@ public partial class DashboardViewModel : ObservableObject
     private void CloseSandbox()
     {
         Deselect();
-        MoveMode = false;
         EditMode = false;
     }
 
@@ -275,20 +373,12 @@ public partial class DashboardViewModel : ObservableObject
     {
         if (item?.Placement == null) return;
         int i = _editList.IndexOf(item.Placement);
-        if (i >= 0) { MoveMode = false; Select(i); }
+        if (i >= 0) Select(i);
     }
 
-    // ---- Modo mover: pad tipo Gameboy ----
-    private (int X, int Y, string Sprite) _moveBackup;
-
-    [RelayCommand]
-    private void StartMove()
-    {
-        if (_selectedIndex < 0) return;
-        var p = _editList[_selectedIndex];
-        _moveBackup = (p.GridX, p.GridY, p.Sprite);
-        MoveMode = true;
-    }
+    // ---- Mover (seleccionar = mover, sin paso intermedio) ----
+    // Respaldo para ✕: posición, vista y huella de cuando se seleccionó (rotar intercambia W×D).
+    private (int X, int Y, string Sprite, int W, int D) _moveBackup;
 
     // Flechas del pad: 1 celda por los ejes de la grilla iso (en pantalla son diagonales).
     [RelayCommand]
@@ -300,41 +390,44 @@ public partial class DashboardViewModel : ObservableObject
         MoveSelected(p.GridX + dx, p.GridY + dy);
     }
 
-    // B del pad: guardar en inventario el objeto que se está moviendo.
-    [RelayCommand]
-    private void StoreMove()
-    {
-        MoveMode = false;
-        RemoveSelected();
-    }
-
-    // ✕ del pad: revierte posición y vista al estado de antes de "Mover".
+    // ✕ del pad: revierte posición, vista y huella al estado de cuando se seleccionó.
     [RelayCommand]
     private void CancelMove()
     {
         if (_selectedIndex >= 0)
         {
             var p = _editList[_selectedIndex];
-            (p.GridX, p.GridY, p.Sprite) = _moveBackup;
-            SelectedCell = (p.GridX, p.GridY);
-            OnPropertyChanged(nameof(SelectedCell));
+            (p.GridX, p.GridY, p.Sprite, p.GridW, p.GridD) = _moveBackup;
             Placements = new List<PlacedFurniture>(_editList);
         }
-        MoveMode = false;
+        Deselect();
     }
 
     [RelayCommand]
-    private void ConfirmMove() => MoveMode = false;
+    private void ConfirmMove() => Deselect();
 
-    // Tap en un guardado → a la primera celda libre, y queda seleccionado para moverlo.
+    // Tap en un guardado → a la primera celda libre (o hueco de pared), y queda seleccionado para moverlo.
     [RelayCommand]
     private async Task PlaceStored(StoredItemVm item)
     {
         if (!EditMode || item == null) return;
-        var (w, d) = GameDataService.FootprintFor(item.Sprite);
-        var cell = GameDataService.FindFreeCell(_editList, w, d);
-        if (cell == null) { await Toast.Make(L.T("No hay espacio: mueve o quita algo primero.")).Show(); return; }
-        _editList.Add(new PlacedFurniture { Name = item.Name, Sprite = item.Sprite, GridX = cell.Value.x, GridY = cell.Value.y, GridW = w, GridD = d });
+        var cat = _catalogCache?.FirstOrDefault(i => i.Name == item.Name);
+        if (cat?.Slot == "wall")
+        {
+            var wc = GameDataService.FindFreeWallCell(_editList);
+            if (wc == null) { await Toast.Make(L.T("Las paredes están llenas: quita algún cuadro primero.")).Show(); return; }
+            _editList.Add(new PlacedFurniture { Name = item.Name, Sprite = GameDataService.WallView(item.Sprite, wc.Value.x, wc.Value.y),
+                                                GridX = wc.Value.x, GridY = wc.Value.y, OnWall = true });
+        }
+        else
+        {
+            var (w, d) = cat != null && (cat.GridW > 1 || cat.GridD > 1)
+                ? (cat.GridW, cat.GridD)
+                : GameDataService.FootprintFor(item.Sprite); // fallback: Freebies y catálogo sin footprint
+            var cell = GameDataService.FindFreeCell(_editList, w, d);
+            if (cell == null) { await Toast.Make(L.T("No hay espacio: mueve o quita algo primero.")).Show(); return; }
+            _editList.Add(new PlacedFurniture { Name = item.Name, Sprite = item.Sprite, GridX = cell.Value.x, GridY = cell.Value.y, GridW = w, GridD = d });
+        }
         Placements = new List<PlacedFurniture>(_editList);
         Select(_editList.Count - 1);
         RefreshStored();
@@ -344,22 +437,20 @@ public partial class DashboardViewModel : ObservableObject
     public void OnCellTapped(int gx, int gy)
     {
         if (!EditMode) return;
-        int hit = _editList.FindIndex(p => gx >= p.GridX && gx < p.GridX + p.GridW && gy >= p.GridY && gy < p.GridY + p.GridD);
-        if (MoveMode)
-        {
-            // Moviendo: tap en celda = intento de mover ahí (no se cambia la selección a mitad).
-            if (hit < 0 || hit == _selectedIndex) MoveSelected(gx, gy);
-            return;
-        }
-        if (hit >= 0 && hit == _selectedIndex) { Deselect(); return; }           // re-tap → deseleccionar
-        if (hit >= 0) { Select(hit); return; }                                    // tocar mueble → seleccionar
-        if (_selectedIndex >= 0) MoveSelected(gx, gy);                            // celda vacía con selección → mover
+        // Piso primero; si no hay, un colgado en esa celda de riel exacta.
+        int hit = _editList.FindIndex(p => !p.OnWall && gx >= p.GridX && gx < p.GridX + p.GridW && gy >= p.GridY && gy < p.GridY + p.GridD);
+        if (hit < 0) hit = _editList.FindIndex(p => p.OnWall && p.GridX == gx && p.GridY == gy);
+        if (hit >= 0 && hit == _selectedIndex) { Deselect(); return; }  // re-tap → deseleccionar
+        if (hit >= 0) { Select(hit); return; }                          // tocar otro objeto → cambiar selección
+        if (_selectedIndex >= 0) MoveSelected(gx, gy);                  // celda libre con selección → mover ahí
     }
 
     private void Select(int i)
     {
         _selectedIndex = i;
-        SelectedCell = (_editList[i].GridX, _editList[i].GridY);
+        var p = _editList[i];
+        _moveBackup = (p.GridX, p.GridY, p.Sprite, p.GridW, p.GridD); // para ✕ (revertir)
+        SelectedCell = (p.GridX, p.GridY, p.OnWall);
         HasSelection = true;
         OnPropertyChanged(nameof(SelectedCell));
         OnPropertyChanged(nameof(CanRotateSelected));
@@ -374,9 +465,33 @@ public partial class DashboardViewModel : ObservableObject
         OnPropertyChanged(nameof(CanRotateSelected));
     }
 
+    // La página lo suscribe al FlashInvalid del diorama (rombo rojo de rechazo, además del Toast).
+    public event Action<int, int, int, int>? InvalidMove;
+
     private void MoveSelected(int gx, int gy)
     {
         var p = _editList[_selectedIndex];
+        if (p.OnWall)
+        {
+            // Colgado: solo celdas de riel (bordes traseros); la pared destino fija la vista.
+            int wx = Math.Clamp(gx, 0, 5), wy = Math.Clamp(gy, 0, 5);
+            if (!GameDataService.CanPlaceWall(_editList, wx, wy, ignore: p))
+            {
+                var wmsg = GameDataService.IsRailCell(wx, wy)
+                    ? L.T("Ahí ya hay otro objeto colgado.")
+                    : L.T("Los objetos de pared van en las paredes del fondo.");
+                _ = Toast.Make(wmsg).Show();
+                InvalidMove?.Invoke(wx, wy, 1, 1);
+                return;
+            }
+            p.GridX = wx;
+            p.GridY = wy;
+            p.Sprite = GameDataService.WallView(p.Sprite, wx, wy);
+            SelectedCell = (wx, wy, true);
+            OnPropertyChanged(nameof(SelectedCell));
+            Placements = new List<PlacedFurniture>(_editList);
+            return;
+        }
         int nx = Math.Clamp(gx, 0, 6 - p.GridW), ny = Math.Clamp(gy, 0, 6 - p.GridD);
         if (!GameDataService.CanPlace(_editList, nx, ny, p.GridW, p.GridD, ignore: p))
         {
@@ -388,24 +503,39 @@ public partial class DashboardViewModel : ObservableObject
                 ? L.T("Ahí vive tu mascota: no puedes poner nada encima.")
                 : L.T("Ahí ya hay otro mueble.");
             _ = Toast.Make(msg).Show();
+            InvalidMove?.Invoke(nx, ny, p.GridW, p.GridD);
             return;
         }
         p.GridX = nx;
         p.GridY = ny;
-        SelectedCell = (p.GridX, p.GridY);
+        SelectedCell = (p.GridX, p.GridY, false);
         OnPropertyChanged(nameof(SelectedCell));
         Placements = new List<PlacedFurniture>(_editList); // nueva ref → el diorama repinta
     }
 
-    // Rotar no aplica a sprites de una sola vista (planta, cactus…): se oculta el botón.
-    public bool CanRotateSelected => _selectedIndex >= 0 && NextView(_editList[_selectedIndex].Sprite) != _editList[_selectedIndex].Sprite;
+    // Rotar no aplica a sprites de una sola vista (planta, cactus…) ni a colgados (la pared fija la vista).
+    public bool CanRotateSelected => _selectedIndex >= 0 && !_editList[_selectedIndex].OnWall
+        && NextView(_editList[_selectedIndex].Sprite) != _editList[_selectedIndex].Sprite;
 
     [RelayCommand]
     private void RotateSelected()
     {
         if (_selectedIndex < 0) return;
         var p = _editList[_selectedIndex];
-        p.Sprite = NextView(p.Sprite);
+        var ns = NextView(p.Sprite);
+        if (ns == p.Sprite) return;
+        // Girar entre vistas _l/_r = orientación perpendicular: la huella W×D se intercambia
+        // (no-op en huellas cuadradas). Si girado no cabe, se avisa y no se rota.
+        int nw = p.GridD, nd = p.GridW;
+        if (!GameDataService.CanPlace(_editList, p.GridX, p.GridY, nw, nd, ignore: p))
+        {
+            _ = Toast.Make(L.T("No cabe girado ahí: muévelo primero.")).Show();
+            InvalidMove?.Invoke(p.GridX, p.GridY, nw, nd);
+            return;
+        }
+        p.Sprite = ns;
+        p.GridW = nw;
+        p.GridD = nd;
         Placements = new List<PlacedFurniture>(_editList);
     }
 
@@ -529,6 +659,14 @@ public partial class DashboardViewModel : ObservableObject
                 if (_lastSeenXp >= 0 && CurrentPet.TotalXp > _lastSeenXp)
                     CelebrateXp?.Invoke();
                 _lastSeenXp = CurrentPet.TotalXp;
+
+                // T31-4: contador animado del oro (solo cuando cambia respecto a lo último visto).
+                int gold = CurrentPet.GoldCoins;
+                if (_lastSeenGold >= 0 && gold != _lastSeenGold)
+                    _ = Anim.CountAsync(_lastSeenGold, gold, v => GoldDisplay = v);
+                else
+                    GoldDisplay = gold;
+                _lastSeenGold = gold;
 
                 CheckEvolutionCelebration();
             }
@@ -689,10 +827,16 @@ public partial class DashboardViewModel : ObservableObject
     private static readonly string[] DefaultRitualLabels =
         { "Hacer Cama", "Beber Agua", "Estirar", "Leer 5min", "Meditar", "Limpiar", "Vitaminas", "Planificar", "Agradecer" };
 
+    // T31-5: la página escucha estos eventos para celebrar (pop de celda / destello de línea).
+    // Solo la acción del usuario dispara el pop — la carga desde el server entra en silencio.
+    public event Action<int>? RitualCellPopped;
+    public event Action<int[]>? RitualLineCompleted;
+
     private async Task ToggleRitual(int index)
     {
         if (RitualRenameMode) { RenameCell(index); return; }
         RitualCells[index].IsCompleted = !RitualCells[index].IsCompleted; // especulativo (respuesta UI)
+        if (RitualCells[index].IsCompleted) RitualCellPopped?.Invoke(index);
         try
         {
             var userId = _gameDataService.CurrentUser.Id;
@@ -702,7 +846,7 @@ public partial class DashboardViewModel : ObservableObject
             if (response.IsSuccessStatusCode)
             {
                 var stateStr = await response.Content.ReadAsStringAsync();
-                UpdateRitualGrid(stateStr);
+                UpdateRitualGrid(stateStr, celebrate: true); // acción del usuario → puede celebrar línea
             }
         }
         catch (Exception ex)
@@ -711,7 +855,8 @@ public partial class DashboardViewModel : ObservableObject
         }
     }
 
-    private void UpdateRitualGrid(string stateStr)
+    // celebrate=false en cargas (página/refresh): solo el toggle del usuario celebra la línea.
+    private void UpdateRitualGrid(string stateStr, bool celebrate = false)
     {
         // Parseo defensivo (mismo criterio que el server): basura → celda apagada.
         var parts = stateStr.Split(',');
@@ -727,14 +872,25 @@ public partial class DashboardViewModel : ObservableObject
         // Check Buff (Simulated logic or fetch user again? API returns state string. Win logic checked on server.)
         // Ideally API returns user object or we derive win locally for UI speed.
         // Let's derive win locally for UI feedback.
-        IsXpBuffActive = CheckWin(state);
+        // T31-5: celebrar SOLO la transición sin-línea → línea, y solo por acción del usuario.
+        bool wasActive = IsXpBuffActive;
+        var line = WinLine(state);
+        IsXpBuffActive = line != null;
+        if (celebrate && !wasActive && line != null) RitualLineCompleted?.Invoke(line);
     }
-    
-    private bool CheckWin(int[] s)
+
+    private bool CheckWin(int[] s) => WinLine(s) != null;
+
+    // T31-5: devuelve la primera línea completa (índices) o null — la celebración necesita saber CUÁL.
+    private static int[]? WinLine(int[] s)
     {
-         return (s[0]==1 && s[1]==1 && s[2]==1) || (s[3]==1 && s[4]==1 && s[5]==1) || (s[6]==1 && s[7]==1 && s[8]==1) || // Rows
-                (s[0]==1 && s[3]==1 && s[6]==1) || (s[1]==1 && s[4]==1 && s[7]==1) || (s[2]==1 && s[5]==1 && s[8]==1) || // Cols
-                (s[0]==1 && s[4]==1 && s[8]==1) || (s[2]==1 && s[4]==1 && s[6]==1);        // Diags
+        int[][] lines =
+        {
+            new[]{0,1,2}, new[]{3,4,5}, new[]{6,7,8},   // filas
+            new[]{0,3,6}, new[]{1,4,7}, new[]{2,5,8},   // columnas
+            new[]{0,4,8}, new[]{2,4,6}                  // diagonales
+        };
+        return lines.FirstOrDefault(l => l.All(i => s[i] == 1));
     }
 
     private void InitializeRitualGrid()

@@ -92,6 +92,14 @@
                         Style="{StaticResource BtnAccent}" HeightRequest="46" Margin="0,8,0,0" />
             </VerticalStackLayout>
         </Border>
+
+        <!-- T31-4: números flotantes — el +XP/+Oro también "vuela" sobre la tarjeta -->
+        <Label x:Name="FloatXp" IsVisible="False" InputTransparent="True" Text=""
+               FontSize="22" FontAttributes="Bold" TextColor="{StaticResource AccentPink}"
+               HorizontalOptions="Center" VerticalOptions="Center" TranslationX="-60" Margin="0,0,0,190"/>
+        <Label x:Name="FloatGold" IsVisible="False" InputTransparent="True" Text=""
+               FontSize="22" FontAttributes="Bold" TextColor="{StaticResource Gold}"
+               HorizontalOptions="Center" VerticalOptions="Center" TranslationX="60" Margin="0,0,0,190"/>
     </Grid>
     </Grid>
 </ContentPage>

@@ -82,5 +82,9 @@
 
             </VerticalStackLayout>
         </ScrollView>
+
+        <!-- T31-2: tarjeta de primera visita -->
+        <ctrl:InfoOverlay ZIndex="113" IsOpen="{Binding ShowInfo}"
+                          HeaderText="{Binding InfoTitle}" Body="{Binding InfoBody}"/>
     </Grid>
 </ContentPage>

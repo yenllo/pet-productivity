@@ -11,17 +11,18 @@ public partial class TaskPage : ContentPage
 		InitializeComponent();
 		BindingContext = _vm = viewModel;
 
-		// #20: "pop" de la tarjeta de celebración al aparecer.
+		// #20: "pop" de la tarjeta de celebración al aparecer (T31: factorizado en Anim)
+		// + números flotantes de +XP/+Oro (T31-4).
 		_vm.PropertyChanged += async (_, e) =>
 		{
 			if (e.PropertyName == nameof(TaskViewModel.ShowCelebration) && _vm.ShowCelebration)
 			{
-				CelebCard.Scale = 0.7;
-				CelebCard.Opacity = 0;
-				await Task.WhenAll(
-					CelebCard.FadeTo(1, 150),
-					CelebCard.ScaleTo(1.06, 180, Easing.CubicOut));
-				await CelebCard.ScaleTo(1, 120, Easing.CubicIn);
+				await Services.Anim.PopAsync(CelebCard);
+				FloatXp.Text = _vm.CelebXp;
+				FloatGold.Text = _vm.CelebGold;
+				_ = Services.Anim.FloatUpAsync(FloatXp);
+				await Task.Delay(120);
+				_ = Services.Anim.FloatUpAsync(FloatGold);
 			}
 		};
 	}

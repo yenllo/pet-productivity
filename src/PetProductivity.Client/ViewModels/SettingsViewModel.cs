@@ -260,6 +260,14 @@ namespace PetProductivity.Client.ViewModels
                 L.T("Muebles del cuarto: Bongseng (bongseng.itch.io).\n\nHecho con .NET MAUI, ASP.NET Core y Google Gemini."),
                 "OK");
 
+        // T31-2: reabre el tutorial — limpia las flags y va a Mascota (el onboarding salta solo).
+        [RelayCommand]
+        private async Task HowToPlay()
+        {
+            Onboarding.ResetAll();
+            await Shell.Current.GoToAsync("//App/MascotaPage");
+        }
+
         // T14-C1: la política vive en el server (misma URL que verá Play Console).
         [RelayCommand]
         private async Task OpenPrivacyPolicy()

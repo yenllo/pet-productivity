@@ -129,6 +129,13 @@
                         <Label Grid.Column="1" Text="{loc:T '1.0'}" TextColor="{StaticResource Ink3}" FontSize="13" VerticalOptions="Center" />
                     </Grid>
                     <BoxView HeightRequest="1" Color="{StaticResource StrokeSoft}" />
+                    <!-- T31-2: reabre el tutorial de primera vez -->
+                    <Grid ColumnDefinitions="*,Auto" Padding="15,12">
+                        <Grid.GestureRecognizers><TapGestureRecognizer Command="{Binding HowToPlayCommand}"/></Grid.GestureRecognizers>
+                        <Label Text="{loc:T '¿Cómo se juega?'}" TextColor="{StaticResource Ink}" FontSize="14.5" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="{loc:T '›'}" TextColor="{StaticResource Ink4}" FontSize="18" VerticalOptions="Center" />
+                    </Grid>
+                    <BoxView HeightRequest="1" Color="{StaticResource StrokeSoft}" />
                     <Grid ColumnDefinitions="*,Auto" Padding="15,12">
                         <Grid.GestureRecognizers><TapGestureRecognizer Command="{Binding OpenCreditsCommand}"/></Grid.GestureRecognizers>
                         <Label Text="{loc:T 'Créditos'}" TextColor="{StaticResource Ink}" FontSize="14.5" VerticalOptions="Center" />

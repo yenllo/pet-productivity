@@ -15,6 +15,10 @@ public partial class ShopPage : ContentPage
         base.OnAppearing();
         // No bloquear el render en la red: los datos llegan en segundo plano y los bindings actualizan.
         if (BindingContext is ShopViewModel vm)
+        {
             _ = vm.InitializeAsync();
+            // T31-2: primera visita — cómo funciona la tienda.
+            if (Services.Onboarding.Pending("Shop")) { vm.ShowOnboardCard(); Services.Onboarding.MarkSeen("Shop"); }
+        }
     }
 }
