@@ -470,7 +470,17 @@ public class GameDataService
         var current = CurrentUser.PlacedFurniture;
         // Primera compra: parte del cuarto por defecto para no perderlo.
         var placed = (current == null || current.Count == 0) ? SeedPlacements() : new List<PlacedFurniture>(current);
-        var (w, d) = FootprintFor(item.SpriteId);
+        if (item.Slot == "wall")
+        {
+            var wc = FindFreeWallCell(placed);
+            if (wc == null) return false; // rieles de pared llenos → queda en Guardados
+            placed.Add(new PlacedFurniture { Name = item.Name, Sprite = WallView(item.SpriteId, wc.Value.x, wc.Value.y),
+                                             GridX = wc.Value.x, GridY = wc.Value.y, OnWall = true });
+            await SavePlacementsAsync(placed);
+            return true;
+        }
+        var (w, d) = (item.GridW, item.GridD);
+        if (w == 1 && d == 1) (w, d) = FootprintFor(item.SpriteId); // ponytail: fallback legado (catálogo sin footprint)
         var cell = FindFreeCell(placed, w, d);
         if (cell == null) return false; // sin espacio libre
         placed.Add(new PlacedFurniture { Name = item.Name, Sprite = item.SpriteId, GridX = cell.Value.x, GridY = cell.Value.y, GridW = w, GridD = d });
@@ -495,7 +505,7 @@ public class GameDataService
         if (OverlapsPetTile(x, y, w, d)) return false;
         foreach (var p in placed)
         {
-            if (ReferenceEquals(p, ignore)) continue;
+            if (ReferenceEquals(p, ignore) || p.OnWall) continue; // lo colgado no ocupa piso
             if (x < p.GridX + p.GridW && p.GridX < x + w && y < p.GridY + p.GridD && p.GridY < y + d)
                 return false;
         }
@@ -509,6 +519,35 @@ public class GameDataService
         for (int y = 0; y <= N - d; y++)
             for (int x = 0; x <= N - w; x++)
                 if (CanPlace(placed, x, y, w, d)) return (x, y);
+        return null;
+    }
+
+    // ---- Objetos de pared (slot "wall"): viven colgados en las celdas de borde trasero ----
+    // Riel derecho = celdas (i,0) con vista _l; riel izquierdo = (0,j) con vista _r. La esquina (0,0)
+    // pertenece al derecho (y==0 gana). No ocupan piso: un sofá puede ir delante de un cuadro.
+    public static bool IsRailCell(int x, int y) => x == 0 || y == 0;
+
+    // La pared fija la vista del sprite; sin sufijo _l/_r (cortinas/ventanas simétricas) se deja intacto.
+    public static string WallView(string sprite, int x, int y)
+    {
+        if (!sprite.EndsWith("_l") && !sprite.EndsWith("_r")) return sprite;
+        return sprite[..^2] + (y == 0 ? "_l" : "_r");
+    }
+
+    public static bool CanPlaceWall(IReadOnlyList<PlacedFurniture> placed, int x, int y, PlacedFurniture? ignore = null)
+    {
+        if (x is < 0 or > 5 || y is < 0 or > 5 || !IsRailCell(x, y)) return false;
+        foreach (var p in placed) // ponytail: chequeo lineal, son ≤64 objetos
+            if (!ReferenceEquals(p, ignore) && p.OnWall && p.GridX == x && p.GridY == y) return false;
+        return true;
+    }
+
+    public static (int x, int y)? FindFreeWallCell(IReadOnlyList<PlacedFurniture> placed)
+    {
+        // La esquina (0,0) queda al final: colgar justo en el vértice de las dos paredes se ve raro.
+        for (int x = 1; x < 6; x++) if (CanPlaceWall(placed, x, 0)) return (x, 0);
+        for (int y = 1; y < 6; y++) if (CanPlaceWall(placed, 0, y)) return (0, y);
+        if (CanPlaceWall(placed, 0, 0)) return (0, 0);
         return null;
     }
 

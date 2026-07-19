@@ -85,8 +85,9 @@ public class RoomDiorama : SKCanvasView
         set => SetValue(EditModeProperty, value);
     }
 
-    // Celda resaltada en modo edición (mueble seleccionado). null = ninguna.
-    public (int X, int Y)? Highlight { get; set; }
+    // Celda resaltada en modo edición (mueble seleccionado). null = ninguna. Wall = objeto colgado
+    // (piso y pared pueden compartir celda de borde, el flag desambigua a quién resaltar).
+    public (int X, int Y, bool Wall)? Highlight { get; set; }
 
     // ---------- La mascota vive DENTRO del lienzo (antes era una <Image> de XAML encima) ----------
     // Como <Image>, Android la escalaba con filtro bilineal y el pixel-art salía borroso (los sprites
@@ -122,6 +123,12 @@ public class RoomDiorama : SKCanvasView
 
     /// <summary>T5-D: saltitos de celebración al ganar XP (los dispara el Dashboard).</summary>
     public void Celebrate() => _celebrateUntil = _t + 1.2f;
+
+    // Rechazo de movimiento en modo edición: rombo rojo fugaz sobre la celda destino (complementa el Toast).
+    (int X, int Y, int W, int D) _invalidRect;
+    float _invalidUntil = -1;
+    public void FlashInvalid(int x, int y, int w, int d)
+    { _invalidRect = (x, y, w, d); _invalidUntil = _t + 0.4f; InvalidateSurface(); }
 
     void EnsurePetSprite()
     {
@@ -207,7 +214,9 @@ public class RoomDiorama : SKCanvasView
         var placed = Placements;
         if (placed != null && placed.Count > 0)
         {
-            foreach (var p in placed)
+            // Los colgados (OnWall) NO entran a la grilla de piso: si ocuparan la celda, el mueble de piso
+            // legítimo en esa misma celda dejaría de dibujarse (TryPlace falla en silencio).
+            foreach (var p in placed.Where(p => !p.OnWall))
                 _grid.TryPlace(new FurnitureDef(p.Sprite, Math.Max(1, p.GridW), Math.Max(1, p.GridD), p.Sprite), p.GridX, p.GridY);
             return;
         }
@@ -268,14 +277,14 @@ public class RoomDiorama : SKCanvasView
         return gx >= 0 && gy >= 0 && gx < RoomWidth && gy < RoomDepth;
     }
 
-    // Dibuja el rombo del piso celda por celda (guía tenue) en modo edición.
+    // Dibuja el rombo del piso celda por celda (guía clara) en modo edición.
     void DrawEditGrid(SKCanvas canvas, Func<float, float, SKPoint> iso)
     {
-        using var line = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, 34), StrokeWidth = 1, Style = SKPaintStyle.Stroke };
+        using var line = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, 80), StrokeWidth = Math.Max(1f, 1.6f * _lastScale), Style = SKPaintStyle.Stroke };
         for (int i = 0; i <= RoomWidth; i++) canvas.DrawLine(iso(i, 0), iso(i, RoomDepth), line);
         for (int j = 0; j <= RoomDepth; j++) canvas.DrawLine(iso(0, j), iso(RoomWidth, j), line);
         // Celda (3,3) reservada a la mascota: tinte rosado para que se entienda por qué bloquea.
-        using var pet = new SKPaint { IsAntialias = true, Color = new SKColor(0xFF, 0x5F, 0x8F, 42) };
+        using var pet = new SKPaint { IsAntialias = true, Color = new SKColor(0xFF, 0x5F, 0x8F, 60) };
         using var petPath = Quad(iso(3, 3), iso(4, 3), iso(4, 4), iso(3, 4));
         canvas.DrawPath(petPath, pet);
     }
@@ -283,6 +292,8 @@ public class RoomDiorama : SKCanvasView
     static readonly SKSamplingOptions RoomSampling = new(SKFilterMode.Linear, SKMipmapMode.Linear);
     // Muebles = pixel-art Bongseng escalado ~2x; nearest mantiene el borde nítido (linear los emborrona).
     static readonly SKSamplingOptions PixelSampling = new(SKFilterMode.Nearest, SKMipmapMode.None);
+    // Objeto seleccionado en modo edición: semitransparente para ver la grilla/huella debajo.
+    static readonly SKPaint GhostPaint = new() { Color = SKColors.White.WithAlpha(150) };
 
     // ---------- Bucle de animación (un solo timer mueve todo el escenario) ----------
     // ponytail: ~25fps con blur ligero; si pesa en gama baja, subir intervalo o quitar partículas.
@@ -471,6 +482,9 @@ public class RoomDiorama : SKCanvasView
     // ---------- Cuarto = fondo único (room_bg) + muebles por grilla (ROOM_PIECE_SPEC.md) ----------
     // Diseño del lienzo de la pieza: 1024x1024, iso 2:1, 6x6 tiles, vértice trasero en (512,330).
     const float DESIGN = 1024f, T_W = 150f, T_H = 75f, O_X = 512f, O_Y = 330f;
+    // Altura del muro en px de diseño (ROOM_PIECE_SPEC). Los colgados se centran verticalmente en él:
+    // así un sprite alto no sobresale por encima de la pared y uno bajito queda a media pared.
+    const float WALL_H = 300f;
 
     void PaintModularRoom(SKCanvas canvas, SKImageInfo info)
     {
@@ -509,8 +523,43 @@ public class RoomDiorama : SKCanvasView
 
         // Modo edición: grilla del piso bajo los muebles.
         if (EditMode) DrawEditGrid(canvas, Iso);
+        if (EditMode && _t < _invalidUntil)
+        {
+            using var bad = new SKPaint { IsAntialias = true, Color = new SKColor(0xFF, 0x5A, 0x5A, 90) };
+            using var badPath = Quad(Iso(_invalidRect.X, _invalidRect.Y), Iso(_invalidRect.X + _invalidRect.W, _invalidRect.Y),
+                                     Iso(_invalidRect.X + _invalidRect.W, _invalidRect.Y + _invalidRect.D), Iso(_invalidRect.X, _invalidRect.Y + _invalidRect.D));
+            canvas.DrawPath(badPath, bad);
+        }
 
-        // 2) Muebles (back-to-front), anclados por borde inferior-centro al centro de su footprint.
+        // 1.5) Objetos colgados (OnWall): en las 2 paredes traseras, siempre detrás de todo el piso.
+        // No pasan por RoomGrid (no ocupan celdas): se dibujan directo de Placements, anclados al centro
+        // del borde trasero de su celda de riel y elevados WALL_LIFT sobre la base del muro.
+        if (Placements is { } pls)
+            foreach (var wp in pls)
+            {
+                if (!wp.OnWall) continue;
+                var ws = RoomSprites.Get(wp.Sprite);
+                if (ws == null) continue;
+                bool right = wp.GridY == 0; // riel derecho = celdas (i,0); la esquina (0,0) es suya
+                var bp = right ? Iso(wp.GridX + 0.5f, 0f) : Iso(0f, wp.GridY + 0.5f);
+                float wW = T_W * ModFor(wp.Sprite) * scale;
+                float wH = wW * ws.Height / ws.Width;
+                float lift = Math.Max(0f, (WALL_H * scale - wH) / 2f); // centrado vertical en el muro
+                float bottom = bp.Y - lift;
+                bool wallSel = EditMode && Highlight is { Wall: true } wh && wh.X == wp.GridX && wh.Y == wp.GridY;
+                if (wallSel)
+                {
+                    // Rombo en su celda de riel: la referencia que mueven el pad y el tap.
+                    using var fp = new SKPaint { IsAntialias = true, Color = new SKColor(0x3D, 0xDC, 0x97, 88) };
+                    using var fpPath = Quad(Iso(wp.GridX, wp.GridY), Iso(wp.GridX + 1, wp.GridY),
+                                            Iso(wp.GridX + 1, wp.GridY + 1), Iso(wp.GridX, wp.GridY + 1));
+                    canvas.DrawPath(fpPath, fp);
+                }
+                canvas.DrawImage(ws, new SKRect(bp.X - wW / 2f, bottom - wH, bp.X + wW / 2f, bottom),
+                                 PixelSampling, wallSel ? GhostPaint : null);
+            }
+
+        // 2) Muebles (back-to-front), anclados por borde inferior-centro al vértice frontal de su footprint.
         // El orden de dibujo depende solo de las posiciones, que no cambian entre frames: se ordena
         // una vez por cambio de grilla, no 25 veces por segundo.
         // La MASCOTA entra en este mismo orden por profundidad (está en la baldosa 3,3): así un mueble
@@ -525,23 +574,28 @@ public class RoomDiorama : SKCanvasView
 
                 var sprite = RoomSprites.Get(pl.Def.SpriteName);
                 if (sprite == null) continue;
-                var basePt = Iso(pl.GridX + pl.Def.GridW / 2f, pl.GridY + pl.Def.GridD / 2f);
+                // Ancla: X centrada en el footprint, base en el vértice FRONTAL del rombo — así la huella
+                // queda debajo del mueble en vez de asomar por delante de sus pies.
+                var centerPt = Iso(pl.GridX + pl.Def.GridW / 2f, pl.GridY + pl.Def.GridD / 2f);
+                float frontY = Iso(pl.GridX + pl.Def.GridW, pl.GridY + pl.Def.GridD).Y;
                 float mod = ModFor(pl.Def.SpriteName);
-                float wScr = T_W * pl.Def.GridW * mod * scale;
+                // Ancho en pantalla de una huella iso W×D ∝ (W+D)/2 (para 1×1 y 2×2 da lo mismo que antes;
+                // permite huellas rectangulares [2,1] sin que se dibujen tan anchas como una 2×2).
+                float wScr = T_W * (pl.Def.GridW + pl.Def.GridD) / 2f * mod * scale;
                 float hScr = wScr * sprite.Height / sprite.Width;
                 if (pl.Def.GridW == 1 && pl.Def.GridD == 1)
-                    SoftShadow(canvas, basePt.X, basePt.Y, wScr * 0.30f, hScr * 0.06f, 70, 6);
-                if (EditMode && Highlight is { } hi && hi.X == pl.GridX && hi.Y == pl.GridY)
+                    SoftShadow(canvas, centerPt.X, centerPt.Y, wScr * 0.30f, hScr * 0.06f, 70, 6);
+                bool selected = EditMode && Highlight is { Wall: false } hi && hi.X == pl.GridX && hi.Y == pl.GridY;
+                if (selected)
                 {
-                    // Footprint WxD completo en el piso (se ve cuánto espacio ocupa) + tinte suave del sprite.
-                    using (var fp = new SKPaint { IsAntialias = true, Color = new SKColor(0x3D, 0xDC, 0x97, 88) })
-                    using (var fpPath = Quad(Iso(pl.GridX, pl.GridY), Iso(pl.GridX + pl.Def.GridW, pl.GridY),
-                                             Iso(pl.GridX + pl.Def.GridW, pl.GridY + pl.Def.GridD), Iso(pl.GridX, pl.GridY + pl.Def.GridD)))
-                        canvas.DrawPath(fpPath, fp);
-                    using (var sel = new SKPaint { IsAntialias = true, Color = new SKColor(0x3D, 0xDC, 0x97, 45) })
-                        canvas.DrawRoundRect(basePt.X - wScr / 2f, basePt.Y - hScr, wScr, hScr, 8, 8, sel);
+                    // Footprint WxD completo en el piso: ESTA es la huella real que ocupa el mueble.
+                    using var fp = new SKPaint { IsAntialias = true, Color = new SKColor(0x3D, 0xDC, 0x97, 88) };
+                    using var fpPath = Quad(Iso(pl.GridX, pl.GridY), Iso(pl.GridX + pl.Def.GridW, pl.GridY),
+                                            Iso(pl.GridX + pl.Def.GridW, pl.GridY + pl.Def.GridD), Iso(pl.GridX, pl.GridY + pl.Def.GridD));
+                    canvas.DrawPath(fpPath, fp);
                 }
-                canvas.DrawImage(sprite, new SKRect(basePt.X - wScr / 2f, basePt.Y - hScr, basePt.X + wScr / 2f, basePt.Y), PixelSampling);
+                canvas.DrawImage(sprite, new SKRect(centerPt.X - wScr / 2f, frontY - hScr, centerPt.X + wScr / 2f, frontY),
+                                 PixelSampling, selected ? GhostPaint : null);
             }
 
         // 3) Si no había ningún mueble por delante, la mascota va aquí (encima de todo lo de atrás).

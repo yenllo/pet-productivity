@@ -10,4 +10,6 @@ public class PlacedFurniture
     public int GridY { get; set; }
     public int GridW { get; set; } = 1;
     public int GridD { get; set; } = 1;
+    // true = colgado en un riel de pared (celda de borde trasero); no ocupa piso. JSON viejo → false.
+    public bool OnWall { get; set; }
 }

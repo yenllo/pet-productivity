@@ -39,6 +39,9 @@ public static class CatalogLoader
                     Source = info.Source ?? "",
                     Effect = info.Effect ?? "",
                     EffectValue = info.EffectValue,
+                    GridW = info.Footprint is { Length: 2 } ? Math.Max(1, info.Footprint[0]) : 1,
+                    GridD = info.Footprint is { Length: 2 } ? Math.Max(1, info.Footprint[1]) : 1,
+                    Slot = info.Slot ?? "",
                 });
             }
             catch { /* info.json inválido → se omite ese objeto */ }
@@ -62,5 +65,7 @@ public static class CatalogLoader
         public string? Source { get; set; }
         public string? Effect { get; set; }
         public int EffectValue { get; set; }
+        public int[]? Footprint { get; set; }   // [w,d] en celdas de la vista por defecto (_l); ausente = 1×1
+        public string? Slot { get; set; }        // "wall" = va colgado en las paredes traseras; ausente = piso
     }
 }

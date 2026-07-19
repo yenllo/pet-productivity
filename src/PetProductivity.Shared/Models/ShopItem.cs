@@ -32,4 +32,11 @@ public class ShopItem
     // añadir un consumible nuevo = declarar su efecto en el info.json, no tocar C#.
     public string Effect { get; set; } = string.Empty;
     public int EffectValue { get; set; }
+
+    // --- Colocación en el cuarto (info.json "footprint"/"slot"; aditivos, server viejo → defaults) ---
+    // Huella W×D en celdas, en la orientación de la vista por defecto (_l). 1×1 si no se declara.
+    public int GridW { get; set; } = 1;
+    public int GridD { get; set; } = 1;
+    // "wall" = se cuelga en las 2 paredes traseras del cuarto; vacío = objeto de piso.
+    public string Slot { get; set; } = string.Empty;
 }
