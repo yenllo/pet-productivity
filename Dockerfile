@@ -1,6 +1,10 @@
 # Learn about building .NET container images:
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/README.md
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+#
+# --platform=linux/amd64 fijo: los dynos de Heroku son amd64. Sin esto, algunos hosts de build
+# resuelven la imagen multi-arch a la arquitectura del propio host de build → binarios ARM64
+# corriendo en un dyno amd64, que segfaultean (exit 139) hasta en /bin/sh.
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /source
 
 # Copy project file(s) and restore dependencies
@@ -20,9 +24,10 @@ WORKDIR /source/src/PetProductivity.Server
 RUN dotnet publish -c Release -o /app/publish
 
 # Build the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# DEBUG TEMPORAL: aislar si el contenedor muere por infraestructura o por dotnet.
-ENTRYPOINT ["/bin/sh", "-c", "echo BOOT_TEST_MARKER; sleep 60; echo BOOT_TEST_STILL_ALIVE"]
+# Escucha en $PORT si el host lo define en runtime (Heroku: puerto dinámico por dyno),
+# y cae al 8080 por defecto (Render / local: puerto fijo de la imagen aspnet).
+ENTRYPOINT ["/bin/sh", "-c", "ASPNETCORE_HTTP_PORTS=${PORT:-8080} exec dotnet PetProductivity.Server.dll"]
