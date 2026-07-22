@@ -28,6 +28,5 @@ FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Escucha en $PORT si el host lo define en runtime (Heroku: puerto dinámico por dyno),
-# y cae al 8080 por defecto (Render / local: puerto fijo de la imagen aspnet).
-ENTRYPOINT ["/bin/sh", "-c", "ASPNETCORE_HTTP_PORTS=${PORT:-8080} exec dotnet PetProductivity.Server.dll"]
+# DEBUG TEMPORAL: diagnóstico completo en un solo ciclo.
+ENTRYPOINT ["/bin/sh", "-c", "echo DBG_A_sh_ok; uname -m; dotnet --info; echo DBG_B_launching; ASPNETCORE_HTTP_PORTS=${PORT:-8080} dotnet PetProductivity.Server.dll & PID=$!; sleep 5; kill -0 $PID 2>/dev/null && echo DBG_C_alive_after_5s || echo DBG_C_dead_after_5s; wait $PID; echo DBG_D_exitcode=$?; sleep 25"]
