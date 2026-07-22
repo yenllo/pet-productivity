@@ -7,7 +7,7 @@
              x:Class="PetProductivity.Client.Controls.InfoOverlay"
              IsVisible="False">
     <Grid>
-        <BoxView Color="#CC0A0616">
+        <BoxView Color="{DynamicResource Scrim}">
             <BoxView.GestureRecognizers><TapGestureRecognizer Tapped="OnDismiss"/></BoxView.GestureRecognizers>
         </BoxView>
         <Border x:Name="Card" Style="{StaticResource Card}" Stroke="#59FF5F8F" StrokeThickness="2"

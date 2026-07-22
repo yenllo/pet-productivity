@@ -49,6 +49,8 @@
     <Color x:Key="MokoBg3">#FF241650</Color>
     <Color x:Key="Glass">#0DFFFFFF</Color>
     <Color x:Key="Glass2">#16FFFFFF</Color>
+    <!-- T31: velo de overlays (modal). En claro lo baja ThemeService (35%) para no aplanar el fondo. -->
+    <Color x:Key="Scrim">#8C0A0616</Color>
     <Color x:Key="StrokeSoft">#10FFFFFF</Color>
     <Color x:Key="StrokeHard">#1AFFFFFF</Color>
 

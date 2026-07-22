@@ -68,7 +68,7 @@
     </Grid>
 
     <!-- T27-L3 (#20): overlay de celebración de recompensa (mismo patrón que los overlays de estado/ritual) -->
-    <Grid IsVisible="{Binding ShowCelebration}" BackgroundColor="#CC0A0616">
+    <Grid IsVisible="{Binding ShowCelebration}" BackgroundColor="{DynamicResource Scrim}">
         <Grid.GestureRecognizers>
             <TapGestureRecognizer Command="{Binding DismissCelebrationCommand}" />
         </Grid.GestureRecognizers>

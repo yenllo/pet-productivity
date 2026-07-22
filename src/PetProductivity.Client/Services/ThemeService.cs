@@ -18,6 +18,8 @@ public static class ThemeService
         ["Glass2"] = Color.FromArgb("#16221A3F"),
         ["StrokeSoft"] = Color.FromArgb("#1F221A3F"),
         ["StrokeHard"] = Color.FromArgb("#30221A3F"),
+        // T31: velo modal — 35% de tinta sobre fondo claro (el 55% oscuro aplanaba todo en gris).
+        ["Scrim"] = Color.FromArgb("#59221A3F"),
         // Tinta (oscura sobre claro)
         ["Ink"] = Color.FromArgb("#FF221A3F"),
         ["Ink2"] = Color.FromArgb("#FF453C6B"),
