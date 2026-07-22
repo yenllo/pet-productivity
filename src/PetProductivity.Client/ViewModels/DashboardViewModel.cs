@@ -437,13 +437,47 @@ public partial class DashboardViewModel : ObservableObject
     public void OnCellTapped(int gx, int gy)
     {
         if (!EditMode) return;
-        // Piso primero; si no hay, un colgado en esa celda de riel exacta.
-        int hit = _editList.FindIndex(p => !p.OnWall && gx >= p.GridX && gx < p.GridX + p.GridW && gy >= p.GridY && gy < p.GridY + p.GridD);
-        if (hit < 0) hit = _editList.FindIndex(p => p.OnWall && p.GridX == gx && p.GridY == gy);
+        int hit = HitTest(gx, gy);
         if (hit >= 0 && hit == _selectedIndex) { Deselect(); return; }  // re-tap → deseleccionar
         if (hit >= 0) { Select(hit); return; }                          // tocar otro objeto → cambiar selección
         if (_selectedIndex >= 0) MoveSelected(gx, gy);                  // celda libre con selección → mover ahí
     }
+
+    // Piso primero; si no hay, un colgado en esa celda de riel exacta.
+    private int HitTest(int gx, int gy)
+    {
+        int hit = _editList.FindIndex(p => !p.OnWall && gx >= p.GridX && gx < p.GridX + p.GridW && gy >= p.GridY && gy < p.GridY + p.GridD);
+        return hit >= 0 ? hit : _editList.FindIndex(p => p.OnWall && p.GridX == gx && p.GridY == gy);
+    }
+
+    // ---- Arrastre directo (imán a celda): el mueble sigue al dedo celda a celda ----
+    // El Select se difiere al PRIMER cruce de celda: si se hiciera en Pressed, el tap normal
+    // (press+release en la misma celda) llegaría a OnCellTapped con el objeto ya seleccionado
+    // y el toggle lo des-seleccionaría — se rompería "tap para seleccionar".
+    // Offset presión→ancla: una cama 2×2 agarrada por la esquina no salta al ancla.
+    private bool _dragging;
+    private int _dragHit = -1;
+    private (int X, int Y) _dragOffset;
+
+    public void OnDragStarted(int gx, int gy)
+    {
+        if (!EditMode) return;
+        _dragHit = HitTest(gx, gy); // -1 = celda vacía → no hay drag; el release cae al flujo tap
+        if (_dragHit < 0) return;
+        var p = _editList[_dragHit];
+        _dragOffset = (gx - p.GridX, gy - p.GridY);
+    }
+
+    public void OnDragMoved(int gx, int gy)
+    {
+        if (!EditMode || _dragHit < 0) return;
+        if (!_dragging) { _dragging = true; if (_dragHit != _selectedIndex) Select(_dragHit); }
+        // Silencioso: celda inválida = el mueble no avanza (sin Toast/flash por cada celda cruzada).
+        MoveSelected(gx - _dragOffset.X, gy - _dragOffset.Y);
+    }
+
+    // La selección se mantiene: el pad queda para ajuste fino/rotar/✓, igual que tras tap-destino.
+    public void OnDragEnded() { _dragging = false; _dragHit = -1; }
 
     private void Select(int i)
     {
@@ -477,6 +511,7 @@ public partial class DashboardViewModel : ObservableObject
             int wx = Math.Clamp(gx, 0, 5), wy = Math.Clamp(gy, 0, 5);
             if (!GameDataService.CanPlaceWall(_editList, wx, wy, ignore: p))
             {
+                if (_dragging) return; // drag: el objeto simplemente no avanza, sin regañar por celda
                 var wmsg = GameDataService.IsRailCell(wx, wy)
                     ? L.T("Ahí ya hay otro objeto colgado.")
                     : L.T("Los objetos de pared van en las paredes del fondo.");
@@ -495,6 +530,7 @@ public partial class DashboardViewModel : ObservableObject
         int nx = Math.Clamp(gx, 0, 6 - p.GridW), ny = Math.Clamp(gy, 0, 6 - p.GridD);
         if (!GameDataService.CanPlace(_editList, nx, ny, p.GridW, p.GridD, ignore: p))
         {
+            if (_dragging) return; // drag: sin Toast/flash por cada celda inválida cruzada
             // Antes fallaba en silencio: si chocaba con la celda de la mascota (3,3, sin ningún mueble
             // visible ahí) parecía un bug — "saqué al gato y seguía igual" (el gato es un mueble en OTRA
             // celda; lo que bloquea es la mascota misma, invisible en la lista de muebles). Un solo aviso

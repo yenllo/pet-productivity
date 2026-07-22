@@ -10,6 +10,20 @@ public partial class DashboardPage : ContentPage
 		BindingContext = viewModel;
 		RoomCanvas.FrameTick += OnFrameTick;
 		SandboxCanvas.CellTapped += OnCellTapped;
+		// Arrastre directo: el mueble sigue al dedo con imán a celda (el D-pad queda para ajuste fino).
+		SandboxCanvas.DragStarted += (gx, gy) =>
+		{
+			viewModel.OnDragStarted(gx, gy);
+			SandboxCanvas.Highlight = viewModel.SelectedCell;
+			SandboxCanvas.InvalidateSurface();
+		};
+		SandboxCanvas.DragMoved += (gx, gy) =>
+		{
+			viewModel.OnDragMoved(gx, gy);
+			SandboxCanvas.Highlight = viewModel.SelectedCell;
+			SandboxCanvas.InvalidateSurface();
+		};
+		SandboxCanvas.DragEnded += viewModel.OnDragEnded;
 		// T5-D: al subir TotalXp, la mascota salta (~1.2 s) usando el mismo reloj del diorama.
 		viewModel.CelebrateXp += () => RoomCanvas.Celebrate();
 		// Rechazo de movimiento en el sandbox → rombo rojo fugaz en la celda destino.

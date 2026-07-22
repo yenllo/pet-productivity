@@ -166,43 +166,11 @@ public class RoomDiorama : SKCanvasView
         _ = RoomSprites.EnsureNamedAsync(keys, () => MainThread.BeginInvokeOnMainThread(InvalidateSurface));
     }
 
-    // Perilla global del tamaño de TODOS los muebles. El dueño reportó "los muebles se ven muy grandes
-    // para la habitación" y en el emulador se confirmó (la cama se comía media pieza). En vez de tocar
-    // 20 números a mano, un solo factor los baja en bloque: sube/baja SOLO esto para recalibrar.
-    const float FURN_SCALE = 0.85f;
-
-    // Escala por objeto (compensa el tamaño intrínseco del sprite Bongseng). Clave = base sin vista.
-    static float ModFor(string spriteKey)
-    {
-        var b = spriteKey;
-        foreach (var suf in new[] { "_tl", "_tr", "_l", "_r" })
-            if (b.EndsWith(suf)) { b = b[..^suf.Length]; break; }
-        return FURN_SCALE * b switch
-        {
-            "obj_bed" => 1.6f, "obj_closet" => 1.5f, "obj_tv" => 1.4f, "obj_shelf" => 1.4f,
-            "obj_table" => 1.35f, "obj_cat_tower" => 1.3f, "obj_plant" => 1.25f, "obj_mirror" => 1.2f,
-            "obj_sliding_door" => 1.4f, "obj_window" => 1.3f, "obj_lamp" => 0.8f,
-            // El gato quedaba casi tan alto como la mascota (era 1.05 = mismo orden que un mueble
-            // grande). Es una mascota de adorno, no un ropero: debe leerse claramente más chico.
-            "obj_cat" => 0.6f,
-            "obj_carpet" => 1.5f, "obj_roomba" => 1.0f, "obj_laptop" => 0.9f, "obj_coffee_cup" => 0.55f,
-            "obj_teddybear" => 0.7f, "obj_cushion" => 0.9f, "obj_books" => 0.8f, "obj_box" => 0.9f,
-            "obj_bedside_table" => 0.95f, "obj_chair" => 1.0f,
-            _ => KeywordMod(b)   // objetos importados del pack (nombres largos): inferir por palabra clave
-        };
-    }
-
-    static float KeywordMod(string b)
-    {
-        bool Has(params string[] ks) { foreach (var k in ks) if (b.Contains(k)) return true; return false; }
-        if (Has("bed") && !Has("bedside")) return 1.6f;
-        if (Has("closet", "cupboard", "fridge", "wardrobe", "drawer")) return 1.5f;
-        if (Has("carpet", "rug")) return 1.5f;
-        if (Has("tv", "shelf", "bookshelf", "sliding", "wall", "door", "window")) return 1.4f;
-        if (Has("table", "desk", "sofa", "futon", "oven", "kitchen")) return 1.35f;
-        if (Has("cup", "coffee", "book", "cushion", "teddy", "box", "cookie", "knife")) return 0.75f;
-        return 1.15f;
-    }
+    // Contrato de tamaño (decisión del dueño 2026-07-22): el ancho dibujado ES el ancho iso del
+    // footprint — sin factores por objeto. Antes había mods calibrados a ojo (cama 1.6, closet 1.5…)
+    // que compensaban footprints 1×1 mal declarados: la cama se dibujaba 36% más ancha que sus celdas
+    // y se trepaba al muro. El tamaño ahora se corrige en los DATOS (footprint del catálogo) y el
+    // arte futuro se autorea asumiendo mod 1 (un objeto sub-celda trae su margen en el propio sprite).
 
     void EnsureGrid()
     {
@@ -245,6 +213,12 @@ public class RoomDiorama : SKCanvasView
     // Modo edición: la página se entera de qué celda de piso tocó el usuario (grilla lógica).
     public event Action<int, int>? CellTapped;
 
+    // Arrastre directo (imán a celda): Pressed sobre el lienzo → Started; Moved solo al CRUZAR de
+    // celda (no por pixel); Released tras arrastrar → Ended (y NO CellTapped: sería toggle-deselect).
+    public event Action<int, int>? DragStarted;
+    public event Action<int, int>? DragMoved;
+    public event Action? DragEnded;
+
     // Geometría del último frame (para invertir pantalla→grilla al tocar).
     float _lastScale = 1, _lastOffX, _lastOffY;
 
@@ -257,10 +231,37 @@ public class RoomDiorama : SKCanvasView
         Touch += OnTouch;
     }
 
+    (int X, int Y)? _dragCell;   // última celda notificada durante el gesto actual
+    bool _dragMoved;             // ¿el dedo cruzó a otra celda desde el Pressed?
+
     void OnTouch(object? sender, SKTouchEventArgs e)
     {
-        if (EditMode && e.ActionType == SKTouchAction.Released && TryScreenToGrid(e.Location, out int gx, out int gy))
-            CellTapped?.Invoke(gx, gy);
+        if (EditMode)
+            switch (e.ActionType)
+            {
+                case SKTouchAction.Pressed when TryScreenToGrid(e.Location, out int px, out int py):
+                    _dragCell = (px, py);
+                    _dragMoved = false;
+                    DragStarted?.Invoke(px, py);
+                    break;
+                case SKTouchAction.Moved when _dragCell != null && TryScreenToGrid(e.Location, out int mx, out int my):
+                    if (_dragCell != (mx, my))
+                    {
+                        _dragCell = (mx, my);
+                        _dragMoved = true;
+                        DragMoved?.Invoke(mx, my);
+                    }
+                    break;
+                case SKTouchAction.Released or SKTouchAction.Cancelled or SKTouchAction.Exited:
+                    bool wasDrag = _dragMoved;
+                    _dragCell = null;
+                    _dragMoved = false;
+                    DragEnded?.Invoke();
+                    // Tap = soltar sin haber salido de la celda inicial (el flujo actual intacto).
+                    if (!wasDrag && e.ActionType == SKTouchAction.Released && TryScreenToGrid(e.Location, out int gx, out int gy))
+                        CellTapped?.Invoke(gx, gy);
+                    break;
+            }
         e.Handled = true;
     }
 
@@ -542,7 +543,7 @@ public class RoomDiorama : SKCanvasView
                 if (ws == null) continue;
                 bool right = wp.GridY == 0; // riel derecho = celdas (i,0); la esquina (0,0) es suya
                 var bp = right ? Iso(wp.GridX + 0.5f, 0f) : Iso(0f, wp.GridY + 0.5f);
-                float wW = T_W * ModFor(wp.Sprite) * scale;
+                float wW = T_W * scale; // colgados: 1 celda de riel de ancho (mod 1)
                 float wH = wW * ws.Height / ws.Width;
                 float lift = Math.Max(0f, (WALL_H * scale - wH) / 2f); // centrado vertical en el muro
                 float bottom = bp.Y - lift;
@@ -578,10 +579,8 @@ public class RoomDiorama : SKCanvasView
                 // queda debajo del mueble en vez de asomar por delante de sus pies.
                 var centerPt = Iso(pl.GridX + pl.Def.GridW / 2f, pl.GridY + pl.Def.GridD / 2f);
                 float frontY = Iso(pl.GridX + pl.Def.GridW, pl.GridY + pl.Def.GridD).Y;
-                float mod = ModFor(pl.Def.SpriteName);
-                // Ancho en pantalla de una huella iso W×D ∝ (W+D)/2 (para 1×1 y 2×2 da lo mismo que antes;
-                // permite huellas rectangulares [2,1] sin que se dibujen tan anchas como una 2×2).
-                float wScr = T_W * (pl.Def.GridW + pl.Def.GridD) / 2f * mod * scale;
+                // Ancho en pantalla = ancho exacto del rombo iso W×D: (W+D)/2 · T_W (el sprite llena su huella).
+                float wScr = T_W * (pl.Def.GridW + pl.Def.GridD) / 2f * scale;
                 float hScr = wScr * sprite.Height / sprite.Width;
                 if (pl.Def.GridW == 1 && pl.Def.GridD == 1)
                     SoftShadow(canvas, centerPt.X, centerPt.Y, wScr * 0.30f, hScr * 0.06f, 70, 6);
