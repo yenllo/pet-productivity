@@ -28,5 +28,5 @@ FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# DEBUG TEMPORAL: diagnóstico completo en un solo ciclo.
-ENTRYPOINT ["/bin/sh", "-c", "echo DBG_A_sh_ok; uname -m; dotnet --info; echo DBG_B_launching; ASPNETCORE_HTTP_PORTS=${PORT:-8080} dotnet PetProductivity.Server.dll & PID=$!; sleep 5; kill -0 $PID 2>/dev/null && echo DBG_C_alive_after_5s || echo DBG_C_dead_after_5s; wait $PID; echo DBG_D_exitcode=$?; sleep 25"]
+# DEBUG TEMPORAL: patrón "single exec" (el único que no segfaulteó) — listar env vars.
+ENTRYPOINT ["/bin/sh", "-c", "exec printenv"]
