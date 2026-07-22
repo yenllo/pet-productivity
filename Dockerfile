@@ -23,4 +23,7 @@ RUN dotnet publish -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "PetProductivity.Server.dll"]
+
+# Escucha en $PORT si el host lo define en runtime (Heroku: puerto dinámico por dyno),
+# y cae al 8080 por defecto (Render / local: puerto fijo de la imagen aspnet).
+ENTRYPOINT ["/bin/sh", "-c", "ASPNETCORE_HTTP_PORTS=${PORT:-8080} exec dotnet PetProductivity.Server.dll"]
