@@ -7,6 +7,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using PetProductivity.Server.Services;
 
+// Diagnóstico temporal de arranque en Heroku: capturar cualquier excepción de startup
+// (incluida la del fail-fast) y forzar exit code != 0 con el mensaje visible en los logs.
+Console.WriteLine($"[boot] Program.cs arrancando — PORT={Environment.GetEnvironmentVariable("PORT")} ASPNETCORE_HTTP_PORTS={Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS")}");
+try
+{
+
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
@@ -181,3 +187,10 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine($"[boot] EXCEPCIÓN FATAL: {ex}");
+    Environment.Exit(1);
+}
