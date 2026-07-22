@@ -28,5 +28,6 @@ FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# DEBUG TEMPORAL: patrón "single exec" (el único que no segfaulteó) — listar env vars.
-ENTRYPOINT ["/bin/sh", "-c", "exec printenv"]
+# Escucha en $PORT si el host lo define en runtime (Heroku: puerto dinámico por dyno),
+# y cae al 8080 por defecto (Render / local: puerto fijo de la imagen aspnet).
+ENTRYPOINT ["/bin/sh", "-c", "ASPNETCORE_HTTP_PORTS=${PORT:-8080} exec dotnet PetProductivity.Server.dll"]
