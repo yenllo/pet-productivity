@@ -118,6 +118,8 @@ public class AuthController : ControllerBase
                         GoldCoins = 100
                     }
                 };
+                // Igual que en Register: crear la cuenta = actividad (ancla del escudo de ausencia T3-E).
+                user.LastActivityDate = LocalDay.TodayTokenFor(user);
                 _context.Users.Add(user);
             }
             await _context.SaveChangesAsync();

@@ -16,7 +16,18 @@ public static class DailyStreak
     public static bool Advance(User u, DateTime today)
     {
         var last = u.LastActivityDate?.Date;
-        if (last == today) return false; // hoy ya contó
+        if (last == today)
+        {
+            // "Hoy ya contó" — pero desde 2026-07-22 el registro también estampa LastActivityDate
+            // (ancla del escudo T3-E) SIN arrancar racha. La primera tarea de ese mismo día debe
+            // seguir valiendo racha 1; sin este guard quedaba clavada en 0 hasta el día siguiente.
+            if (u.CurrentStreak == 0)
+            {
+                u.CurrentStreak = 1;
+                u.MaxStreak = Math.Max(u.MaxStreak, 1);
+            }
+            return false;
+        }
 
         bool froze = false;
         if (last == today.AddDays(-1))

@@ -136,6 +136,13 @@ public class UsersController : ControllerBase
             }
         };
 
+        // Crear la cuenta CUENTA como actividad: es el ancla del escudo de ausencia (T3-E). Sin esto,
+        // una cuenta que nunca hizo una tarea tiene LastActivityDate=null → "regla normal" → decae
+        // sin dormirse nunca, y quien instala, mira y vuelve a la semana encuentra la mascota
+        // cristalizada (visto en producción con la cuenta Google del dueño, 2026-07-22). No arranca
+        // racha (eso sigue siendo de la primera tarea — DailyStreak cubre el caso mismo-día).
+        user.LastActivityDate = LocalDay.TodayTokenFor(user);
+
         var passwordHasher = new PasswordHasher<User>();
         user.Password = passwordHasher.HashPassword(user, request.Password);
 

@@ -62,6 +62,45 @@ public class DevController : ControllerBase
         return Ok(new { user.UserPet.Hunger, Condition = user.UserPet.Condition.ToString() });
     }
 
+    // Diagnóstico read-only: estado crudo de una mascota por nombre (reloj de decadencia incluido).
+    // Nació cazando el bug "invitado recién nacido aparece cristalizado" (2026-07-22).
+    [HttpGet("pet-state")]
+    public async Task<IActionResult> PetState([FromQuery] string name)
+    {
+        if (!_env.IsDevelopment()) return NotFound();
+
+        var rows = await _context.Users.Include(u => u.UserPet)
+            .Where(u => u.UserPet != null && u.UserPet.Name == name)
+            .Select(u => new
+            {
+                u.Username, u.Email, u.TimeZoneId, u.LastActivityDate, u.CurrentStreak,
+                Pet = new
+                {
+                    u.UserPet!.Id, u.UserPet.Name, u.UserPet.Hunger, u.UserPet.Health,
+                    u.UserPet.Status, u.UserPet.LastDecayAt, u.UserPet.GracePeriodExpiry,
+                    u.UserPet.TotalXp, u.UserPet.GoldCoins
+                }
+            })
+            .ToListAsync();
+        return Ok(rows);
+    }
+
+    // Contraparte de kill: revive por la vía Fénix (hazaña 9+) y repone el hambre para dejar
+    // una mascota de prueba usable (revivir con hambre 0 la manda de vuelta al cristal).
+    [HttpPost("revive")]
+    public async Task<IActionResult> RevivePet([FromQuery] Guid petId)
+    {
+        if (!_env.IsDevelopment()) return NotFound();
+
+        var pet = await _context.Pets.FindAsync(petId);
+        if (pet == null) return NotFound("Pet not found");
+
+        if (!pet.TryRevive(Pet.ReviveDifficulty)) return BadRequest("La mascota no está cristalizada.");
+        pet.Hunger = 100;
+        await _context.SaveChangesAsync();
+        return Ok(new { pet.Name, pet.Status, pet.Health, pet.Hunger });
+    }
+
     [HttpPost("kill")]
     public async Task<IActionResult> KillPet([FromQuery] Guid userId)
     {
