@@ -175,7 +175,7 @@
                 <VerticalStackLayout>
                     <VerticalStackLayout Padding="15,12" Spacing="4">
                         <Label Text="{loc:T 'URL del servidor'}" TextColor="{StaticResource Ink}" FontSize="14.5" />
-                        <Entry Text="{Binding ServerUrl}" Placeholder="https://petproductivity.onrender.com"
+                        <Entry Text="{Binding ServerUrl}" Placeholder="https://pet-productivity-c03ac5654dd2.herokuapp.com"
                                TextColor="{StaticResource Ink2}" PlaceholderColor="{StaticResource Ink4}" FontSize="13" />
                     </VerticalStackLayout>
                     <BoxView HeightRequest="1" Color="{StaticResource StrokeSoft}" />

@@ -178,7 +178,7 @@ Todo esto se usó para verificar Fases 0–5. El objetivo: poder repetir sin red
 ## Despliegue y secretos (NO van al repo)
 - **Render** redeploya solo al hacer `git push origin main`. El **código** del push va en el repo, pero las **credenciales NO**: hay que ponerlas como **env vars / Secret Files en Render**. Lista completa en `DEPLOY.md`. Imprescindibles: `Jwt__Key`/`Jwt__Issuer` (sin esto el server no arranca por el fail-fast) y, para push, `Firebase__ProjectId` + Secret File `firebase-service-account.json` con `Firebase__ServiceAccountPath=/etc/secrets/firebase-service-account.json`.
 - **Local**: secretos del server en `dotnet user-secrets` (Supabase, Gemini, Google, Jwt, Firebase). Service account en `C:\Users\renzo\.secrets\firebase-service-account.json` (FUERA del repo). `google-services.json` en `Platforms/Android/` (gitignored). El selector Node.js/Java/… de Firebase solo cambia el ejemplo de código: la "clave privada" JSON es la misma.
-- `Constants.BaseUrl` = `https://petproductivity.onrender.com` (producción, default). Para dev local cambiar en Ajustes → Dirección del Servidor.
+- `Constants.BaseUrl` = `https://pet-productivity-c03ac5654dd2.herokuapp.com` (producción, default; migrado de Render a Heroku 2026-07-22/23). Para dev local cambiar en Ajustes → Dirección del Servidor.
 
 ## Cómo avanzar con Claude Code
 Empieza cada fase pidiéndole un **plan de la fase** (qué archivos toca y en qué orden) y dale el visto bueno antes de que edite. Una fase no se cierra hasta que **algo corre y se verifica** (build verde no basta: las pruebas reales destaparon bugs que el build no veía). No saltes de fase sin cerrar la anterior.

@@ -14,7 +14,7 @@ Este documento define la estrategia para correr el cliente .NET MAUI en el emula
 
 ## 3. Configuración del Servidor Objetivo
 El cliente `.NET MAUI` necesita saber a qué servidor conectarse.
-- **Producción (Por defecto)**: `https://petproductivity.onrender.com`. Esto está codificado en `PetProductivity.Shared/Constants.cs`.
+- **Producción (Por defecto)**: `https://pet-productivity-c03ac5654dd2.herokuapp.com` (Heroku, desde 2026-07-22/23). Esto está codificado en `PetProductivity.Shared/Constants.cs`.
 - **Localhost (Desarrollo local)**: Si necesitas probar el servidor local de ASP.NET Core, deberás cambiar la constante o usar el menú de ajustes internos de la app para apuntar a `http://10.0.2.2:5051` (donde `10.0.2.2` es el alias que usa el emulador Android para referirse a tu propia computadora `localhost`).
 
 ## 4. El Flujo de Envío de Updates (El Ciclo de Iteración)

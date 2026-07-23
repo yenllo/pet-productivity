@@ -13,12 +13,12 @@ App de productividad gamificada. El usuario describe en lenguaje natural una tar
 | Modelos compartidos | Class library .NET 10 | `PetProductivity.Shared` |
 | Base de datos | **PostgreSQL** (alojado en **Supabase**) vía Npgsql | — |
 | IA | **Google Gemini** (API en la nube) con fallback heurístico | `GeminiAiService` |
-| Despliegue | Dockerfile (solo el servidor) → `petproductivity.onrender.com` (Render) | — |
+| Despliegue | Dockerfile (solo el servidor) → Heroku (`pet-productivity-c03ac5654dd2.herokuapp.com`), autodeploy on push desde `main` | — |
 
 NO es Android nativo ni Kotlin ni C++. El `.sln` es de Visual Studio porque así vive el ecosistema .NET. MAUI es el sucesor de Xamarin. Migrado de .NET 8 a **.NET 10** en junio 2026 (Dockerfile en `sdk:10.0`/`aspnet:10.0`; breaks resueltos: Swashbuckle→OpenAPI nativo, SkiaSharp 4.x, Plugin.Firebase 4.x).
 
 ## Decisiones de arquitectura (ya tomadas y ya reflejadas en el código — no las reabras)
-1. **Backend central en la nube (Render) = única fuente de verdad.** Se abandonó el modelo "Home Base" (teléfono → PC casero).
+1. **Backend central en la nube = única fuente de verdad.** Se abandonó el modelo "Home Base" (teléfono → PC casero). Migrado de Render a **Heroku** el 2026-07-22/23 (Render queda decomisionado, ver [[heroku-migracion-dyno-crash]] en memoria).
 2. **La IA (el "Tasador") corre en el servidor** llamando a una API de modelo alojada (hoy Gemini). No reintroducir Ollama/PC local como requisito.
 3. **BD = PostgreSQL/Supabase.** El "SQLite" del DESIGN.md está obsoleto; quedan restos (`pet_prod.db`, comentarios "for SQLite") que son basura a limpiar.
 4. **Tiempo real con SignalR** (salud compartida, semáforo, Frenesí por grupo) — `FamilyHub` en `/hubs/family`, `PresenceService` (por grupo, en memoria), Frenesí dinámico ×2; cliente `RealtimeService`. **Auth (Fase 5):** el hub va `[Authorize]` con el token por `access_token` (query). **Ojo:** la presencia se carga al conectar; si creas/te unes a una familia ya conectado, el cliente debe llamar `RefreshGroups()` (ya lo hace tras `StartAsync`).
@@ -27,7 +27,7 @@ NO es Android nativo ni Kotlin ni C++. El `.sln` es de Visual Studio porque así
 6. **Mascota personal = neutra + especie cosmética.** La personal NO usa arquetipo especializado; progresa con hábitos cotidianos (4 dimensiones: Cuerpo/Mente/Hogar/Bienestar) y su apariencia es 1 de 3 especies aleatorias (`Pet.Species` = Sprout/Ember/Aqua, asignada server-side). Los arquetipos especializados son para mascotas de **grupo** (Fase 3). **Registro diferido:** invitado primero (sin muro de login), login después "reclama" la cuenta vía `UpgradeAccount`.
 
 ## ✅ Estado a junio 2026 — Fases 0–5 CERRADAS (verificado en EMULADOR y TELÉFONO REAL contra Render)
-> Fase 5 cerrada: **auth de sesión JWT** (el userId sale del token, no del body; `[Authorize]` en todos los controllers + `FamilyHub`; SignalR por `access_token`), **rate-limit** del endpoint de IA (10/min), **push FCM real** (notificación de Frenesí con app en segundo plano, verificada en teléfono real), **fail-fast de config**, y **primeros tests** (xUnit, 12 verdes). Detalle y **métodos de simulación/pruebas reproducibles** en `ROADMAP.md`. Package de la app: **`yenllo.org.PetProductivity`** (Firebase). Render está **al día** (se redeploya con `git push`).
+> Fase 5 cerrada: **auth de sesión JWT** (el userId sale del token, no del body; `[Authorize]` en todos los controllers + `FamilyHub`; SignalR por `access_token`), **rate-limit** del endpoint de IA (10/min), **push FCM real** (notificación de Frenesí con app en segundo plano, verificada en teléfono real), **fail-fast de config**, y **primeros tests** (xUnit, 12 verdes). Detalle y **métodos de simulación/pruebas reproducibles** en `ROADMAP.md`. Package de la app: **`yenllo.org.PetProductivity`** (Firebase). Producción es **Heroku** desde el 2026-07-22/23 (autodeploy desde `main`); Render decomisionado.
 
 Lo que antes eran bloqueadores 🔴 ya está resuelto:
 - **Secretos:** fuera del repo (user-secrets); Supabase y Gemini **rotadas** por el dueño; `appsettings.json` solo con placeholders. (El historial de Git tiene las viejas, pero ya no sirven por la rotación. La rotación sigue siendo tarea del dueño, no del agente.)
@@ -71,6 +71,6 @@ Bucle completo tarea→IA real→recompensa→evolución (todo **autenticado por
 - Servidor (loop local): `dotnet run --project src/PetProductivity.Server --launch-profile http` → `http://0.0.0.0:5051` (HTTP puro, Development). Hace `Migrate()` al arrancar.
 - Cliente Android: `dotnet build src/PetProductivity.Client/PetProductivity.Client.csproj -f net10.0-android -t:Run` (tras reiniciar el PC añadir `-p:AndroidSdkDirectory="C:\Users\renzo\AppData\Local\Android\Sdk"`)
 - Emulador (evitar crash de GPU): `& "C:\Users\renzo\AppData\Local\Android\Sdk\emulator\emulator.exe" -avd medium_phone -no-snapshot-load -gpu swiftshader_indirect`
-- **Apuntar el cliente al server local:** app → Ajustes → Dirección del Servidor → `http://10.0.2.2:5051` → reiniciar app (el default es Render/producción).
+- **Apuntar el cliente al server local:** app → Ajustes → Dirección del Servidor → `http://10.0.2.2:5051` → reiniciar app (el default es Heroku/producción).
 - Migraciones EF: `dotnet ef migrations add <Nombre> --project src/PetProductivity.Server/PetProductivity.Server.csproj` (se aplican solas al arrancar el server).
 - Logs en vivo: `adb logcat -s ANTIGRAVITY ANTIGRAVITY_CRASH` · crash a archivo: `adb shell run-as yenllo.org.PetProductivity cat files/crash.txt` (package: `yenllo.org.PetProductivity`)
