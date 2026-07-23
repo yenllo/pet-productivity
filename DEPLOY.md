@@ -25,7 +25,8 @@ vive en el repo: en local se usan **user-secrets**, en Heroku **config vars** (`
 | `Jwt__Key` | `Jwt:Key` | Firmado de tokens de sesión (rotada en el cutover, 2026-07-22) | ✅ requerida |
 | `Jwt__Issuer` | `Jwt:Issuer` | Emisor de tokens (`petproductivity`) | ✅ requerida |
 | `Firebase__ProjectId` | `Firebase:ProjectId` | Envío de push (FCM) | ✅ requerida |
-| `Firebase__ServiceAccountJson` | `Firebase:ServiceAccountJson` | Credencial del servidor para FCM (contenido completo del JSON) | ✅ requerida |
+| `Firebase__ServiceAccountJson` | `Firebase:ServiceAccountJson` | Credencial del servidor para FCM (contenido completo del JSON, **no** un path — un `Firebase__ServiceAccountPath` no sirve en Heroku, no hay filesystem persistente) | ✅ requerida |
+| `Sentry__Dsn` | `Sentry:Dsn` | Observabilidad (T15) | opcional, sin ella el SDK queda apagado |
 
 ## Notas
 - **Google Cloud Console** → el OAuth client debe tener registrado el redirect URI exacto:
