@@ -6,10 +6,10 @@
              xmlns:loc="clr-namespace:PetProductivity.Client.Services"
              x:Class="PetProductivity.Client.Controls.InfoOverlay"
              IsVisible="False">
-    <Grid>
-        <BoxView Color="{DynamicResource Scrim}">
-            <BoxView.GestureRecognizers><TapGestureRecognizer Tapped="OnDismiss"/></BoxView.GestureRecognizers>
-        </BoxView>
+    <!-- El velo va en el BackgroundColor del Grid (patrón TaskPage): un BoxView translúcido
+         pinta sobre una base gris opaca en Android y tapa la página. -->
+    <Grid BackgroundColor="{StaticResource Scrim}">
+        <Grid.GestureRecognizers><TapGestureRecognizer Tapped="OnDismiss"/></Grid.GestureRecognizers>
         <Border x:Name="Card" Style="{StaticResource Card}" Stroke="#59FF5F8F" StrokeThickness="2"
                 VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
             <VerticalStackLayout Spacing="12">
