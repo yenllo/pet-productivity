@@ -32,6 +32,7 @@ public class AuthService
     public async Task<bool> EnsureGuestOrLoggedInAsync()
     {
         if (IsLoggedIn) return true;
+        PurgeLegacyCredentials(); // A1: borra credenciales en claro de instalaciones pre-T14-C0
         await TokenStore.EnsureLoadedAsync();
 
         // 1) Sesión por token guardado (Google o cualquier login previo): el handler adjunta el Bearer
@@ -52,27 +53,10 @@ public class AuthService
                     return false; // server enfermo: sesión intacta, se reintenta después
             }
             catch { return false; } // sin red: sesión intacta, se reintenta después
-            if (CurrentUser != null)
-            {
-                await MigrateLegacyCredentialsAsync();
-                return true;
-            }
+            if (CurrentUser != null) return true;
         }
 
-        // 2) SOLO migración de sesiones viejas (pre-C0): si quedaron credenciales guardadas de una
-        //    versión anterior, un último login las convierte en refresh token y se BORRAN del disco.
-        //    Las sesiones nuevas persisten por refresh token; la contraseña ya no se guarda (A1).
-        var savedEmail = Preferences.Get("SavedEmail", string.Empty);
-        var savedPassword = Preferences.Get("SavedPassword", string.Empty);
-        if (!string.IsNullOrEmpty(savedEmail) && !string.IsNullOrEmpty(savedPassword))
-        {
-            var user = await LoginAsync(savedEmail, savedPassword);
-            Preferences.Remove("SavedEmail");
-            Preferences.Remove("SavedPassword");
-            if (user != null) return true;
-        }
-
-        // 3) Sin sesión: crear cuenta de invitado.
+        // 2) Sin sesión: crear cuenta de invitado.
         var guestId = Guid.NewGuid().ToString("N").Substring(0, 8);
         var guestEmail = $"guest_{guestId}@petproductivity.local";
         var guestPassword = Guid.NewGuid().ToString();
@@ -82,31 +66,14 @@ public class AuthService
         return newUser != null;
     }
 
-    // T14-C0/A1: sesiones legadas (token de 30 días de Preferences, sin refresh token) traen la
-    // contraseña guardada en claro. Mientras el token viejo siga vivo, un re-login one-shot la
-    // convierte en refresh token y la BORRA del disco. Si el login falla (rate-limit, server caído),
-    // las credenciales se conservan para reintentar en la próxima apertura — son la única red de
-    // seguridad del invitado legado hasta que tenga refresh token.
-    private async Task MigrateLegacyCredentialsAsync()
+    // A1: hasta T14-C0 (2026-07-09) la contraseña se guardaba en claro en Preferences (XML sin cifrar,
+    // legible con root/ADB). Ya nadie las escribe, pero una instalación vieja que nunca volvió a abrir
+    // la app las sigue teniendo en disco. Se borran incondicionalmente al arrancar: no se usan para
+    // re-loguear (eso era mantener viva la ruta insegura). Quien quede sin sesión inicia sesión a mano.
+    public static void PurgeLegacyCredentials()
     {
-        var savedEmail = Preferences.Get("SavedEmail", string.Empty);
-        var savedPassword = Preferences.Get("SavedPassword", string.Empty);
-        if (string.IsNullOrEmpty(savedEmail) && string.IsNullOrEmpty(savedPassword)) return;
-
-        if (!string.IsNullOrEmpty(TokenStore.RefreshToken))
-        {
-            // Ya hay sesión moderna: las credenciales viejas sobran.
-            Preferences.Remove("SavedEmail");
-            Preferences.Remove("SavedPassword");
-            return;
-        }
-
-        if (!string.IsNullOrEmpty(savedEmail) && !string.IsNullOrEmpty(savedPassword) &&
-            await LoginAsync(savedEmail, savedPassword) != null)
-        {
-            Preferences.Remove("SavedEmail");
-            Preferences.Remove("SavedPassword");
-        }
+        Preferences.Remove("SavedEmail");
+        Preferences.Remove("SavedPassword");
     }
 
     public async Task<User?> LoginAsync(string email, string password)
@@ -216,8 +183,6 @@ public class AuthService
                 var auth = await resp.Content.ReadFromJsonAsync<AuthResponse>();
                 if (auth == null) return (null, false);
                 await StoreSessionAsync(auth);
-                Preferences.Remove("SavedEmail");
-                Preferences.Remove("SavedPassword");
                 return (CurrentUser, false);
             }
         }
@@ -239,8 +204,6 @@ public class AuthService
 
         CurrentUser = null;
         await TokenStore.ClearAsync();
-        Preferences.Remove("SavedEmail");
-        Preferences.Remove("SavedPassword");
         Preferences.Remove("GoogleUserId");
         return true;
     }
@@ -254,8 +217,6 @@ public class AuthService
 
         CurrentUser = null;
         _ = TokenStore.ClearAsync();
-        Preferences.Remove("SavedEmail");
-        Preferences.Remove("SavedPassword");
         Preferences.Remove("GoogleUserId");
     }
 }

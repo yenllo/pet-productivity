@@ -150,8 +150,11 @@ public class FocusController : ControllerBase
         byte[] bytes;
         try { bytes = Convert.FromBase64String(r.ImageBase64); } catch { return BadRequest("Imagen inválida"); }
         if (bytes.Length > 2 * 1024 * 1024) return BadRequest("Imagen demasiado grande (máx. 2 MB).");
-        // Whitelist de MIME: no almacenar/servir tipos arbitrarios (p.ej. text/html → XSS al servir la foto).
-        var mime = r.MimeType is "image/jpeg" or "image/png" ? r.MimeType : "image/jpeg";
+        // El MIME lo declara el cliente, o sea el atacante: no sirve como whitelist por sí solo. El tipo
+        // real se deduce de los magic bytes, y GetProof lo devuelve en el Content-Type — así no se puede
+        // guardar un HTML diciendo "image/jpeg" y que luego el navegador lo ejecute al servirlo (XSS).
+        var mime = SniffImageMime(bytes);
+        if (mime == null) return BadRequest("El archivo no es una imagen JPEG o PNG válida.");
 
         bool plausible = true; // beneficio de la duda si la IA falla (bonus: no castiga por error de IA)
         try
@@ -307,6 +310,15 @@ public class FocusController : ControllerBase
         var gfs = await _db.GroupFocusSessions.FirstOrDefaultAsync(s => s.GroupId == groupId);
         if (gfs == null) return Ok(new ActiveGroupFocus { Active = false });
         return Ok(new ActiveGroupFocus { Active = true, GroupFocusId = gfs.Id, StartedAt = gfs.StartedAt, TargetMinutes = gfs.TargetMinutes, PetId = gfs.PetId, Topic = gfs.Topic, Joined = gfs.Participants.Contains(uid) });
+    }
+
+    // Tipo real por magic bytes (JPEG: FF D8 FF · PNG: 89 50 4E 47 0D 0A 1A 0A). null = no es imagen.
+    private static string? SniffImageMime(byte[] b)
+    {
+        if (b.Length >= 3 && b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF) return "image/jpeg";
+        if (b.Length >= 8 && b[0] == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47
+            && b[4] == 0x0D && b[5] == 0x0A && b[6] == 0x1A && b[7] == 0x0A) return "image/png";
+        return null;
     }
 
     private static bool ParsePlausible(string raw)

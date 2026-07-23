@@ -31,6 +31,15 @@ foreach (var key in new[] { "ConnectionStrings:DefaultConnection", "Gemini:ApiKe
 if (System.Text.Encoding.UTF8.GetByteCount(builder.Configuration["Jwt:Key"]!) < 32)
     throw new InvalidOperationException("Jwt:Key debe tener al menos 32 bytes (256 bits) de entropía.");
 
+// El login con Google no es crítico para arrancar (la app funciona con email/contraseña), así que
+// no va en el fail-fast. Pero sin estas claves falla silenciosamente con ?error=config en cada intento
+// — que es justo el síntoma de un config var olvidado tras mudarse de proveedor. Mejor gritarlo al boot.
+foreach (var key in new[] { "Google:ClientId", "Google:ClientSecret", "Google:RedirectUri" })
+{
+    if (string.IsNullOrWhiteSpace(builder.Configuration[key]))
+        Console.WriteLine($"[boot][WARN] Falta '{key}': el login con Google devolverá error=config.");
+}
+
 // Add services to the container.
 // OpenAPI nativo de .NET (Microsoft.AspNetCore.OpenApi); spec en /openapi/v1.json (solo Development).
 builder.Services.AddOpenApi();
@@ -68,19 +77,47 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
-// Tras el proxy de Render, RemoteIpAddress sería la IP del proxy (un solo bucket para todos). Con esto,
-// .NET lee la IP real del cliente del X-Forwarded-For que añade Render → el rate-limit por IP tiene sentido.
+// Tras el proxy de Heroku, RemoteIpAddress sería la IP del router (un solo bucket para todos). Con esto,
+// .NET lee la IP real del cliente del X-Forwarded-For que añade Heroku → el rate-limit por IP tiene sentido.
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownIPNetworks.Clear(); // Render es el único proxy de confianza
+    // Listas vacías = se confía en cualquier upstream. Es correcto aquí porque el dyno solo es
+    // alcanzable a través del router de Heroku, nunca directo desde internet.
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
+
+// Sin esto, UseHttpsRedirection es un NO-OP silencioso en Heroku: el dyno solo escucha HTTP (el TLS lo
+// termina el router), así que .NET no puede deducir el puerto https, avisa por log y deja pasar la
+// petición en claro. Verificado el 2026-07-23 contra producción: POST http://.../api/users/login
+// devolvía 401 (o sea, la contraseña viajó sin cifrar y el server la leyó). Fijando el puerto, el
+// middleware ve X-Forwarded-Proto: http y responde 307 al equivalente https.
+// Solo fuera de Development: en local el loop de desarrollo es HTTP puro (http://0.0.0.0:5051) y
+// redirigir a 443 lo rompería.
+if (!builder.Environment.IsDevelopment())
+    builder.Services.AddHttpsRedirection(o => o.HttpsPort = 443);
 
 // Rate-limit de endpoints caros/sensibles.
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Techo global por usuario (del token; fallback a IP). Las políticas nombradas de abajo son más
+    // estrictas y se aplican ADEMÁS de esta en sus endpoints; esto solo cubre todo lo que no tiene
+    // política propia (tienda, grupos, foco, OAuth) para que nada quede sin freno ante abuso.
+    // 120/min es holgado para uso normal (la app no hace polling agresivo) y corta scripts.
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var uid = httpContext.User.GetUserId();
+        var key = uid != Guid.Empty ? uid.ToString() : (httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon");
+        return RateLimitPartition.GetFixedWindowLimiter("global:" + key, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 120,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
     // IA: 10 tareas/min por usuario (del token; fallback a IP).
     options.AddPolicy("ai", httpContext =>
     {
@@ -165,6 +202,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseResponseCompression(); // antes de los endpoints: comprime el JSON del catálogo y del usuario
+if (!app.Environment.IsDevelopment())
+    app.UseHsts(); // el redirect 301 sigue siendo interceptable la primera vez; HSTS fija https en el cliente
 app.UseHttpsRedirection();
 app.UseStaticFiles(); // T14-C1: /privacidad.html (política de privacidad para Play Console)
 
