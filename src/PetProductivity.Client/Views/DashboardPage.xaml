@@ -473,7 +473,7 @@
         <!-- T27-L2 (#14): selector de estado con estilo del app (reemplaza el Picker recortado) -->
         <Grid Grid.RowSpan="4" IsVisible="{Binding ShowStatusPicker}" ZIndex="111" BackgroundColor="{StaticResource Scrim}">
             <Grid.GestureRecognizers><TapGestureRecognizer Command="{Binding CloseStatusPickerCommand}"/></Grid.GestureRecognizers>
-            <Border x:Name="StatusCard" Style="{StaticResource Card}" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
+            <Border x:Name="StatusCard" Style="{StaticResource ModalCard}" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
                 <VerticalStackLayout Spacing="8">
                     <Label Text="{loc:T 'Tu estado'}" Style="{StaticResource DisplayTitle}" FontSize="18" HorizontalOptions="Center" Margin="0,0,0,4"/>
                     <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Padding="14,13">
@@ -499,7 +499,7 @@
         <!-- T27-L2 (#12): renombrar hábito con input del estilo del app (reemplaza DisplayPromptAsync) -->
         <Grid Grid.RowSpan="4" IsVisible="{Binding ShowRitualPrompt}" ZIndex="112" BackgroundColor="{StaticResource Scrim}">
             <Grid.GestureRecognizers><TapGestureRecognizer Command="{Binding CancelRitualPromptCommand}"/></Grid.GestureRecognizers>
-            <Border x:Name="RitualPromptCard" Style="{StaticResource Card}" Stroke="#59FF5F8F" StrokeThickness="2" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
+            <Border x:Name="RitualPromptCard" Style="{StaticResource ModalCard}" Stroke="#59FF5F8F" StrokeThickness="2" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
                 <VerticalStackLayout Spacing="14">
                     <Label Text="{loc:T 'Nombra este hábito'}" Style="{StaticResource DisplayTitle}" FontSize="18" HorizontalOptions="Center"/>
                     <Border StrokeThickness="1" Stroke="{StaticResource StrokeSoft}" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Padding="12,2">
@@ -520,7 +520,7 @@
 
         <!-- T31-2: onboarding de primera vez (3 tarjetas). Fondo SIN tap-cierra: se avanza con el botón. -->
         <Grid Grid.RowSpan="4" IsVisible="{Binding ShowOnboarding}" ZIndex="115" BackgroundColor="{StaticResource Scrim}">
-            <Border x:Name="OnboardCard" Style="{StaticResource Card}" Stroke="#59FF5F8F" StrokeThickness="2"
+            <Border x:Name="OnboardCard" Style="{StaticResource ModalCard}" Stroke="#59FF5F8F" StrokeThickness="2"
                     VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="20">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="{Binding OnboardingTitle}" Style="{StaticResource DisplayTitle}" FontSize="19"

@@ -13,12 +13,15 @@ public partial class CreateGroupViewModel : ObservableObject
     [ObservableProperty] private int selectedArchetypeIndex;
     [ObservableProperty] private double maxMembers = 4;
 
+    public record ArchetypeOption(string Emoji, string Name);
+
     // Índices alineados con IndexToArchetype. Neutral queda excluido (es solo personal).
-    // L.T(...): sin esto, con el idioma en inglés esta lista se veía en español en medio de una
-    // pantalla ya traducida (encontrado navegando "Nueva familia" en el emulador).
-    public List<string> Archetypes { get; } = new()
+    // Emoji = placeholder hasta tener una mascota real por arquetipo (a futuro).
+    public List<ArchetypeOption> ArchetypeOptions { get; } = new()
     {
-        L.T("Estudio"), L.T("Tecnología"), L.T("Creativo"), L.T("Atlético"), L.T("Ejecutivo"), L.T("Hogar (pareja)"), L.T("Gremio")
+        new("📚", L.T("Estudio")), new("💻", L.T("Tecnología")), new("🎨", L.T("Creativo")),
+        new("🏃", L.T("Atlético")), new("💼", L.T("Ejecutivo")), new("🏠", L.T("Hogar (pareja)")),
+        new("⚔️", L.T("Gremio")),
     };
 
     public CreateGroupViewModel(GroupService groups) => _groups = groups;

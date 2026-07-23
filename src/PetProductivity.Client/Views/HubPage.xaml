@@ -72,7 +72,7 @@
     <!-- T27-L2 (#12): código de grupo con input del estilo del app (reemplaza DisplayPromptAsync) -->
     <Grid IsVisible="{Binding ShowJoinPrompt}" BackgroundColor="{StaticResource Scrim}">
         <Grid.GestureRecognizers><TapGestureRecognizer Command="{Binding CancelJoinPromptCommand}"/></Grid.GestureRecognizers>
-        <Border x:Name="JoinCard" Style="{StaticResource Card}" Stroke="#59FF5F8F" StrokeThickness="2" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
+        <Border x:Name="JoinCard" Style="{StaticResource ModalCard}" Stroke="#59FF5F8F" StrokeThickness="2" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="300" Padding="18">
             <VerticalStackLayout Spacing="14">
                 <Label Text="{loc:T 'Unirse por código'}" Style="{StaticResource DisplayTitle}" FontSize="18" HorizontalOptions="Center"/>
                 <Border StrokeThickness="1" Stroke="{StaticResource StrokeSoft}" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Padding="12,2">

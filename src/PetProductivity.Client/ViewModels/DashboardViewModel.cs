@@ -424,9 +424,10 @@ public partial class DashboardViewModel : ObservableObject
             var (w, d) = cat != null && (cat.GridW > 1 || cat.GridD > 1)
                 ? (cat.GridW, cat.GridD)
                 : GameDataService.FootprintFor(item.Sprite); // fallback: Freebies y catálogo sin footprint
-            var cell = GameDataService.FindFreeCell(_editList, w, d);
+            bool isRug = cat?.Slot == "rug";
+            var cell = GameDataService.FindFreeCell(_editList, w, d, floorDecor: isRug);
             if (cell == null) { await Toast.Make(L.T("No hay espacio: mueve o quita algo primero.")).Show(); return; }
-            _editList.Add(new PlacedFurniture { Name = item.Name, Sprite = item.Sprite, GridX = cell.Value.x, GridY = cell.Value.y, GridW = w, GridD = d });
+            _editList.Add(new PlacedFurniture { Name = item.Name, Sprite = item.Sprite, GridX = cell.Value.x, GridY = cell.Value.y, GridW = w, GridD = d, IsFloorDecor = isRug });
         }
         Placements = new List<PlacedFurniture>(_editList);
         Select(_editList.Count - 1);
@@ -528,7 +529,7 @@ public partial class DashboardViewModel : ObservableObject
             return;
         }
         int nx = Math.Clamp(gx, 0, 6 - p.GridW), ny = Math.Clamp(gy, 0, 6 - p.GridD);
-        if (!GameDataService.CanPlace(_editList, nx, ny, p.GridW, p.GridD, ignore: p))
+        if (!GameDataService.CanPlace(_editList, nx, ny, p.GridW, p.GridD, ignore: p, floorDecor: p.IsFloorDecor))
         {
             if (_dragging) return; // drag: sin Toast/flash por cada celda inválida cruzada
             // Antes fallaba en silencio: si chocaba con la celda de la mascota (3,3, sin ningún mueble
@@ -563,7 +564,7 @@ public partial class DashboardViewModel : ObservableObject
         // Girar entre vistas _l/_r = orientación perpendicular: la huella W×D se intercambia
         // (no-op en huellas cuadradas). Si girado no cabe, se avisa y no se rota.
         int nw = p.GridD, nd = p.GridW;
-        if (!GameDataService.CanPlace(_editList, p.GridX, p.GridY, nw, nd, ignore: p))
+        if (!GameDataService.CanPlace(_editList, p.GridX, p.GridY, nw, nd, ignore: p, floorDecor: p.IsFloorDecor))
         {
             _ = Toast.Make(L.T("No cabe girado ahí: muévelo primero.")).Show();
             InvalidMove?.Invoke(p.GridX, p.GridY, nw, nd);

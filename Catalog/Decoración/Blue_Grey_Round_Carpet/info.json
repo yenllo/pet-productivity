@@ -3,6 +3,7 @@
   "price": 120,
   "description": "",
   "category": "Decoración",
+  "slot": "rug",
   "rarity": "Common",
   "currency": "Gold",
   "spriteId": "obj_blue_grey_round_carpet_l",

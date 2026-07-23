@@ -12,4 +12,7 @@ public class PlacedFurniture
     public int GridD { get; set; } = 1;
     // true = colgado en un riel de pared (celda de borde trasero); no ocupa piso. JSON viejo → false.
     public bool OnWall { get; set; }
+    // true = decoración de piso (alfombra): no bloquea ni es bloqueada por otros objetos, y se
+    // dibuja siempre debajo. JSON viejo → false (se sigue tratando como mueble normal).
+    public bool IsFloorDecor { get; set; }
 }

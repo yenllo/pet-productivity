@@ -476,6 +476,20 @@
         </Setter>
     </Style>
 
+    <!-- Tarjeta modal: mismo look que Card pero OPACA (no "glass"). Card se diseñó para vivir sobre
+         el fondo oscuro sólido de la app; esta es para flotar sobre contenido dinámico (Scrim +
+         cuarto/tienda/dashboard detrás) donde el glass casi transparente hacía ilegible el texto. -->
+    <Style TargetType="Border" x:Key="ModalCard">
+        <Setter Property="BackgroundColor" Value="{DynamicResource MokoBg2}" />
+        <Setter Property="Stroke" Value="{DynamicResource StrokeSoft}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+        <Setter Property="Padding" Value="14" />
+        <Setter Property="Shadow">
+            <Shadow Brush="#000000" Offset="0,5" Radius="13" Opacity="0.38" />
+        </Setter>
+    </Style>
+
     <!-- Chip / pastilla -->
     <Style TargetType="Border" x:Key="Chip">
         <Setter Property="BackgroundColor" Value="{DynamicResource Glass}" />

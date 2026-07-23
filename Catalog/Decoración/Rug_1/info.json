@@ -3,6 +3,7 @@
   "price": 140,
   "description": "",
   "category": "Decoración",
+  "slot": "rug",
   "rarity": "Common",
   "currency": "Gold",
   "spriteId": "obj_rug_1",

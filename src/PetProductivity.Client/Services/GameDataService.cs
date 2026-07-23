@@ -481,9 +481,10 @@ public class GameDataService
         }
         var (w, d) = (item.GridW, item.GridD);
         if (w == 1 && d == 1) (w, d) = FootprintFor(item.SpriteId); // ponytail: fallback legado (catálogo sin footprint)
-        var cell = FindFreeCell(placed, w, d);
+        bool isRug = item.Slot == "rug";
+        var cell = FindFreeCell(placed, w, d, floorDecor: isRug);
         if (cell == null) return false; // sin espacio libre
-        placed.Add(new PlacedFurniture { Name = item.Name, Sprite = item.SpriteId, GridX = cell.Value.x, GridY = cell.Value.y, GridW = w, GridD = d });
+        placed.Add(new PlacedFurniture { Name = item.Name, Sprite = item.SpriteId, GridX = cell.Value.x, GridY = cell.Value.y, GridW = w, GridD = d, IsFloorDecor = isRug });
         await SavePlacementsAsync(placed);
         return true;
     }
@@ -497,15 +498,18 @@ public class GameDataService
     public static bool OverlapsPetTile(int x, int y, int w, int d) => x <= 3 && 3 < x + w && y <= 3 && 3 < y + d;
 
     // ¿Cabe un footprint WxD en (x,y) sin pisar otro mueble ni el centro (3,3) de la mascota?
-    // `ignore` = el propio mueble cuando se está moviendo.
-    public static bool CanPlace(IReadOnlyList<PlacedFurniture> placed, int x, int y, int w, int d, PlacedFurniture? ignore = null)
+    // `ignore` = el propio mueble cuando se está moviendo. `floorDecor` = el ítem que se está
+    // colocando es una alfombra: no choca contra muebles (va siempre debajo) ni contra la mascota.
+    public static bool CanPlace(IReadOnlyList<PlacedFurniture> placed, int x, int y, int w, int d, PlacedFurniture? ignore = null, bool floorDecor = false)
     {
         const int N = 6;
         if (x < 0 || y < 0 || x + w > N || y + d > N) return false;
-        if (OverlapsPetTile(x, y, w, d)) return false;
+        if (!floorDecor && OverlapsPetTile(x, y, w, d)) return false;
         foreach (var p in placed)
         {
-            if (ReferenceEquals(p, ignore) || p.OnWall) continue; // lo colgado no ocupa piso
+            // Lo colgado no ocupa piso; una alfombra existente no bloquea nada, y colocar una
+            // alfombra tampoco choca contra los muebles ya puestos (se mete debajo).
+            if (ReferenceEquals(p, ignore) || p.OnWall || p.IsFloorDecor || floorDecor) continue;
             if (x < p.GridX + p.GridW && p.GridX < x + w && y < p.GridY + p.GridD && p.GridY < y + d)
                 return false;
         }
@@ -513,12 +517,12 @@ public class GameDataService
     }
 
     // Busca la primera celda libre (6x6) para un footprint WxD, dejando el tile central (3,3) para la mascota.
-    public static (int x, int y)? FindFreeCell(IReadOnlyList<PlacedFurniture> placed, int w, int d)
+    public static (int x, int y)? FindFreeCell(IReadOnlyList<PlacedFurniture> placed, int w, int d, bool floorDecor = false)
     {
         const int N = 6;
         for (int y = 0; y <= N - d; y++)
             for (int x = 0; x <= N - w; x++)
-                if (CanPlace(placed, x, y, w, d)) return (x, y);
+                if (CanPlace(placed, x, y, w, d, floorDecor: floorDecor)) return (x, y);
         return null;
     }
 

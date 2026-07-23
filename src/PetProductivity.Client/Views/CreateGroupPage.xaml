@@ -23,9 +23,19 @@
 
             <VerticalStackLayout Spacing="6">
                 <Label Text="{loc:T 'Contexto (arquetipo)'}" Style="{StaticResource Caption}"/>
-                <Border StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource Glass2}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" Padding="14,0">
-                    <Picker ItemsSource="{Binding Archetypes}" SelectedIndex="{Binding SelectedArchetypeIndex}" TextColor="{StaticResource Ink}"/>
-                </Border>
+                <!-- Emoji placeholder por arquetipo hasta tener una mascota real por arquetipo (a futuro). -->
+                <CarouselView ItemsSource="{Binding ArchetypeOptions}" Position="{Binding SelectedArchetypeIndex}"
+                              PeekAreaInsets="40" HeightRequest="130" Loop="False">
+                    <CarouselView.ItemTemplate>
+                        <DataTemplate>
+                            <VerticalStackLayout Spacing="4" VerticalOptions="Center">
+                                <Label Text="{Binding Emoji}" FontSize="56" HorizontalOptions="Center"/>
+                                <Label Text="{Binding Name}" TextColor="{StaticResource Ink}" FontSize="15"
+                                       HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </CarouselView.ItemTemplate>
+                </CarouselView>
             </VerticalStackLayout>
 
             <Label Text="{Binding MaxMembers, Converter={StaticResource LocFmt}, ConverterParameter='Máximo de miembros: {0:0}'}" TextColor="{StaticResource Ink}"/>

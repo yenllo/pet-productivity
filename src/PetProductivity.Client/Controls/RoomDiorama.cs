@@ -183,8 +183,10 @@ public class RoomDiorama : SKCanvasView
         if (placed != null && placed.Count > 0)
         {
             // Los colgados (OnWall) NO entran a la grilla de piso: si ocuparan la celda, el mueble de piso
-            // legítimo en esa misma celda dejaría de dibujarse (TryPlace falla en silencio).
-            foreach (var p in placed.Where(p => !p.OnWall))
+            // legítimo en esa misma celda dejaría de dibujarse (TryPlace falla en silencio). Las alfombras
+            // (IsFloorDecor) TAMPOCO entran: se dibujan aparte (pasada 1.8) y comparten celda a propósito
+            // con lo que esté encima — si entraran aquí, ese mueble caería en el mismo silencio.
+            foreach (var p in placed.Where(p => !p.OnWall && !p.IsFloorDecor))
                 _grid.TryPlace(new FurnitureDef(p.Sprite, Math.Max(1, p.GridW), Math.Max(1, p.GridD), p.Sprite), p.GridX, p.GridY);
             return;
         }
@@ -558,6 +560,31 @@ public class RoomDiorama : SKCanvasView
                 }
                 canvas.DrawImage(ws, new SKRect(bp.X - wW / 2f, bottom - wH, bp.X + wW / 2f, bottom),
                                  PixelSampling, wallSel ? GhostPaint : null);
+            }
+
+        // 1.8) Decoración de piso (alfombras): SIEMPRE debajo de cualquier mueble, sin importar el orden
+        // por profundidad — por eso van en su propia pasada y ni entran a _grid (no colisionan con nada).
+        if (Placements != null)
+            foreach (var p in Placements)
+            {
+                if (!p.IsFloorDecor) continue;
+                var rugSprite = RoomSprites.Get(p.Sprite);
+                if (rugSprite == null) continue;
+                int gw = Math.Max(1, p.GridW), gd = Math.Max(1, p.GridD);
+                var rugCenter = Iso(p.GridX + gw / 2f, p.GridY + gd / 2f);
+                float rugFrontY = Iso(p.GridX + gw, p.GridY + gd).Y;
+                float rugWScr = T_W * (gw + gd) / 2f * scale;
+                float rugHScr = rugWScr * rugSprite.Height / rugSprite.Width;
+                bool rugSelected = EditMode && Highlight is { Wall: false } rh && rh.X == p.GridX && rh.Y == p.GridY;
+                if (rugSelected)
+                {
+                    using var fp = new SKPaint { IsAntialias = true, Color = new SKColor(0x3D, 0xDC, 0x97, 88) };
+                    using var fpPath = Quad(Iso(p.GridX, p.GridY), Iso(p.GridX + gw, p.GridY),
+                                            Iso(p.GridX + gw, p.GridY + gd), Iso(p.GridX, p.GridY + gd));
+                    canvas.DrawPath(fpPath, fp);
+                }
+                canvas.DrawImage(rugSprite, new SKRect(rugCenter.X - rugWScr / 2f, rugFrontY - rugHScr, rugCenter.X + rugWScr / 2f, rugFrontY),
+                                 PixelSampling, rugSelected ? GhostPaint : null);
             }
 
         // 2) Muebles (back-to-front), anclados por borde inferior-centro al vértice frontal de su footprint.
