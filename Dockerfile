@@ -30,4 +30,10 @@ COPY --from=build /app/publish .
 
 # Escucha en $PORT si el host lo define en runtime (Heroku: puerto dinámico por dyno),
 # y cae al 8080 por defecto (Render / local: puerto fijo de la imagen aspnet).
-ENTRYPOINT ["/bin/sh", "-c", "ASPNETCORE_HTTP_PORTS=${PORT:-8080} exec dotnet PetProductivity.Server.dll"]
+#
+# ENTRYPOINT = script de un solo argumento, NO ["/bin/sh", "-c", "..."]: Heroku re-envuelve el
+# comando del dyno en su propio `sh -c` y el string del -c pierde las comillas → sh ejecutaba solo
+# la asignación ASPNETCORE_HTTP_PORTS=... y salía con exit 0 sin output (el crash silencioso del
+# 2026-07-22). Un único token no puede ser re-partido. En Docker puro (Render/local) es equivalente.
+RUN printf '#!/bin/sh\nexport ASPNETCORE_HTTP_PORTS="${PORT:-8080}"\nexec dotnet /app/PetProductivity.Server.dll\n' > /app/start.sh && chmod +x /app/start.sh
+ENTRYPOINT ["/app/start.sh"]
