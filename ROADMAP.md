@@ -40,7 +40,7 @@ Se implementa en la Fase 3.
 ## Fases
 
 ### Fase 0 — Saneamiento y seguridad (BLOQUEANTE, primero)
-- [x] **[lo hace el dueño en los paneles]** Rotar la contraseña de Supabase y regenerar la API key de Gemini. (Ambas rotadas ✅)
+- [ ] **[lo hace el dueño en los paneles]** Rotar la contraseña de Supabase y regenerar la API key de Gemini. **NO HECHO** (confirmado por el dueño el 2026-07-23; antes este punto decía "ambas rotadas ✅", lo cual era falso). Ambas siguen **vivas** y en claro en el historial del repo **privado** (`archive-privado`, commits `29a3092`/`5cb601d`/`6151282`, 2025-12-13). El repo **público está limpio** (verificado 2026-07-23): la exposición exige acceso al repo privado. El dueño decidió posponerlo hasta la subida a Play Store.
 - [x] Sacar los secretos del repo → user-secrets / variables de entorno. `appsettings.json` sin credenciales. (Completado con dotnet user-secrets ✅)
 - [x] `.gitignore` correcto + `git rm --cached` de toda la basura (`cmdline-tools/`, `logs/`, `*.log`, `crash_*`, `pet_prod.db`, etc.).
 - [x] Hash de contraseñas (ASP.NET Identity o hash+sal). Fin del login por igualdad en texto plano. (`PasswordHasher<User>` con verificación + fallback de migración de legados ✅)

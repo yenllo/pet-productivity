@@ -2,8 +2,8 @@
 
 PetProductivity se empezó el **5 de diciembre de 2025** y se desarrolló en un repositorio
 privado. Este repositorio público es una republicación limpia de ese trabajo: el historial
-original no se puede publicar porque sus commits contienen (a) credenciales antiguas —ya
-rotadas— de Supabase y Gemini, y (b) sprites con licencia que prohíbe su redistribución.
+original no se puede publicar porque sus commits contienen (a) credenciales de Supabase y
+Gemini, y (b) sprites con licencia que prohíbe su redistribución.
 
 Abajo está el registro real de commits, para que la cronología del proyecto sea verificable.
 
